@@ -1,50 +1,27 @@
-import styled, { css } from "@emotion/native";
-import { ThemeProvider } from "@emotion/react";
-
-const theme = {
-  color: "hotpink",
-  backgroundColor: "purple",
-};
-const emotionLogo =
-  "https://cdn.rawgit.com/emotion-js/emotion/main/emotion.png";
+import { View, Pressable, Text, StyleSheet } from "react-native";
+import { router } from "expo-router";
 
 export default function Home() {
   return (
-    <ThemeProvider theme={theme}>
-      <Container
-        style={css`
-          border-radius: 10px;
-        `}
-      >
-        <Description style={{ fontSize: 45, fontWeight: "bold" }}>
-          Emotion Primitives
-        </Description>
-        <Image
-          source={{
-            uri: emotionLogo,
-            height: 150,
-            width: 150,
-          }}
-        />
-      </Container>
-    </ThemeProvider>
+    <View>
+      <Text>Home page</Text>
+      <Pressable onPress={() => router.push("/newGame")}>
+        <Text style={styles.text}>New Game</Text>
+      </Pressable>
+      <Pressable onPress={() => router.push("/settings")}>
+        <Text style={styles.text}>Settings</Text>
+      </Pressable>
+      <Pressable onPress={() => router.push("/about")}>
+        <Text style={styles.text}>About</Text>
+      </Pressable>
+    </View>
   );
 }
-const Container = styled.View`
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  /* margin: 50px; */
-  border: 5px solid red;
-  background-color: ${(props) => props.theme.backgroundColor};
-  padding: 10%;
-`;
-const Description = styled.Text({
-  textAlign: "center",
-  color: "hotpink",
+const styles = StyleSheet.create({
+  text: {
+    fontFamily: "KronaOne_400Regular",
+    fontSize: 20, // Встановіть розмір шрифту за бажанням
+    // Додайте інші властивості стилів, якщо потрібно
+  },
+  // Можете визначити додаткові стилі для інших компонентів тут
 });
-const Image = styled.Image`
-  padding: 40px;
-`;
