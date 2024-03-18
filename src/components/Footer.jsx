@@ -4,7 +4,16 @@ import React from "react";
 export default function Footer() {
   return (
     <View>
-      <Text>Foottteeerrr</Text>
+      <Text
+        style={{
+          fontFamily: "Mariupol-Bold",
+          fontSize: 20,
+          fontStyle: "italic",
+          color: "orangered",
+        }}
+      >
+        Foottteeerrr
+      </Text>
     </View>
   );
 }

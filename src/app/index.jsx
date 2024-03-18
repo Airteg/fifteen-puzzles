@@ -4,7 +4,9 @@ import { router } from "expo-router";
 export default function Home() {
   return (
     <View>
-      <Text>Home page</Text>
+      <Text style={{ fontFamily: "Mariupol-Bold", fontSize: 30 }}>
+        Home page
+      </Text>
       <Pressable onPress={() => router.push("/newGame")}>
         <Text style={styles.text}>New Game</Text>
       </Pressable>
