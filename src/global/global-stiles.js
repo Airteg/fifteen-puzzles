@@ -1,15 +1,21 @@
+import { css } from "@emotion/native";
 import { Dimensions } from "react-native";
 
-const window = Dimensions.get("window");
-console.log("🚀 ~ window:", window);
-const screen = Dimensions.get("screen");
-console.log("🚀 ~ screen:", screen);
+const windowDimensions = Dimensions.get("window");
+const windowHeight = windowDimensions.height;
+const windowWidth = windowDimensions.width;
 
 export const globalStyles = {
-  container: {
-    padding: 0,
-    margin: 0,
-    backgroundColor: "skyblue",
-    flex: 1,
-  },
+  container: css`
+    margin: 0;
+    background-color: skyblue;
+    flex: 1;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border: solid red 5px;
+    box-sizing: border-box;
+  `,
 };
+
+export const hw = (h) => Math.round((h * windowHeight) / 844);

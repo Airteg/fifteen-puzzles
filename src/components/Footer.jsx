@@ -1,9 +1,10 @@
 import { View, Text } from "react-native";
 import React from "react";
+import styled from "@emotion/native";
 
 export default function Footer() {
   return (
-    <View>
+    <ContainerFooter>
       <Text
         style={{
           fontFamily: "Mariupol-Bold",
@@ -14,6 +15,12 @@ export default function Footer() {
       >
         Foottteeerrr
       </Text>
-    </View>
+    </ContainerFooter>
   );
 }
+
+const ContainerFooter = styled.View`
+  display: flex;
+  flex-direction: row;
+  border: 1px solid teal;
+`;

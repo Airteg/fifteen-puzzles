@@ -1,10 +1,12 @@
 import { View, Pressable, Text, StyleSheet } from "react-native";
 import { router } from "expo-router";
+import styled from "@emotion/native";
+import Flex from "./flex.jsx";
 
 export default function Home() {
   return (
-    <View>
-      <Text style={{ fontFamily: "Mariupol-Bold", fontSize: 30 }}>
+    <ContainerHome>
+      {/* <Text style={{ fontFamily: "Mariupol-Bold", fontSize: 30 }}>
         Home page
       </Text>
       <Pressable onPress={() => router.push("/newGame")}>
@@ -15,10 +17,18 @@ export default function Home() {
       </Pressable>
       <Pressable onPress={() => router.push("/about")}>
         <Text style={styles.text}>About</Text>
-      </Pressable>
-    </View>
+      </Pressable> */}
+      <Flex />
+      {/* <OtheFlex /> */}
+    </ContainerHome>
   );
 }
+
+const ContainerHome = styled.View`
+  border: 5px solid purple;
+  flex: 1 1 auto;
+`;
+
 const styles = StyleSheet.create({
   text: {
     fontFamily: "KronaOne_400Regular",
