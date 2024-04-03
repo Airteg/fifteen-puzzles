@@ -1,6 +1,7 @@
 import { View, Text } from "react-native";
 import React from "react";
 import styled from "@emotion/native";
+import { hw } from "../global/global-stiles.js";
 
 export default function Footer() {
   return (
@@ -8,9 +9,8 @@ export default function Footer() {
       <Text
         style={{
           fontFamily: "Mariupol-Bold",
-          fontSize: 20,
-          fontStyle: "italic",
-          color: "orangered",
+          fontSize: hw(16),
+          color: "#216169",
         }}
       >
         Foottteeerrr

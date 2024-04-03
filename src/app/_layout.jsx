@@ -18,7 +18,7 @@ export default function Layout() {
   // console.log("🚀 ~ Layout scale:", scale);
   console.log("🚀 ~ Layout width:", width);
   console.log("🚀 ~ Layout height:", height);
-  // console.log("🚀 ~ globalStyles:", globalStyles);
+  console.log("🚀 ~ globalStyles:", globalStyles);
 
   let [fontsLoaded] = useFonts({
     KronaOne_400Regular,
