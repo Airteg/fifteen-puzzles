@@ -9,7 +9,7 @@ export default function Footer() {
       <Text
         style={{
           fontFamily: "Mariupol-Bold",
-          fontSize: hw(16),
+          fontSize: parseInt(hw(16), 10),
           color: "#216169",
         }}
       >
@@ -22,5 +22,6 @@ export default function Footer() {
 const ContainerFooter = styled.View`
   display: flex;
   flex-direction: row;
-  border: 1px solid teal;
+  /* border: 1px solid teal; */
+  height: ${hw(22)}px;
 `;
