@@ -1,13 +1,15 @@
 import { View, Text, Image, StyleSheet } from "react-native";
 import React from "react";
-import logo from "../assets/logo/Logo60x60.png";
+import Logo from "../assets/png/LogoSizeS.png";
 import { hw } from "../global/global-stiles.js";
 
 export default function Header() {
   let a = 44;
   return (
     <View style={headerStyles.container}>
-      <Image source={logo} style={{}} />
+      <View style={headerStyles.logoCont}>
+        <Image source={Logo} style={{ width: "100%", height: "100%" }} />
+      </View>
       <View style={headerStyles.textCont}>
         <Text style={headerStyles.title}>FIFTEEN TILES</Text>
         <Text style={headerStyles.fsDescription}>A classic game</Text>
@@ -22,6 +24,7 @@ const headerStyles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    paddingHorizontal: "5%",
   },
   textCont: {
     display: "flex",
@@ -42,5 +45,9 @@ const headerStyles = StyleSheet.create({
   image: {
     width: hw(60),
     height: hw(60),
+  },
+  logoCont: {
+    width: hw(80),
+    height: hw(80),
   },
 });

@@ -8,6 +8,7 @@ const windowWidth = windowDimensions.width;
 export const globalStyles = {
   container: css`
     margin: 0;
+    padding: 0;
     background-color: skyblue;
     flex: 1;
     display: flex;
