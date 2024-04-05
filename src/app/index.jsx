@@ -3,17 +3,14 @@ import { router } from "expo-router";
 import styled from "@emotion/native";
 import Flex from "./flex.jsx";
 import ButtonStyled from "../components/elements/ButtonStyled.jsx";
-import Shadow from "../components/elements/Shadow.jsx";
 
 export default function Home() {
   return (
     <ContainerHome>
-      {/* <Text style={{ fontFamily: "Mariupol-Bold", fontSize: 30 }}>
-        Home page
-      </Text>
+      <Text style={{ fontFamily: "Mariupol-Bold", fontSize: 30 }}>MENU</Text>
       <ButtonStyled text="New Game" />
       <ButtonStyled text="Setting" />
-      <ButtonStyled text="About" /> */}
+      <ButtonStyled text="About" />
     </ContainerHome>
   );
 }

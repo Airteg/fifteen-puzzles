@@ -4,9 +4,14 @@ import { Dimensions } from "react-native";
 const windowDimensions = Dimensions.get("window");
 const windowHeight = windowDimensions.height;
 const windowWidth = windowDimensions.width;
-
+//Висота вікна, текст
 export const hw = (h) => Math.round((h * windowHeight) / 844).toString();
+//Ширина вікна, текст
 export const ww = (w) => Math.round((w * windowWidth) / 390).toString();
+//Висота вікна, число
+export const hwN = (h) => Math.round((h * windowHeight) / 844);
+//Ширина вікна, число
+export const wwN = (w) => Math.round((w * windowWidth) / 390);
 export const globalStyles = {
   container: css`
     margin: 0;
