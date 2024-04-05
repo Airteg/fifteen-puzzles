@@ -6,15 +6,8 @@ import { hw } from "../global/global-stiles.js";
 export default function Footer() {
   return (
     <ContainerFooter>
-      <Text
-        style={{
-          fontFamily: "Mariupol-Bold",
-          fontSize: parseInt(hw(16), 10),
-          color: "#216169",
-        }}
-      >
-        Foottteeerrr
-      </Text>
+      <TextCont>Privacy Policy</TextCont>
+      <TextCont>User Agreement</TextCont>
     </ContainerFooter>
   );
 }
@@ -22,6 +15,13 @@ export default function Footer() {
 const ContainerFooter = styled.View`
   display: flex;
   flex-direction: row;
+  justify-content: space-between;
   /* border: 1px solid teal; */
   height: ${hw(22)}px;
+`;
+const TextCont = styled.Text`
+  font-family: "Mariupol-Bold";
+  font-size: ${hw(16)}px;
+  text-align: right;
+  color: #216169;
 `;

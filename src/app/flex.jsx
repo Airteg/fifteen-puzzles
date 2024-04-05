@@ -17,7 +17,7 @@ export default function Flex() {
 }
 
 const Cont = styled.View`
-  border: solid red 3px;
+  /* border: solid red 3px; */
   /* flex-grow: 1; */
 
   display: flex;
