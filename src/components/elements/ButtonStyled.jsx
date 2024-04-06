@@ -1,5 +1,6 @@
 import { View, Text, Pressable } from "react-native";
 import React, { useState } from "react";
+import { router } from "expo-router";
 import styled from "@emotion/native";
 import {
   Shadow,
@@ -13,7 +14,7 @@ import {
 } from "@shopify/react-native-skia";
 import { hw, hwN, wwN } from "../../global/global-stiles.js";
 
-export default function ButtonStyled({ size = "long", text = "" }) {
+export default function ButtonStyled({ size = "long", text = "", onPress }) {
   const [longPressActivated, setLongPressActivated] = useState(false);
   const kh = hwN(10),
     kw = wwN(10);
@@ -23,6 +24,7 @@ export default function ButtonStyled({ size = "long", text = "" }) {
   return (
     <Pressable
       size={size}
+      onPress={() => onPress()}
       onLongPress={() => setLongPressActivated(true)}
       onPressOut={() => setLongPressActivated(false)}
     >
@@ -40,7 +42,7 @@ export default function ButtonStyled({ size = "long", text = "" }) {
                 left: 0,
               }}
             >
-              <Fill color={"#00000000"} />
+              <Fill color={"#ff000000"} />
               <Box
                 box={rrect(
                   rect(kw, kh, width - kw * 2, height - kh * 2),
@@ -52,8 +54,6 @@ export default function ButtonStyled({ size = "long", text = "" }) {
                 strokeWidth={3}
               >
                 <BoxShadow dx={0} dy={0} blur={6} color="#00000011" />
-                {/* <BoxShadow dx={-20} dy={-20} blur={61} color="#FFFFFF40" /> */}
-                {/* <BoxShadow dx={13} dy={14} blur={12} color="#A6B4C850" /> */}
               </Box>
               <Box
                 box={rrect(
@@ -65,8 +65,6 @@ export default function ButtonStyled({ size = "long", text = "" }) {
                 style="fill" // Бордер зверху
               >
                 <BoxShadow dx={0} dy={0} blur={5} color="#00000032" inner />
-                {/* <BoxShadow dx={-20} dy={-20} blur={61} color="#A6B4C899" inner /> */}
-                {/* <BoxShadow dx={13} dy={14} blur={12} color="#A6B4C850" inner /> */}
               </Box>
             </Canvas>
             <NameButton>{text} </NameButton>

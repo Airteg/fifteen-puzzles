@@ -54,7 +54,7 @@ export default function Layout() {
 }
 
 const InnerContainer = styled.View`
-  border: solid blue 2px;
+  /* border: solid blue 2px; */
   width: 100%;
   height: 100%;
   display: flex;

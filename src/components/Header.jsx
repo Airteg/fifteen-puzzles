@@ -5,7 +5,6 @@ import Logo from "../assets/png/LogoSizeS.png";
 import { hw } from "../global/global-stiles.js";
 
 export default function Header() {
-  let a = 44;
   return (
     <Container>
       <LogoCont>
