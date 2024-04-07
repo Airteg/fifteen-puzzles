@@ -9,7 +9,7 @@ export default function MenuContainer() {
   const height = hwN(302);
   return (
     <Wrapper>
-      <TextSiled>MENU</TextSiled>
+      <TextStyled>MENU</TextStyled>
       <CanvasWrapper height={height}>
         <BottonsWrapperBack height={height} />
         <ButtonsWrapper height={height}>
@@ -45,7 +45,7 @@ const ButtonsWrapper = styled.View`
   justify-content: space-between;
   align-items: center;
 `;
-const TextSiled = styled.Text`
+const TextStyled = styled.Text`
   font-family: "Mariupol-Bold";
   font-size: 30px;
   margin-bottom: 30px;
