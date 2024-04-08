@@ -4,6 +4,7 @@ import { Canvas, Fill, Rect } from "@shopify/react-native-skia";
 import { useState } from "react";
 import { hw } from "../global/global-stiles.js";
 import Smile from "../components/elements/canvas/smile.js";
+import Logo from "../components/elements/canvas/logo.js";
 
 const sizeobj = (e) => e.nativeEvent.layout;
 
@@ -21,7 +22,8 @@ export default function NewGame() {
         }}
       >
         <Fill color="greenyellow" />
-        <Smile />
+        {/* <Smile /> */}
+        <Logo />
       </Canvas>
     </ContainerNewGame>
   );
