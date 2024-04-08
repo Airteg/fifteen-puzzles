@@ -1,21 +1,4 @@
-import { View, Text } from "react-native";
-import React from "react";
-import {
-  Box,
-  Circle,
-  Group,
-  Line,
-  Paint,
-  Path,
-  Shadow,
-  circle,
-  rect,
-  rrect,
-  scale,
-  translate,
-  vec,
-} from "@shopify/react-native-skia";
-import { wwN } from "../../../global/global-stiles.js";
+import { Group, Path, Shadow } from "@shopify/react-native-skia";
 
 export default function Smile({ cx = 10, cy = 10, scale = 1 }) {
   return (
@@ -35,6 +18,7 @@ export default function Smile({ cx = 10, cy = 10, scale = 1 }) {
       >
         <Shadow dx={0} dy={0} blur={5} color="#80909290" inner />
       </Path>
+      {/* ------ Елементи обличчя ------ */}
       {/* Посмішка */}
       <Path
         color="#000"
@@ -97,8 +81,6 @@ export default function Smile({ cx = 10, cy = 10, scale = 1 }) {
         style="fill"
         path="M 58.9 44.8 A 3.4 3.4 0 1 0 65.7 44.8 A 3.4 3.4 0 1 0 58.9 44.8"
       />
-
-      {/* ------ Елементи обличчя ------ */}
     </Group>
   );
 }
