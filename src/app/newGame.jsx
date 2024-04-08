@@ -9,6 +9,7 @@ const sizeobj = (e) => e.nativeEvent.layout;
 
 export default function NewGame() {
   const [size, setSize] = useState({ width: 0, height: 0 });
+  console.log("🚀 ~ size:", size);
   let { width, height } = size;
   return (
     <ContainerNewGame>
@@ -20,19 +21,16 @@ export default function NewGame() {
         }}
       >
         <Fill color="greenyellow" />
-        <Smile cx={100} cy={100} />
+        <Smile />
       </Canvas>
     </ContainerNewGame>
   );
 }
 
-const Container = styled.View`
-  /* border: 1px solid lightsalmon; */
-  width: 200px;
-  height: 251px;
-`;
 const ContainerNewGame = styled.View`
-  /* border: 2px solid purple; */
+  border: 2px solid purple;
   flex: 1 1 auto;
-  padding-top: ${hw(30)}px;
+  /* padding-top: ${hw(30)}px; */
+  /* width: 150px;
+  height: 150px; */
 `;

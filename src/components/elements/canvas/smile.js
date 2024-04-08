@@ -4,56 +4,91 @@ import {
   Box,
   Circle,
   Group,
+  Line,
   Paint,
+  Path,
   Shadow,
   circle,
   rect,
   rrect,
+  scale,
+  translate,
   vec,
 } from "@shopify/react-native-skia";
 import { wwN } from "../../../global/global-stiles.js";
 
-export default function Smile({ cx = 0, cy = 0 }) {
-  const x = cx - 44,
-    y = cy - 44;
-
-  const width = 256;
-  const height = 256;
-  const strokeWidth = 10;
-  const c = vec(width / 2, height / 2);
-  const r = (width - strokeWidth) / 2;
-
+export default function Smile({ cx = 10, cy = 10, scale = 1 }) {
   return (
-    <Group>
-      {/* Овал обличчя */}
-      <Circle cx={cx} cy={cy} r={88} color="#FAFF3F">
-        <Shadow dx={0} dy={4} blur={4} color="#00000019" />
-      </Circle>
-      <Circle cx={cx} cy={cy} r={88 - 6} color="#FAFF3F">
-        <Shadow dx={0} dy={0} blur={10} color="#80909249" inner />
-      </Circle>
-      {/* Ліве око */}
-      <Group>
-        <Circle cx={x + 30.56 - 7.335} cy={y + 22.12} r={14.67} color="#fff">
-          <Shadow dx={4} dy={4} blur={4} color="#71D4EB" inner />
-        </Circle>
-        <Circle cx={x + 30.56 - 7.335} cy={y + 22.12} r={14.67} color="#fff">
-          <Shadow dx={4} dy={4} blur={4} color="#71D4EB" inner />
-        </Circle>
-      </Group>
+    <Group transform={[{ scale: 2 }, { translateX: cx }, { translateY: cy }]}>
+      {/* ------ Овал обличчя ------ */}
+      <Path
+        color="#000"
+        style="stroke"
+        path="M 0 44 A 44 44 0 1 0 88 44 A 44 44 0 1 0 0 44 "
+      ></Path>
+      <Path
+        color="#000"
+        style="stroke"
+        path="M 1.5 44 A 42.5 42.5 0 1 0 86.5 44 A 42.5 42.5 0 1 0 1.5 44 "
+      ></Path>
+
+      <Path
+        color="#000"
+        style="stroke"
+        path="M 49.7 69.5 C 41.7 72.3 24.9 73.1 21.8 54.1 "
+      ></Path>
+
+      <Path
+        color="#000"
+        style="stroke"
+        path="M 20.4 20.9 C 23.3 15.7 33.1 11.5 39.8 15.9 "
+      ></Path>
+      <Path
+        color="#000"
+        style="stroke"
+        path="M 66.3 29.6 C 73.1 31.1 77.5 38.4 76.3 45.1 "
+      ></Path>
+      <Path
+        color="#000"
+        style="stroke"
+        path="M 54.7 45.4 A 7.3 7.3 0 1 0 69.4 45.4 A 7.3 7.3 0 1 0 54.7 45.4 "
+      ></Path>
+      <Path
+        color="#000"
+        style="stroke"
+        path="M 55.2 45.4 A 6.8 6.8 0 1 0 68.9 45.4 A 6.8 6.8 0 1 0 55.2 45.4 "
+      ></Path>
+      <Path
+        color="#000"
+        style="stroke"
+        path="M 26.3 32 A 7.3 7.3 0 1 0 41 32 A 7.3 7.3 0 1 0 26.3 32 "
+      ></Path>
+      <Path
+        color="#000"
+        style="stroke"
+        path="M 26.8 32 A 6.8 6.8 0 1 0 40.5 32 A 6.8 6.8 0 1 0 26.8 32 "
+      ></Path>
+      <Path
+        color="#000"
+        style="stroke"
+        path="M 30.7 31.1 A 3.4 3.4 0 1 0 37.5 31.1 A 3.4 3.4 0 1 0 30.7 31.1 "
+      ></Path>
+
+      <Path
+        color="#000"
+        style="stroke"
+        path="M 58.9 44.8 A 3.4 3.4 0 1 0 65.7 44.8 A 3.4 3.4 0 1 0 58.9 44.8"
+      />
+
+      {/* ------ Елементи обличчя ------ */}
+
       {/* Праве око */}
-      <Circle cx={x + 30.56 - 7.335} cy={y + 22.12} r={14.67} color="#fff">
-        <Shadow dx={4} dy={4} blur={4} color="#71D4EB" inner />
-      </Circle>
-      <Circle cx={x + 30.56 - 7.335} cy={y + 22.12} r={14.67} color="#fff">
-        <Shadow dx={4} dy={4} blur={4} color="#71D4EB" inner />
-      </Circle>
+
       {/* Ліва брова */}
-      <Group></Group>
+
       {/* Права брова */}
-      <Group></Group>
+
       {/* Посмішка */}
-      <Group></Group>
     </Group>
   );
 }
