@@ -5,6 +5,7 @@ import { useState } from "react";
 import { hw } from "../global/global-stiles.js";
 import Smile from "../components/elements/canvas/smile.js";
 import Logo from "../components/elements/canvas/logo.js";
+import TileBack from "../components/elements/canvas/tile_back.js";
 
 const sizeobj = (e) => e.nativeEvent.layout;
 
@@ -23,7 +24,8 @@ export default function NewGame() {
       >
         <Fill color="greenyellow" />
         {/* <Smile /> */}
-        <Logo />
+        {/* <Logo /> */}
+        <TileBack />
       </Canvas>
     </ContainerNewGame>
   );
