@@ -1,15 +1,22 @@
 import { View, Text, Image } from "react-native";
 import React from "react";
 import styled from "@emotion/native";
-import Logo from "../assets/png/LogoSizeS.png";
-import { hw } from "../global/global-stiles.js";
+
+import { hw, hwN } from "../global/global-stiles.js";
+import CanvasContainer from "./elements/canvas/canvasContainer.jsx";
+import Logo from "./elements/canvas/logo.js";
 
 export default function Header() {
   return (
     <Container>
-      <LogoCont>
-        <Image source={Logo} style={{ width: "100%", height: "100%" }} />
-      </LogoCont>
+      {/* <LogoCont> */}
+      <CanvasContainer
+        width={hwN(80)}
+        height={hwN(80)}
+        canvasElement={<Logo scale={1} />}
+      ></CanvasContainer>
+      {/* <Image source={Logo} style={{ width: "100%", height: "100%" }} /> */}
+      {/* </LogoCont> */}
       <TextCont>
         <Title>FIFTEEN TILES</Title>
         <Description>A classic game</Description>

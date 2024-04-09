@@ -1,15 +1,20 @@
 import React, { useState } from "react";
 import { View, Text } from "react-native";
-import { Canvas, Fill } from "@shopify/react-native-skia";
+import { Canvas, Fill, Group } from "@shopify/react-native-skia";
 import styled from "@emotion/native";
 
 const sizeObj = (e) => e.nativeEvent.layout;
 
-export default function CanvasContainer({ canvasElement, children }) {
+export default function CanvasContainer({
+  canvasElement,
+  children,
+  width,
+  height,
+}) {
   const [size, setSize] = useState({ width: 0, height: 0 });
-  console.log("CanvasContainer", CanvasContainer);
+
   return (
-    <ContainerCanvas>
+    <ContainerCanvas style={{ width, height }}>
       <Canvas
         style={{ position: "absolute", flex: 1 }}
         onLayout={(e) => {
@@ -18,7 +23,7 @@ export default function CanvasContainer({ canvasElement, children }) {
         }}
       >
         <Fill color="greenyellow" />
-        {canvasElement}
+        <Group size={size}>{canvasElement}</Group>
       </Canvas>
       {children}
     </ContainerCanvas>
@@ -26,5 +31,4 @@ export default function CanvasContainer({ canvasElement, children }) {
 }
 const ContainerCanvas = styled.View`
   border: 2px solid purple;
-  flex: 1 1 auto;
 `;
