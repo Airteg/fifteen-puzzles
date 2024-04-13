@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View } from "react-native";
 import { Canvas, Fill, FitBox, rect } from "@shopify/react-native-skia";
-import styled, { css } from "@emotion/native";
+import styled from "@emotion/native";
 
 export default function CanvasContainer({
   canvasElement,
