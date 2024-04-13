@@ -1,5 +1,4 @@
 import {
-  BlurMask,
   Group,
   LinearGradient,
   Path,
@@ -7,7 +6,15 @@ import {
   vec,
 } from "@shopify/react-native-skia";
 
-export default function Logo({ cx = 0, cy = 0, scale = 1.5 }) {
+// розмір, розрахований вручну
+export const dim = { width: 179.5, height: 179.5 };
+export default function Logo({
+  cx = 0,
+  cy = 0,
+  scale = 1,
+  width = 179.5,
+  height = 179.5,
+}) {
   return (
     <Group transform={[{ scale }, { translateX: cx }, { translateY: cy }]}>
       {/* Зовнішній квадрат */}

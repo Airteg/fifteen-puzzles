@@ -1,40 +1,39 @@
 import { View } from "react-native";
 import styled from "@emotion/native";
-import { Canvas, Fill, Rect } from "@shopify/react-native-skia";
-import { useState } from "react";
-import { hw } from "../global/global-stiles.js";
-import Smile from "../components/elements/canvas/smile.js";
-import Logo from "../components/elements/canvas/logo.js";
-import TileBack from "../components/elements/canvas/tile_back.js";
-
-const sizeobj = (e) => e.nativeEvent.layout;
+import { Canvas, Fill, FitBox, rect } from "@shopify/react-native-skia";
+import CanvasContainer from "../components/elements/canvas/canvasContainer.jsx";
+import Logo, {
+  dim as dimensionsLogo,
+} from "../components/elements/canvas/logo.js";
+import Test from "../components/elements/canvas/test.js";
 
 export default function NewGame() {
-  const [size, setSize] = useState({ width: 0, height: 0 });
-  console.log("🚀 ~ size:", size);
-  let { width, height } = size;
+  const { width, height } = dimensionsLogo;
+  console.log("🚀 ~ height:", height);
+  console.log("🚀 ~ width:", width);
+  const CanvasFitComponent = () => {
+    return (
+      <Canvas style={{ flex: 1 }}>
+        <Fill color="lime" />
+        <FitBox
+          src={rect(0, 0, width, height)}
+          dst={rect(0, 0, 50, 50)}
+          // fit="fill"
+        >
+          <Logo />
+        </FitBox>
+      </Canvas>
+    );
+  };
+
   return (
     <ContainerNewGame>
-      <Canvas
-        style={{ flex: 1 }}
-        onLayout={(e) => {
-          const { width, height } = e.nativeEvent.layout;
-          setSize({ width, height });
-        }}
-      >
-        <Fill color="greenyellow" />
-        {/* <Smile /> */}
-        {/* <Logo /> */}
-        <TileBack />
-      </Canvas>
+      <CanvasFitComponent />
     </ContainerNewGame>
   );
 }
 
 const ContainerNewGame = styled.View`
-  border: 2px solid purple;
+  border: 2px solid orange;
   flex: 1 1 auto;
-  /* padding-top: ${hw(30)}px; */
-  /* width: 150px;
-  height: 150px; */
 `;

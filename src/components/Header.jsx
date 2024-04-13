@@ -9,14 +9,11 @@ import Logo from "./elements/canvas/logo.js";
 export default function Header() {
   return (
     <Container>
-      {/* <LogoCont> */}
-      <CanvasContainer
-        width={hwN(80)}
-        height={hwN(80)}
-        canvasElement={<Logo scale={1} />}
-      ></CanvasContainer>
-      {/* <Image source={Logo} style={{ width: "100%", height: "100%" }} /> */}
-      {/* </LogoCont> */}
+      {/* <CanvasContainer
+        width={hwN(70)}
+        height={hwN(70)}
+        canvasElement={<Logo scale={0.33} />}
+      /> */}
       <TextCont>
         <Title>FIFTEEN TILES</Title>
         <Description>A classic game</Description>
