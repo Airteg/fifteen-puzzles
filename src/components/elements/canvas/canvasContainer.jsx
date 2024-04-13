@@ -1,29 +1,19 @@
 import React, { useState } from "react";
-import { View, Text } from "react-native";
-import {
-  Canvas,
-  Fill,
-  Group,
-  Image,
-  Rect,
-  useTexture,
-} from "@shopify/react-native-skia";
-import styled from "@emotion/native";
-
-// const sizeObj = (e) => e.nativeEvent.layout;
+import { View } from "react-native";
+import { Canvas, Fill, FitBox, rect } from "@shopify/react-native-skia";
+import styled, { css } from "@emotion/native";
 
 export default function CanvasContainer({
   canvasElement,
-  children,
-  width,
-  height,
+  children = <></>,
+  dimCanvasElement = { width: 0, height: 0 },
+  containerStyle = {},
 }) {
   const [size, setSize] = useState({ width: 100, height: 100 });
 
   return (
-    <ContainerCanvas
-      width={width}
-      height={height}
+    <Container
+      style={containerStyle}
       onLayout={(e) => {
         const { width, height } = e.nativeEvent.layout;
         setSize({ width, height });
@@ -36,15 +26,24 @@ export default function CanvasContainer({
           left: 0,
           width: size.width,
           height: size.height,
+          zIndex: -1,
         }}
       >
         <Fill color="greenyellow" />
-        {canvasElement}
+        <FitBox
+          src={rect(0, 0, dimCanvasElement.width, dimCanvasElement.height)}
+          dst={rect(0, 0, size.width, size.height)}
+          fit="contain"
+        >
+          {canvasElement}
+        </FitBox>
       </Canvas>
-    </ContainerCanvas>
+      {children}
+    </Container>
   );
 }
-const ContainerCanvas = styled.View`
+const Container = styled.View`
   box-sizing: border-box;
-  border: 2px solid red;
+  flex: 1 1 auto;
+  display: flex;
 `;
