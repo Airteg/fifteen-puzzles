@@ -1,15 +1,20 @@
 import React, { useState } from "react";
 import { View } from "react-native";
-import { Canvas, Fill, FitBox, rect } from "@shopify/react-native-skia";
+import { Canvas, Fill, FitBox, rect, Text } from "@shopify/react-native-skia";
 import styled from "@emotion/native";
 
 export default function CanvasContainer({
-  canvasElement,
+  canvasElement = <DefaultCanvasElement />,
   children = <></>,
   dimCanvasElement = { width: 0, height: 0 },
   containerStyle = {},
+  top = 0,
+  left = 0,
 }) {
-  const [size, setSize] = useState({ width: 100, height: 100 });
+  console.log("🚀 ~ canvasElement:", canvasElement);
+  console.log("🚀 ~ ~ Prop dimCanvasElement:", dimCanvasElement);
+  const [size, setSize] = useState({ width: 0, height: 0 });
+  const [csize, setCsize] = useState({ width: 0, height: 0 });
 
   return (
     <Container
@@ -17,24 +22,32 @@ export default function CanvasContainer({
       onLayout={(e) => {
         const { width, height } = e.nativeEvent.layout;
         setSize({ width, height });
+        console.log("Container size", size);
       }}
+      onPress={() => console.log("OnPres")}
     >
       <Canvas
         style={{
           position: "absolute",
-          top: 0,
-          left: 0,
-          width: size.width,
-          height: size.height,
-          zIndex: -1,
+          top: { top },
+          left: { left },
+          width: size.width + 0,
+          height: size.height + 0,
+        }}
+        onLayout={(e) => {
+          const { width, height } = e.nativeEvent.layout;
+          setCsize({ width, height });
+          console.log("Canvas size", csize);
         }}
       >
-        <Fill color="greenyellow" />
+        {/* <Fill color="#dd9be0" /> */}
+        <Fill color="transparent" />
         <FitBox
           src={rect(0, 0, dimCanvasElement.width, dimCanvasElement.height)}
           dst={rect(0, 0, size.width, size.height)}
           fit="contain"
         >
+          {console.log("FitBox size", size)}
           {canvasElement}
         </FitBox>
       </Canvas>
@@ -42,8 +55,13 @@ export default function CanvasContainer({
     </Container>
   );
 }
+
 const Container = styled.View`
   box-sizing: border-box;
   flex: 1 1 auto;
   display: flex;
 `;
+let color;
+color = "lightgrey";
+
+const DefaultCanvasElement = () => <Text x={20} y={18} text="No content" />;

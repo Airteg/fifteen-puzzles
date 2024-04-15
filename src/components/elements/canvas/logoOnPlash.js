@@ -7,12 +7,32 @@ import {
 } from "@shopify/react-native-skia";
 
 // розмір, розрахований вручну
-export const dim = { width: 187, height: 187 };
+export const dim = { width: 240, height: 240 };
 export default function Logo({ cx = 0, cy = 0, scale = 1 }) {
   return (
     <Group transform={[{ scale }, { translateX: cx }, { translateY: cy }]}>
       {/* Зовнішній квадрат */}
       <Group>
+        <Path
+          style="fill"
+          color="#D5F7FF"
+          strokeWidth={3}
+          stroke="#D5F7FF"
+          path="M186 199.5H-7C-14.3 199.5-20 194.1-20 187.8V-7.6C-20-14.1-14.3-19.4-7-19.4H186C193.2-19.4 198.9-14.1 198.9-7.6V187.8C198.9 194.3 193.2 199.5 186 199.5Z"
+        >
+          <Shadow dx={0} dy={0} blur={10} color="#0000003f" inner />
+          <Shadow dx={0} dy={0} blur={8} color="#00000020" />
+        </Path>
+        <Path
+          style="stroke"
+          color="#D5F7FF"
+          strokeWidth={3}
+          stroke="#D5F7FF"
+          path="M186 199.5H-7C-14.3 199.5-20 194.1-20 187.8V-7.6C-20-14.1-14.3-19.4-7-19.4H186C193.2-19.4 198.9-14.1 198.9-7.6V187.8C198.9 194.3 193.2 199.5 186 199.5Z"
+        >
+          {/* <Shadow dx={-5} dy={4} blur={4} color="#0000003f" inner />
+          <Shadow dx={0} dy={4} blur={4} color="#0000003f" /> */}
+        </Path>
         <Path
           color="#FAFF3F"
           stroke="#02545E"
