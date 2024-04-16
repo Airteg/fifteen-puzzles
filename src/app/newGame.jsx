@@ -96,8 +96,6 @@ const WrapperImage = styled.View`
   flex: 1;
   width: 100%;
   border-radius: ${hw(8)}px;
-  /* padding-top: 40px;
-  padding-bottom: 20px; */
   overflow: hidden;
   ${dfjccaic}
 `;
@@ -108,7 +106,6 @@ const Wrapper = styled.View`
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-
   /* border: solid 1px red; */
 `;
 const containerStyle = {
@@ -120,7 +117,8 @@ const containerStyle = {
   bigButton: css`
     width: 100%;
     height: ${hw(74)}px;
-    ${dfjccaic}/* border: solid 1px blue; */
+    /* border: solid 1px blue; */
+    ${dfjccaic}
   `,
   smallButton: css`
     width: ${hw(64)}px;
