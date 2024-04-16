@@ -12,6 +12,10 @@ export const ww = (w) => Math.round((w * windowWidth) / 390).toString();
 export const hwN = (h) => Math.round((h * windowHeight) / 844);
 //Ширина вікна, число
 export const wwN = (w) => Math.round((w * windowWidth) / 390);
+export const dfjccaic = `display: flex;
+  justify-content: center;
+  align-items: center;`;
+
 export const globalStyles = {
   container: css`
     margin: 0;
