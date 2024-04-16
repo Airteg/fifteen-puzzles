@@ -1,27 +1,22 @@
-import { View, Pressable, Text, StyleSheet } from "react-native";
-import { router } from "expo-router";
+import { View, Text } from "react-native";
+
+import styled from "@emotion/native";
+
+import MainMenuSplashContainer from "../components/MainMenuSplashContainer.jsx";
+import MenuContainer from "../components/MenuContainer.jsx";
+import { hw } from "../global/global-stiles.js";
 
 export default function Home() {
   return (
-    <View>
-      <Text>Home page</Text>
-      <Pressable onPress={() => router.push("/newGame")}>
-        <Text style={styles.text}>New Game</Text>
-      </Pressable>
-      <Pressable onPress={() => router.push("/settings")}>
-        <Text style={styles.text}>Settings</Text>
-      </Pressable>
-      <Pressable onPress={() => router.push("/about")}>
-        <Text style={styles.text}>About</Text>
-      </Pressable>
-    </View>
+    <ContainerHome>
+      <MainMenuSplashContainer />
+      <MenuContainer />
+    </ContainerHome>
   );
 }
-const styles = StyleSheet.create({
-  text: {
-    fontFamily: "KronaOne_400Regular",
-    fontSize: 20, // Встановіть розмір шрифту за бажанням
-    // Додайте інші властивості стилів, якщо потрібно
-  },
-  // Можете визначити додаткові стилі для інших компонентів тут
-});
+// onPress={() => router.push("/newGame")
+const ContainerHome = styled.View`
+  /* border: 2px solid purple; */
+  flex: 1 1 auto;
+  padding-top: ${hw(30)}px;
+`;
