@@ -5,12 +5,14 @@ import { useState } from "react";
 
 import { dfjccaic, hw, ww } from "../global/global-stiles.js";
 import Button from "../components/elements/jsx/Button.jsx";
-import NewGameSplash from "../assets/png/NEW_GAME_splash.png";
-import ButtonBackShadow from "../assets/png/BUTTON.png";
-import ButtonBackShadowActive from "../assets/png/BUTTON_Active.png";
-import Back from "../assets/png/Back.png";
-import BackActive from "../assets/png/BackActive.png";
-import BackgroundShadow from "../assets/png/BackgroundShadow.png";
+import {
+  NewGameSplash,
+  ButtonBackShadow,
+  ButtonBackShadowActive,
+  Back,
+  BackActive,
+  BackgroundShadow,
+} from "../assets";
 
 export default function NewGame() {
   const [wrapperSize, setWrapperSize] = useState({ width: 0, height: 0 });
