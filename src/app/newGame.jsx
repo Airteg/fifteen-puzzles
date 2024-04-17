@@ -71,6 +71,7 @@ const ContainerNewGame = styled.View`
   flex: 1 1 auto;
   justify-content: space-between;
   padding-top: ${hw(54)}px;
+  margin-bottom: ${hw(34)}px;
 `;
 const SplashBlock = styled.View`
   flex: 0.91;
