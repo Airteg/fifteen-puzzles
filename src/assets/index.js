@@ -4,6 +4,7 @@ import ButtonBackShadowActive from "./png/BUTTON_Active.png";
 import Back from "./png/Back.png";
 import BackActive from "./png/BackActive.png";
 import BackgroundShadow from "./png/BackgroundShadow.png";
+import SETTINGS from "./png/SETTINGS.png";
 
 export {
   NewGameSplash,
@@ -12,4 +13,5 @@ export {
   Back,
   BackActive,
   BackgroundShadow,
+  SETTINGS,
 };

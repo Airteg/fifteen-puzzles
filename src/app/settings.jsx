@@ -5,12 +5,15 @@ import { useState } from "react";
 
 import { dfjccaic, hw, ww } from "../global/global-stiles.js";
 import Button from "../components/elements/jsx/Button.jsx";
-import SETTINGS from "../assets/png/SETTINGS.png";
-import ButtonBackShadow from "../assets/png/BUTTON.png";
-import ButtonBackShadowActive from "../assets/png/BUTTON_Active.png";
-import Back from "../assets/png/Back.png";
-import BackActive from "../assets/png/BackActive.png";
-import BackgroundShadow from "../assets/png/BackgroundShadow.png";
+
+import {
+  SETTINGS,
+  ButtonBackShadow,
+  ButtonBackShadowActive,
+  Back,
+  BackActive,
+  BackgroundShadow,
+} from "../assets";
 
 export default function Settings() {
   const [sound, setSound] = useState(true);
