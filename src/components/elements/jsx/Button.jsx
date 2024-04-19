@@ -40,7 +40,8 @@ export default Button;
 
 const ButtonWrapper = styled.Pressable`
   width: 100%;
-  height: 100%; /* border: solid 1px red; */
+  height: 100%;
+  /* border: solid 1px red; */
   ${dfjccaic}
 `;
 const TitleWrapper = styled.View`

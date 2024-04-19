@@ -5,6 +5,12 @@ import Back from "./png/Back.png";
 import BackActive from "./png/BackActive.png";
 import BackgroundShadow from "./png/BackgroundShadow.png";
 import SETTINGS from "./png/SETTINGS.png";
+import HOME from "./png/HOME.png";
+import HOME_Active from "./png/HOME_Active.png";
+import RESTART_Active from "./png/RESTART_Active.png";
+import RESTART from "./png/RESTART.png";
+import PlanForTileY from "./png/PlanForTileY.png";
+import PlanForTileB from "./png/PlanForTileB.png";
 
 export {
   NewGameSplash,
@@ -14,4 +20,10 @@ export {
   BackActive,
   BackgroundShadow,
   SETTINGS,
+  HOME_Active,
+  HOME,
+  RESTART,
+  RESTART_Active,
+  PlanForTileY,
+  PlanForTileB,
 };
