@@ -11,6 +11,7 @@ import RESTART_Active from "./png/RESTART_Active.png";
 import RESTART from "./png/RESTART.png";
 import PlanForTileY from "./png/PlanForTileY.png";
 import PlanForTileB from "./png/PlanForTileB.png";
+import Tile_white from "./png/Tile_white.png";
 
 export {
   NewGameSplash,
@@ -26,4 +27,5 @@ export {
   RESTART_Active,
   PlanForTileY,
   PlanForTileB,
+  Tile_white,
 };

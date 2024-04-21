@@ -13,10 +13,7 @@ export default function MenuContainer() {
       <CanvasWrapper height={height}>
         <BottonsWrapperBack height={height} />
         <ButtonsWrapper height={height}>
-          <ButtonStyled
-            text="New Game"
-            onPress={() => router.push("/newGame")}
-          />
+          <ButtonStyled text="New Game" onPress={() => router.push("/Edit")} />
           <ButtonStyled
             text="Settings"
             onPress={() => router.push("/settings")}
