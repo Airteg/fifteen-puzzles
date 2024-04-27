@@ -1,34 +1,7 @@
 import React, { useState } from "react";
 import styled, { css } from "@emotion/native";
-import {
-  View,
-  TouchableOpacity,
-  Text,
-  ImageBackground,
-  Pressable,
-} from "react-native";
-import { Tile_white } from "../assets/";
-
-// Створення компонента Tile для React Native
-const Tile = ({ number, onPress }) => {
-  if (number === 0) {
-    return <View style={[styles.tile, styles.emptyTile]} />;
-  }
-  return (
-    <Pressable style={styles.tile} onPress={onPress}>
-      {/* <View style={styles.image}>
-        <Text style={styles.tileText}>{number}</Text>
-      </View> */}
-      <ImageBackground
-        source={Tile_white}
-        resizeMode="stretch"
-        style={styles.image}
-      >
-        <Text style={styles.tileText}>{number}</Text>
-      </ImageBackground>
-    </Pressable>
-  );
-};
+import { View, Text, ImageBackground, Pressable } from "react-native";
+import Tile from "./elements/jsx/Tile";
 
 export const shuffleTiles = () => {
   const shuffledTiles = [...Array(16).keys()].sort(() => Math.random() - 0.5);
@@ -66,16 +39,22 @@ const Board = () => {
 
   return (
     <View style={styles.board}>
-      {tiles.map((number, index) => (
-        <Tile
-          key={index}
-          number={number}
-          onPress={() => handleTileClick(index)}
-        />
-      ))}
+      {tiles.map((number, index) => {
+        return (
+          <Tile
+            key={index}
+            width="23.7%"
+            height="23.7%"
+            number={number}
+            onPress={() => handleTileClick(index)}
+          />
+        );
+      })}
     </View>
   );
 };
+
+export default Board;
 
 const styles = {
   board: css`
@@ -85,7 +64,7 @@ const styles = {
     flex-wrap: wrap;
     padding: 10px;
     align-items: center;
-    border: 1px solid navy;
+    /* border: 1px solid navy; */
   `,
   tile: css`
     width: 25%;
@@ -111,5 +90,3 @@ const styles = {
     background-color: #fff;
   `,
 };
-
-export default Board;

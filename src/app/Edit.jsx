@@ -1,9 +1,18 @@
-import { View, Text, StyleSheet, TextInput, Button } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  Button,
+  ImageBackground,
+} from "react-native";
 import React from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import styled, { css } from "@emotion/native";
 import { dfjccaic, hw, platform } from "../global/global-stiles.js";
-import Test from "../components/elements/jsx/Test.jsx";
+import Test from "../components/elements/jsx/Test1.jsx";
+import { Tile_white } from "../assets/index.js";
+import Tile from "../components/elements/jsx/Tile.jsx";
 
 const colors = ["#00000032", "transparent"];
 
@@ -12,13 +21,20 @@ const Edit = ({ width = 180, height = 100 }) => {
   const Block = styled.View`
     width: auto;
     height: auto;
-    border: 0.5px solid red;
+    /* border: 0.5px solid red; */
   `;
   return (
     <Container>
       <Block>
-        <Test width={200} height={150} />
+        <Tile width={60} height={60} />
         {/* <Content></Content> */}
+      </Block>
+      <Block style={{ width: 60, height: 60, marginTop: 20 }}>
+        <ImageBackground
+          source={Tile_white}
+          resizeMode="stretch"
+          style={styles.image}
+        ></ImageBackground>
       </Block>
     </Container>
   );
@@ -105,5 +121,13 @@ const styles = {
     left: 0;
     width: 100%;
     height: 100%;
+  `,
+  image: css`
+    flex: 1;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #fff;
   `,
 };

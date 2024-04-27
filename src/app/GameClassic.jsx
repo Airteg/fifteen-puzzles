@@ -28,6 +28,7 @@ export default function GameClassic() {
   }, [time]);
   return (
     <View style={style.container}>
+      {console.log("render GameClassic")}
       <View style={style.timer}>
         <Text>{`Time: ${Math.floor(time / 60)}:${time % 60 < 10 ? "0" : ""}${
           time % 60
@@ -38,7 +39,7 @@ export default function GameClassic() {
           <ImageBackground
             source={PlanForTileY}
             resizeMode="contain"
-            style={style.image}
+            style={style.game.Image}
           >
             <View style={style.game.Order}>
               <Board />
@@ -68,7 +69,7 @@ const style = {
     margin-bottom: ${hw(40)}px;
     width: 100%;
     align-self: center;
-    border: 1px solid green;
+    border: 1px solid yellowgreen;
     ${dfjccaic}
   `,
   // 1
@@ -85,25 +86,23 @@ const style = {
   game: {
     Container: css`
       flex: 1;
-      border: 2px solid darkgoldenrod;
+      /* border: 2px solid darkgoldenrod; */
       width: 100%;
     `,
     Image: css`
       flex: 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      ${dfjccaic}
       width: 100%;
     `,
     Plan: css`
-      align-self: center;
+      flex: 1;
       /* border: solid 2px lime; */
+      ${dfjccaic}
     `,
     Order: css`
-      width: 85%;
-      height: 85%;
+      width: 84%;
+      aspect-ratio: 1;
       /* border: solid 3px green; */
-      ${dfjccaic}
     `,
   },
   // 3
@@ -111,7 +110,7 @@ const style = {
     Home: css`
       flex: 0.2;
       width: 85%;
-      border: 2px solid orange;
+      /* border: 2px solid orange; */
     `,
     Wrapper: css`
       display: flex;
@@ -122,13 +121,13 @@ const style = {
     operationButton: css`
       width: ${hw(99 / 1.2375)}px;
       height: ${hw(99)}px;
-      border: solid 1px blue;
+      /* border: solid 1px blue; */
     `,
   },
   // 4
   title: css`
     flex: 0.2;
-    border: 2px solid lightcoral;
+    /* border: 2px solid lightcoral; */
   `,
 
   bigButton: css``,
