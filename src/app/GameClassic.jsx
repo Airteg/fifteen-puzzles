@@ -7,33 +7,19 @@ import { dfjccaic, hw, hwN, ww } from "../global/global-stiles.js";
 import Button from "../components/elements/jsx/Button.jsx";
 import { PlanForTileY, HOME_Active, HOME, RESTART } from "../assets";
 import Board from "../components/Board.jsx";
+import TimerComponent from "../components/elements/jsx/TimerComponent.jsx";
 
 export default function GameClassic() {
-  const [time, setTime] = useState(6000); // Таймер в секундах (2 хвилини)
+  const handleTimeUp = () => {
+    Alert.alert("GAME OVER", "Your time is up!", [
+      { text: "OK", onPress: () => router.push("/YouLose") },
+    ]);
+  };
 
-  useEffect(() => {
-    const timer =
-      time > 0 &&
-      setInterval(() => {
-        setTime(time - 1);
-      }, 1000);
-
-    if (time === 0) {
-      Alert.alert("GAME OVER", "Your time is up!", [
-        { text: "OK", onPress: () => router.push("/YouLose") },
-      ]);
-    }
-
-    return () => clearInterval(timer);
-  }, [time]);
   return (
     <View style={style.container}>
       {console.log("render GameClassic")}
-      <View style={style.timer}>
-        <Text>{`Time: ${Math.floor(time / 60)}:${time % 60 < 10 ? "0" : ""}${
-          time % 60
-        }`}</Text>
-      </View>
+      <TimerComponent onTimeUp={handleTimeUp} />
       <View style={style.game.Container}>
         <View style={style.game.Plan}>
           <ImageBackground

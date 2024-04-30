@@ -25,17 +25,7 @@ const Edit = ({ width = 180, height = 100 }) => {
   `;
   return (
     <Container>
-      <Block>
-        <Tile width={60} height={60} />
-        {/* <Content></Content> */}
-      </Block>
-      <Block style={{ width: 60, height: 60, marginTop: 20 }}>
-        <ImageBackground
-          source={Tile_white}
-          resizeMode="stretch"
-          style={styles.image}
-        ></ImageBackground>
-      </Block>
+      <Plan />
     </Container>
   );
 };
@@ -67,7 +57,11 @@ const Content = styled.View`
   background-color: #d5f7ff;
   border: #d5f7ff;
 `;
-
+const Plan = styled.View`
+  width: 276px;
+  aspect-ratio: 1;
+  border: 1px solid red;
+`;
 const styles = {
   glob: css`
     border: 1px solid lime;

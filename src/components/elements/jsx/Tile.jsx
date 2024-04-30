@@ -1,15 +1,16 @@
+import React, { memo } from "react";
 import styled, { css } from "@emotion/native";
 import { LinearGradient } from "expo-linear-gradient";
 import { View, Pressable, Text } from "react-native";
 
-const Tile = ({ width, height, number, onPress }) => {
+const Tile = memo(({ width, height, number, onPress }) => {
   if (number === 0) {
     return <Size style={{ width, height, backgroundColor: "transparent" }} />;
   }
   // console.log("width", width);
   return (
     <Size style={{ width, height }} onPress={onPress}>
-      {/* {console.log("Render Tile")} */}
+      {/* {console.log("Render Tile", number)} */}
       <LGShadow />
       <Container>
         <ContainerColor>
@@ -18,7 +19,7 @@ const Tile = ({ width, height, number, onPress }) => {
       </Container>
     </Size>
   );
-};
+});
 
 export default Tile;
 
