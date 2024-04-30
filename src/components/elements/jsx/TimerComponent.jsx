@@ -2,7 +2,7 @@ import React, { useState, useEffect, memo } from "react";
 import { Text, Alert } from "react-native";
 
 const TimerComponent = memo(({ onTimeUp }) => {
-  const [time, setTime] = useState(120); // Таймер в секундах (2 хвилини)
+  const [time, setTime] = useState(3600); // Таймер в секундах (2 хвилини)
 
   useEffect(() => {
     const timerId =

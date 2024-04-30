@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import styled, { css } from "@emotion/native";
 import { View, Text, ImageBackground, Pressable } from "react-native";
 import Tile from "./elements/jsx/Tile";
+import Plan from "./Plan.jsx";
 
 export const shuffleTiles = () => {
   const shuffledTiles = [...Array(16).keys()].sort(() => Math.random() - 0.5);
@@ -39,7 +40,8 @@ const Board = () => {
 
   return (
     <View style={styles.board}>
-      {tiles.map((number, index) => {
+      <Plan />
+      {/* {tiles.map((number, index) => {
         return (
           <Tile
             key={index}
@@ -49,7 +51,7 @@ const Board = () => {
             onPress={() => handleTileClick(index)}
           />
         );
-      })}
+      })} */}
     </View>
   );
 };
