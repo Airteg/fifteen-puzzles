@@ -16,8 +16,8 @@ const Plan = ({ children }) => {
 export default Plan;
 
 const Container = styled.View`
-  width: ${ww(276)}px;
-  /* width: 100%; */
+  /* width: ${ww(276)}px; */
+  width: 100%;
   /* flex: 1; */
   aspect-ratio: 1;
   border-radius: ${ww(8)}px;
