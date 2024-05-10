@@ -4,11 +4,12 @@ import styled from "@emotion/native";
 
 import Triangle from "./svg/Triangle.jsx";
 import { dfjccaic, ww } from "../global/global-stiles.js";
+import BackBoard from "./svg/BackBoard2.jsx";
 
 const Plan = ({ children }) => {
   return (
     <Container>
-      <Triangle />
+      <BackBoard size={{ x: 400, y: 400 }} steps={20} />
     </Container>
   );
 };
@@ -20,9 +21,9 @@ const Container = styled.View`
   width: 100%;
   /* flex: 1; */
   aspect-ratio: 1;
-  border-radius: ${ww(8)}px;
-  background-color: #71d4eb;
-  overflow: hidden;
+  /* border-radius: ${ww(8)}px; */
+  /* background-color: #71d4eb; */
+  /* overflow: hidden; */
   /* position: absolute;
   top: 0;
   left: 0; */

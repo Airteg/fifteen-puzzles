@@ -15,7 +15,7 @@ const Test = ({ width, height }) => {
     rg: { width: s / a - 2 * s, height: s },
   };
 
-  console.log("size", size);
+  // console.log("size", size);
   return (
     <View
       style={{

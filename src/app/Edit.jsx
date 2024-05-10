@@ -22,6 +22,6 @@ const Container = styled.View`
   margin-top: ${hw(43)}px;
   margin-bottom: ${hw(40)}px;
   align-self: center;
-  border: 1px solid darkgreen;
+  /* border: 1px solid darkgreen; */
   ${dfjccaic}
 `;
