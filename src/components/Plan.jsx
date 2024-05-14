@@ -6,10 +6,17 @@ import Triangle from "./svg/Triangle.jsx";
 import { dfjccaic, ww } from "../global/global-stiles.js";
 import BackBoard from "./svg/BackBoard2.jsx";
 
-const Plan = ({ children }) => {
+const Plan = ({ children, value1, value2, value3, value4 }) => {
   return (
     <Container>
-      <BackBoard size={{ x: 400, y: 400 }} steps={20} />
+      <BackBoard
+        size={{ x: 400, y: 400 }}
+        steps={20}
+        value1={value1}
+        value2={value2}
+        value3={value3}
+        value4={value4}
+      />
     </Container>
   );
 };
