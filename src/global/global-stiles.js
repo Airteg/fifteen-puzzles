@@ -2,8 +2,9 @@ import { css } from "@emotion/native";
 import { Dimensions, Platform } from "react-native";
 
 const windowDimensions = Dimensions.get("window");
-const windowHeight = windowDimensions.height;
-const windowWidth = windowDimensions.width;
+console.log("🚀 ~ windowDimensions:", windowDimensions);
+export const windowHeight = windowDimensions.height;
+export const windowWidth = windowDimensions.width;
 //Висота вікна, текст
 export const hw = (h) => Math.round((h * windowHeight) / 844).toString();
 //Ширина вікна, текст
@@ -27,7 +28,7 @@ export const globalStyles = {
     display: flex;
     justify-content: space-around;
     align-items: center;
-    border: solid red 2px;
+    /* border: solid red 2px; */
     box-sizing: border-box;
   `,
 };

@@ -3,6 +3,7 @@ import styled, { css } from "@emotion/native";
 import { View, Text, ImageBackground, Pressable } from "react-native";
 import Tile from "./elements/jsx/Tile";
 import Plan from "./Plan.jsx";
+import { dfjccaic } from "../global/global-stiles.js";
 
 export const shuffleTiles = () => {
   const shuffledTiles = [...Array(16).keys()].sort(() => Math.random() - 0.5);
@@ -41,54 +42,43 @@ const Board = () => {
   return (
     <View style={styles.board}>
       <Plan />
-      {/* {tiles.map((number, index) => {
-        return (
-          <Tile
-            key={index}
-            width="23.7%"
-            height="23.7%"
-            number={number}
-            onPress={() => handleTileClick(index)}
-          />
-        );
-      })} */}
+      {/* <TileWrapper>
+        {tiles.map((number, index) => {
+          return (
+            <Tile
+              key={index}
+              width="24%"
+              height="24%"
+              number={number}
+              onPress={() => handleTileClick(index)}
+            />
+          );
+        })}
+      </TileWrapper> */}
     </View>
   );
 };
 
 export default Board;
 
+const TileWrapper = styled.View`
+  width: 89%;
+  /* margin: 10%; */
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  border: 3px solid #0000ff;
+`;
 const styles = {
   board: css`
     width: 100%;
     height: 100%;
-    flex-direction: row;
-    flex-wrap: wrap;
-    padding: 10px;
-    align-items: center;
-    /* border: 1px solid navy; */
-  `,
-  tile: css`
-    width: 25%;
-    height: 25%;
-    margin: 0%;
-    justify-content: center;
-    align-items: center;
-    /* border: 1px red solid; */
-  `,
-  emptyTile: css`
-    background-color: transparent;
-  `,
-  tileText: css`
-    font-size: 20px;
-    color: black;
-  `,
-  image: css`
-    flex: 1;
-    width: 100%;
+    border: 3px solid green;
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
-    background-color: #fff;
   `,
 };

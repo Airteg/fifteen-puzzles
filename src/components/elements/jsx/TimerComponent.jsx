@@ -1,26 +1,34 @@
 import React, { useState, useEffect, memo } from "react";
 import { Text, Alert } from "react-native";
 
-const TimerComponent = memo(({ onTimeUp }) => {
-  const [time, setTime] = useState(3600); // Таймер в секундах (2 хвилини)
+const TimerComponent = memo(
+  ({ onTimeUp, mode = "countdown", initialTime = 3600 }) => {
+    const [time, setTime] = useState(initialTime);
 
-  useEffect(() => {
-    const timerId =
-      time > 0 ? setInterval(() => setTime(time - 1), 1000) : null;
+    useEffect(() => {
+      let timerId;
 
-    if (time === 0) {
-      clearInterval(timerId);
-      onTimeUp();
-    }
+      if (mode === "countdown") {
+        timerId = time > 0 ? setInterval(() => setTime(time - 1), 1000) : null;
+        if (time === 0) {
+          clearInterval(timerId);
+          onTimeUp();
+        }
+      } else if (mode === "elapsed") {
+        timerId = setInterval(() => setTime(time + 1), 1000);
+      }
 
-    return () => clearInterval(timerId);
-  }, [time, onTimeUp]);
+      return () => clearInterval(timerId);
+    }, [time, onTimeUp, mode]);
 
-  return (
-    <Text>{`Time: ${Math.floor(time / 60)}:${time % 60 < 10 ? "0" : ""}${
-      time % 60
-    }`}</Text>
-  );
-});
+    const formatTime = () => {
+      const minutes = Math.floor(time / 60);
+      const seconds = time % 60;
+      return `Time: ${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+    };
+
+    return <Text>{formatTime()}</Text>;
+  }
+);
 
 export default TimerComponent;
