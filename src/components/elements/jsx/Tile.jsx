@@ -1,23 +1,35 @@
-import React, { memo } from "react";
-import styled, { css } from "@emotion/native";
-import { LinearGradient } from "expo-linear-gradient";
 import { View, Pressable, Text } from "react-native";
-import { hw } from "../../../global/global-stiles.js";
+import React, { memo } from "react";
+import styled from "@emotion/native";
+import { SkiaShadow } from "react-native-skia-shadow";
+import { Defs, LinearGradient, Rect, Stop, Svg } from "react-native-svg";
+import { hw, hwN } from "../../../global/global-stiles.js";
 
 const Tile = memo(({ width, height, number, onPress }) => {
   if (number === 0) {
     return <Size style={{ width, height, backgroundColor: "transparent" }} />;
   }
-  // console.log("width", width);
   return (
     <Size style={{ width, height }} onPress={onPress}>
-      {/* {console.log("Render Tile", number)} */}
-      <LGShadow />
-      <Container>
-        <ContainerColor>
-          <Text style={linearGradientStyle.number}>{number}</Text>
-        </ContainerColor>
-      </Container>
+      <SkiaShadow blur={4} dx={-2} dy={2} color="#00000090">
+        <SkiaShadow blur={4} dx={4} dy={-4} color="#ffffff90">
+          <Size
+            onPress={onPress}
+            style={{ width: "100%", height: "100%", overflow: "hidden" }}
+          >
+            <BackGround />
+            <Text
+              style={{
+                fontFamily: "KronaOne_400Regular",
+                fontSize: hwN(25),
+                color: "#305a63",
+              }}
+            >
+              {number}
+            </Text>
+          </Size>
+        </SkiaShadow>
+      </SkiaShadow>
     </Size>
   );
 });
@@ -34,59 +46,40 @@ const Size = styled.Pressable`
   margin: 0.25%;
   aspect-ratio: 1;
 `;
-const Container = styled.View`
-  width: 93%;
-  height: 93%;
-  border-radius: 5px;
-  background-color: #ffffff;
-  /* border: 0.5px solid #ffffffa7; */
-`;
-
-const ContainerColor = ({ children }) => (
-  <LinearGradient
-    start={{ x: 1, y: 0 }}
-    end={{ x: 0.5, y: 0.8 }}
-    colors={["#b0b0b087", "#dddddd", "#f0f0f0"]}
-    locations={[0.0, 0.35, 1]}
-    style={linearGradientStyle.background}
-  >
-    {children}
-  </LinearGradient>
-);
-const LGShadow = () => (
-  <LinearGradient
-    start={{ x: 1, y: 0 }}
-    end={{ x: 0, y: 0.8 }}
-    colors={["#ececec", "#e5e5e5eb", "#27272730"]}
-    locations={[0, 0.52, 1]}
-    style={linearGradientStyle.shadow}
-  />
-);
-const linearGradientStyle = {
-  background: css`
-    flex: 1;
-    border-radius: 5px;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  `,
-  shadow: css`
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
-    border-radius: 6px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  `,
-  number: css`
-    font-family: KronaOne_400Regular;
-    /* font-family: Mariupol-Bold; */
-    font-size: ${hw(25)}px;
-    color: #305a63;
-    z-index: 10;
-  `,
+const BackGround = () => {
+  return (
+    <View
+      style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "100%",
+        borderColor: "white",
+        borderWidth: 1.5,
+        borderStyle: "solid",
+        borderRadius: 8,
+        overflow: "hidden",
+      }}
+    >
+      <Svg viewBox={`0 0 420 420`}>
+        <Defs>
+          <LinearGradient id="grad" x1="0" y1="1" x2="1" y2="0">
+            <Stop offset="0" stopColor="#FDFDFD" stopOpacity="1" />
+            <Stop offset="0.35" stopColor="#F4F4F4" stopOpacity="1" />
+            <Stop offset="0.65" stopColor="#DCDCDC" stopOpacity="1" />
+            <Stop offset="1" stopColor="#D0D0D0" stopOpacity="1" />
+          </LinearGradient>
+        </Defs>
+        <Rect
+          x={0}
+          y={0}
+          width={420}
+          height={420}
+          fill="url(#grad)"
+          stroke="none"
+        />
+      </Svg>
+    </View>
+  );
 };

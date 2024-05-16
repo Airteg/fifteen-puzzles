@@ -134,5 +134,5 @@ const TileWrapper = styled.View`
   justify-content: space-between;
   align-items: center;
   align-content: stretch;
-  border: 0.5px solid #0000ff;
+  /* border: 0.5px solid #0000ff; */
 `;
