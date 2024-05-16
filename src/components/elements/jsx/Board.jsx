@@ -107,9 +107,10 @@ const BackGround = () => {
       <Svg viewBox={`0 0 420 420`}>
         <Defs>
           <LinearGradient id="grad" x1="0" y1="1" x2="1" y2="0">
-            <Stop offset="0" stopColor="#A4B3BD" stopOpacity="1" />
-            <Stop offset="0.5" stopColor="#EEF1F3" stopOpacity="1" />
-            <Stop offset="1" stopColor="#fff" stopOpacity="1" />
+            <Stop offset="0" stopColor="#FDFDFD" stopOpacity="1" />
+            <Stop offset="0.35" stopColor="#F4F4F4" stopOpacity="1" />
+            <Stop offset="0.65" stopColor="#DCDCDC" stopOpacity="1" />
+            <Stop offset="1" stopColor="#D0D0D0" stopOpacity="1" />
           </LinearGradient>
         </Defs>
         <Rect
@@ -125,12 +126,13 @@ const BackGround = () => {
   );
 };
 const TileWrapper = styled.View`
-  width: 98%;
+  width: 98.5%;
   aspect-ratio: 1;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  /* border: 3px solid #0000ff; */
+  align-content: stretch;
+  border: 0.5px solid #0000ff;
 `;
