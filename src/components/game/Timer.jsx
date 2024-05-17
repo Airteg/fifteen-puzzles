@@ -1,12 +1,18 @@
 import { View, Text } from "react-native";
 import React from "react";
 import styled from "@emotion/native";
-import { dfjccaic } from "../../global/global-stiles.js";
+import TimerComponent from "../elements/jsx/TimerComponent.jsx";
+import { dfjccaic, ww } from "../../global/global-stiles.js";
 
-const Timer = () => {
+const Timer = ({ onTimeUp, mode, initialTime }) => {
+  console.log("🚀 ~ initialTime:", initialTime);
   return (
     <Container>
-      <Text>Timer</Text>
+      <TimerComponent
+        mode={mode}
+        initialTime={initialTime}
+        onTimeUp={onTimeUp}
+      />
     </Container>
   );
 };
@@ -14,10 +20,13 @@ const Timer = () => {
 export default Timer;
 
 const Container = styled.View`
-  flex: 0.1;
-  width: 100%;
-  border: 1px solid red;
+  flex: 0.11;
+  width: 90%;
+  border-radius: 8px;
+  border: 3px solid white;
+  background-color: #80ff86;
 
+  padding: 8px;
   display: flex;
   justify-content: flex-start;
   align-items: center;

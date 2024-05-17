@@ -1,6 +1,6 @@
 import { View, Text, ImageBackground } from "react-native";
 import styled, { css } from "@emotion/native";
-import { router } from "expo-router";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 
 import { dfjccaic, hw, ww } from "../global/global-stiles.js";
@@ -15,6 +15,7 @@ import {
 } from "../assets";
 
 export default function NewGame() {
+  const router = useRouter();
   const [wrapperSize, setWrapperSize] = useState({ width: 0, height: 0 });
   return (
     <ContainerNewGame>
@@ -39,7 +40,9 @@ export default function NewGame() {
             <Wrapper>
               <View style={containerStyle.bigButton}>
                 <Button
-                  onPress={() => router.push("/GameClassic")}
+                  onPress={() =>
+                    router.push("/Game?mode=elapsed&initialTime=0")
+                  }
                   title="CLASSIC"
                   backgroundImage={ButtonBackShadow}
                   activeBackgroundImage={ButtonBackShadowActive}
@@ -47,7 +50,9 @@ export default function NewGame() {
               </View>
               <View style={containerStyle.bigButton}>
                 <Button
-                  onPress={() => router.push("/GameLimitTime")}
+                  onPress={() =>
+                    router.push("/Game?mode=countdown&initialTime=120")
+                  }
                   title="LIMIT TIME"
                   backgroundImage={ButtonBackShadow}
                   activeBackgroundImage={ButtonBackShadowActive}

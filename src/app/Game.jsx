@@ -1,26 +1,34 @@
 import { View, Text, ImageBackground, Alert } from "react-native";
 import styled, { css } from "@emotion/native";
-import { router } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   Timer,
   PlayingField,
   ButtonsField,
   TitleGameField,
-} from "../components/game/";
+} from "../components/game/index.js";
 import { hw } from "../global/global-stiles.js";
 
-export default function GameClassic() {
+export default function Game() {
+  const { mode, initialTime } = useLocalSearchParams(); // Отримуємо параметри з URL
+
+  const router = useRouter(); // Використовуємо роутер для навігації
+
   const handleTimeUp = () => {
     Alert.alert("GAME OVER", "Your time is up!", [
       { text: "OK", onPress: () => router.push("/YouLose") },
     ]);
   };
-  // onTimeUp, mode = 'countdown', initialTime = 3600
+
   return (
     <GameContainer>
-      {console.log("~~~~~~ GameClassic ~~~~~")}
-      <Timer mode="countdown" initialTime={3600} onTimeUp={handleTimeUp} />
+      {console.log("~~~~~~ Game ~~~~~")}
+      <Timer
+        mode={mode || "countdown"}
+        initialTime={initialTime}
+        onTimeUp={handleTimeUp}
+      />
       <PlayingField />
       <ButtonsField />
       <TitleGameField />

@@ -1,8 +1,10 @@
 import React, { useState, useEffect, memo } from "react";
 import { Text, Alert } from "react-native";
+import { hwN } from "../../../global/global-stiles.js";
 
 const TimerComponent = memo(
-  ({ onTimeUp, mode = "countdown", initialTime = 3600 }) => {
+  ({ onTimeUp, mode = "countdown", initialTime = 5 }) => {
+    // console.log("🚀 ~ initialTime:", initialTime);
     const [time, setTime] = useState(initialTime);
 
     useEffect(() => {
@@ -27,7 +29,17 @@ const TimerComponent = memo(
       return `Time: ${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
     };
 
-    return <Text>{formatTime()}</Text>;
+    return (
+      <Text
+        style={{
+          fontFamily: "KronaOne_400Regular",
+          fontSize: hwN(24),
+          color: "#305a63",
+        }}
+      >
+        {/* 🕔 {formatTime()} */}
+      </Text>
+    );
   }
 );
 
