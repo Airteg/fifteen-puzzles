@@ -5,7 +5,6 @@ import TimerComponent from "../elements/jsx/TimerComponent.jsx";
 import { dfjccaic, ww } from "../../global/global-stiles.js";
 
 const Timer = ({ onTimeUp, mode, initialTime }) => {
-  console.log("🚀 ~ initialTime:", initialTime);
   return (
     <Container>
       <TimerComponent

@@ -5,6 +5,8 @@ import { SkiaShadow } from "react-native-skia-shadow";
 import { dfjccaic } from "../../../global/global-stiles.js";
 import { Defs, LinearGradient, Rect, Stop, Svg } from "react-native-svg";
 import Tile from "./Tile.jsx";
+import { playSound } from "../../../utils/playSound.js";
+import moveSound from "../../../assets/sound/move1.mp3";
 
 export const shuffleTiles = () => {
   const shuffledTiles = [...Array(16).keys()].sort(() => Math.random() - 0.5);
@@ -13,7 +15,7 @@ export const shuffleTiles = () => {
 
 const Board = ({ children, color = "#71D4EB" }) => {
   const [tiles, setTiles] = useState(shuffleTiles());
-  const handleTileClick = (clickedIndex) => {
+  const handleTileClick = async (clickedIndex) => {
     const emptyIndex = tiles.indexOf(0);
     const clickedRow = Math.floor(clickedIndex / 4);
     const clickedCol = clickedIndex % 4;
@@ -36,6 +38,7 @@ const Board = ({ children, color = "#71D4EB" }) => {
       }
       newTiles[clickedIndex] = tiles[emptyIndex];
       setTiles(newTiles);
+      await playSound(moveSound); // Програвання звуку
     }
   };
   return (

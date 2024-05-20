@@ -6,6 +6,7 @@ import Slider from "@react-native-community/slider";
 import { dfjccaic, hw, platform, ww } from "../global/global-stiles.js";
 
 import Plan from "../components/Plan.jsx";
+import Timer from "../components/game/Timer.jsx";
 
 const Edit = () => {
   const [value1, setValue1] = useState(0);
@@ -14,7 +15,7 @@ const Edit = () => {
   const [value4, setValue4] = useState(0);
   return (
     <Container>
-      <View
+      {/* <View
         style={{
           display: "flex",
           justifyContent: "center",
@@ -54,9 +55,9 @@ const Edit = () => {
           onValueChange={setValue4}
           value={value4}
         />
-      </View>
+      </View> */}
 
-      <Plan value1={value1} value2={value2} value3={value3} value4={value4} />
+      <Timer />
     </Container>
   );
 };
