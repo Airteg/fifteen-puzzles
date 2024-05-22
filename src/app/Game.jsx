@@ -9,16 +9,15 @@ import {
 } from "../components/game/index.js";
 import { hw } from "../global/global-stiles.js";
 
-export const handleTimeUp = () => {
-  Alert.alert("GAME OVER", "Your time is up!", [
-    { text: "OK", onPress: () => router.push("/YouLose") },
-  ]);
-};
 export default function Game() {
   const { mode, initialTime } = useLocalSearchParams(); // Отримуємо параметри з URL
 
   const router = useRouter(); // Використовуємо роутер для навігації
-
+  const handleTimeUp = () => {
+    Alert.alert("GAME OVER", "Your time is up!", [
+      { text: "OK", onPress: () => router.push("/YouLose") },
+    ]);
+  };
   return (
     <GameContainer>
       {console.log("~~~~~~ Game ~~~~~")}

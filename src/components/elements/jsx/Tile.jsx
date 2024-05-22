@@ -6,7 +6,7 @@ import { Defs, LinearGradient, Rect, Stop, Svg } from "react-native-svg";
 import { hwN } from "../../../global/global-stiles.js";
 
 const Tile = memo(({ width, height, number, onPress }) => {
-  console.log("const Tile");
+  // console.log("const Tile");
   if (number === 0) {
     return <Size style={{ width, height, backgroundColor: "transparent" }} />;
   }

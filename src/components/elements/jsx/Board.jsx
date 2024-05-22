@@ -24,7 +24,7 @@ const Board = ({ children, color = "#71D4EB" }) => {
       const clickedCol = clickedIndex % 4;
       const emptyRow = Math.floor(emptyIndex / 4);
       const emptyCol = emptyIndex % 4;
-      console.log("handleTileClick");
+      // console.log("handleTileClick");
       if (clickedRow === emptyRow || clickedCol === emptyCol) {
         const newTiles = [...tiles];
         const step =

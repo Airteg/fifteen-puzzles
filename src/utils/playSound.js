@@ -1,7 +1,7 @@
 import { Audio } from "expo-av";
 
 export const playSound = async (sound) => {
-  console.log("playSound");
+  // console.log("playSound");
   try {
     const { sound: soundObject } = await Audio.Sound.createAsync(sound);
     await soundObject.playAsync();
