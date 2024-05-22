@@ -1,18 +1,21 @@
 import { View, Text, ImageBackground } from "react-native";
 import styled, { css } from "@emotion/native";
-import { router } from "expo-router";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 
 import { dfjccaic, hw, ww } from "../global/global-stiles.js";
 import Button from "../components/elements/jsx/Button.jsx";
-import NewGameSplash from "../assets/png/NEW_GAME_splash.png";
-import ButtonBackShadow from "../assets/png/BUTTON.png";
-import ButtonBackShadowActive from "../assets/png/BUTTON_Active.png";
-import Back from "../assets/png/Back.png";
-import BackActive from "../assets/png/BackActive.png";
-import BackgroundShadow from "../assets/png/BackgroundShadow.png";
+import {
+  NewGameSplash,
+  ButtonBackShadow,
+  ButtonBackShadowActive,
+  Back,
+  BackActive,
+  BackgroundShadow,
+} from "../assets";
 
 export default function NewGame() {
+  const router = useRouter();
   const [wrapperSize, setWrapperSize] = useState({ width: 0, height: 0 });
   return (
     <ContainerNewGame>
@@ -37,7 +40,9 @@ export default function NewGame() {
             <Wrapper>
               <View style={containerStyle.bigButton}>
                 <Button
-                  onPress={() => router.push("/GameClassic")}
+                  onPress={() =>
+                    router.push("/Game?mode=elapsed&initialTime=0")
+                  }
                   title="CLASSIC"
                   backgroundImage={ButtonBackShadow}
                   activeBackgroundImage={ButtonBackShadowActive}
@@ -45,7 +50,9 @@ export default function NewGame() {
               </View>
               <View style={containerStyle.bigButton}>
                 <Button
-                  onPress={() => router.push("/GameLimitTime")}
+                  onPress={() =>
+                    router.push("/Game?mode=countdown&initialTime=120")
+                  }
                   title="LIMIT TIME"
                   backgroundImage={ButtonBackShadow}
                   activeBackgroundImage={ButtonBackShadowActive}
@@ -71,6 +78,7 @@ const ContainerNewGame = styled.View`
   flex: 1 1 auto;
   justify-content: space-between;
   padding-top: ${hw(54)}px;
+  margin-bottom: ${hw(34)}px;
 `;
 const SplashBlock = styled.View`
   flex: 0.91;

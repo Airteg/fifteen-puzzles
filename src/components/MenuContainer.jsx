@@ -19,7 +19,8 @@ export default function MenuContainer() {
           />
           <ButtonStyled
             text="Settings"
-            onPress={() => router.push("/settings")}
+            onPress={() => router.push("/Edit")}
+            // onPress={() => router.push("/settings")}
           />
           <ButtonStyled text="About" onPress={() => router.push("/about")} />
         </ButtonsWrapper>

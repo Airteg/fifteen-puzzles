@@ -60,6 +60,7 @@ const ContainerAboutGame = styled.View`
   flex: 1 1 auto;
   justify-content: space-between;
   padding-top: ${hw(20)}px;
+  margin-bottom: ${hw(34)}px;
   /* border: 2px solid orangered; */
 `;
 const SplashBlock = styled.View`

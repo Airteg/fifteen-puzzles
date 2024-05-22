@@ -11,8 +11,8 @@ export default function CanvasContainer({
   top = 0,
   left = 0,
 }) {
-  console.log("🚀 ~ canvasElement:", canvasElement);
-  console.log("🚀 ~ ~ Prop dimCanvasElement:", dimCanvasElement);
+  // console.log("🚀 ~ canvasElement:", canvasElement);
+  // console.log("🚀 ~ ~ Prop dimCanvasElement:", dimCanvasElement);
   const [size, setSize] = useState({ width: 0, height: 0 });
   const [csize, setCsize] = useState({ width: 0, height: 0 });
 
@@ -37,7 +37,7 @@ export default function CanvasContainer({
         onLayout={(e) => {
           const { width, height } = e.nativeEvent.layout;
           setCsize({ width, height });
-          console.log("Canvas size", csize);
+          // console.log("Canvas size", csize);
         }}
       >
         {/* <Fill color="#dd9be0" /> */}
