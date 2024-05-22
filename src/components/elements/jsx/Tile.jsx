@@ -3,9 +3,10 @@ import React, { memo } from "react";
 import styled from "@emotion/native";
 import { SkiaShadow } from "react-native-skia-shadow";
 import { Defs, LinearGradient, Rect, Stop, Svg } from "react-native-svg";
-import { hw, hwN } from "../../../global/global-stiles.js";
+import { hwN } from "../../../global/global-stiles.js";
 
 const Tile = memo(({ width, height, number, onPress }) => {
+  console.log("const Tile");
   if (number === 0) {
     return <Size style={{ width, height, backgroundColor: "transparent" }} />;
   }
@@ -34,7 +35,7 @@ const Tile = memo(({ width, height, number, onPress }) => {
   );
 });
 
-export default Tile;
+export default React.memo(Tile);
 
 const Size = styled.Pressable`
   background-color: #ffffff;

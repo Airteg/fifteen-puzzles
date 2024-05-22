@@ -48,7 +48,7 @@ const TimerComponent = memo(
         <Text
           style={{
             fontFamily: "KronaOne_400Regular",
-            fontSize: hwN(24),
+            fontSize: hwN(18),
             color: "#305a63",
           }}
         >

@@ -1,7 +1,6 @@
-import { View, Text, ImageBackground, Alert } from "react-native";
-import styled, { css } from "@emotion/native";
+import { View, Alert } from "react-native";
+import styled from "@emotion/native";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
 import {
   Timer,
   PlayingField,

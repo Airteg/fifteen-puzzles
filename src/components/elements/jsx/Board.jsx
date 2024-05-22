@@ -1,12 +1,12 @@
 import { View, Text } from "react-native";
-import React, { useState } from "react";
-import styled, { css } from "@emotion/native";
+import React, { useState, useCallback, useRef } from "react";
+import styled from "@emotion/native";
 import { SkiaShadow } from "react-native-skia-shadow";
 import { dfjccaic } from "../../../global/global-stiles.js";
 import { Defs, LinearGradient, Rect, Stop, Svg } from "react-native-svg";
 import Tile from "./Tile.jsx";
 import { playSound } from "../../../utils/playSound.js";
-import moveSound from "../../../assets/sound/move1.mp3";
+import moveSound from "../../../assets/sound/move.aac"; // або move.wav
 
 export const shuffleTiles = () => {
   const shuffledTiles = [...Array(16).keys()].sort(() => Math.random() - 0.5);
@@ -15,32 +15,44 @@ export const shuffleTiles = () => {
 
 const Board = ({ children, color = "#71D4EB" }) => {
   const [tiles, setTiles] = useState(shuffleTiles());
-  const handleTileClick = async (clickedIndex) => {
-    const emptyIndex = tiles.indexOf(0);
-    const clickedRow = Math.floor(clickedIndex / 4);
-    const clickedCol = clickedIndex % 4;
-    const emptyRow = Math.floor(emptyIndex / 4);
-    const emptyCol = emptyIndex % 4;
+  const soundRef = useRef(null);
 
-    if (clickedRow === emptyRow || clickedCol === emptyCol) {
-      const newTiles = [...tiles];
-      const step =
-        clickedRow === emptyRow
-          ? clickedCol < emptyCol
-            ? 1
-            : -1
-          : clickedIndex < emptyIndex
-          ? 4
-          : -4;
+  const handleTileClick = useCallback(
+    async (clickedIndex) => {
+      const emptyIndex = tiles.indexOf(0);
+      const clickedRow = Math.floor(clickedIndex / 4);
+      const clickedCol = clickedIndex % 4;
+      const emptyRow = Math.floor(emptyIndex / 4);
+      const emptyCol = emptyIndex % 4;
+      console.log("handleTileClick");
+      if (clickedRow === emptyRow || clickedCol === emptyCol) {
+        const newTiles = [...tiles];
+        const step =
+          clickedRow === emptyRow
+            ? clickedCol < emptyCol
+              ? 1
+              : -1
+            : clickedIndex < emptyIndex
+            ? 4
+            : -4;
 
-      for (let i = emptyIndex; i !== clickedIndex; i -= step) {
-        newTiles[i] = newTiles[i - step];
+        for (let i = emptyIndex; i !== clickedIndex; i -= step) {
+          newTiles[i] = newTiles[i - step];
+        }
+        newTiles[clickedIndex] = tiles[emptyIndex];
+        setTiles(newTiles);
+
+        if (soundRef.current) {
+          await soundRef.current.unloadAsync();
+        }
+        soundRef.current = await playSound(moveSound); // Програвання звуку
       }
-      newTiles[clickedIndex] = tiles[emptyIndex];
-      setTiles(newTiles);
-      await playSound(moveSound); // Програвання звуку
-    }
-  };
+
+      // console.timeEnd("handleTileClick");
+    },
+    [tiles]
+  );
+
   return (
     <SkiaShadow blur={8} dx={-4} dy={4} color="#17173ecc">
       <OuterContainer>
@@ -137,5 +149,4 @@ const TileWrapper = styled.View`
   justify-content: space-between;
   align-items: center;
   align-content: stretch;
-  /* border: 0.5px solid #0000ff; */
 `;
