@@ -7,11 +7,12 @@ import { Defs, LinearGradient, Rect, Stop, Svg } from "react-native-svg";
 import Tile from "./Tile.jsx";
 import { playSound } from "../../../utils/playSound.js";
 import moveSound from "../../../assets/sound/move.aac"; // або move.wav
+import { shuffleTiles } from "../../../utils/shuffleTiles.js";
 
-export const shuffleTiles = () => {
-  const shuffledTiles = [...Array(16).keys()].sort(() => Math.random() - 0.5);
-  return shuffledTiles;
-};
+// export const shuffleTiles = () => {
+//   const shuffledTiles = [...Array(16).keys()].sort(() => Math.random() - 0.5);
+//   return shuffledTiles;
+// };
 
 const Board = ({ children, color = "#71D4EB" }) => {
   const [tiles, setTiles] = useState(shuffleTiles());
@@ -54,32 +55,42 @@ const Board = ({ children, color = "#71D4EB" }) => {
   );
 
   return (
-    <SkiaShadow blur={8} dx={-4} dy={4} color="#17173ecc">
-      <OuterContainer>
-        <InnerContainer>
-          <BackGround />
-          <ColorBoard color={color}>
-            <TileWrapper>
-              {tiles.map((number, index) => {
-                return (
-                  <Tile
-                    key={index}
-                    width="24%"
-                    height="24%"
-                    number={number}
-                    onPress={() => handleTileClick(index)}
-                  />
-                );
-              })}
-            </TileWrapper>
-          </ColorBoard>
-        </InnerContainer>
-      </OuterContainer>
-    </SkiaShadow>
+    <Container>
+      <SkiaShadow blur={8} dx={-4} dy={4} color="#17173ecc">
+        <OuterContainer>
+          <InnerContainer>
+            <BackGround />
+            <ColorBoard color={color}>
+              <TileWrapper>
+                {tiles.map((number, index) => {
+                  return (
+                    <Tile
+                      key={index}
+                      width="24%"
+                      height="24%"
+                      number={number}
+                      onPress={() => handleTileClick(index)}
+                    />
+                  );
+                })}
+              </TileWrapper>
+            </ColorBoard>
+          </InnerContainer>
+        </OuterContainer>
+      </SkiaShadow>
+    </Container>
   );
 };
 
 export default Board;
+const Container = styled.View`
+  width: 100%;
+  /* border: 1px solid blue; */
+
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+`;
 
 const OuterContainer = styled.View`
   width: 90%;

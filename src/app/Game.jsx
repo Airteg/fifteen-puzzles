@@ -3,7 +3,7 @@ import styled from "@emotion/native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import {
   Timer,
-  PlayingField,
+  Board,
   ButtonsField,
   TitleGameField,
 } from "../components/game/index.js";
@@ -26,7 +26,7 @@ export default function Game() {
         initialTime={Number(initialTime)}
         onTimeUp={handleTimeUp}
       />
-      <PlayingField />
+      <Board />
       <ButtonsField />
       <TitleGameField />
     </GameContainer>
