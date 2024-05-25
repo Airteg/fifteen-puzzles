@@ -14,7 +14,7 @@ const PlayingField = () => {
 export default PlayingField;
 const Container = styled.View`
   width: 100%;
-  /* border: 1px solid blue; */
+  border: 1px solid blue;
 
   display: flex;
   justify-content: flex-start;

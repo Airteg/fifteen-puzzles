@@ -1,6 +1,6 @@
 import Timer from "./Timer.jsx";
-import PlayingField from "./PlayingField.jsx";
 import ButtonsField from "./ButtonsField.jsx";
 import TitleGameField from "./TitleGameField.jsx";
+import Board from "../elements/jsx/Board.jsx";
 
-export { Timer, PlayingField, ButtonsField, TitleGameField };
+export { Timer, ButtonsField, TitleGameField, Board };

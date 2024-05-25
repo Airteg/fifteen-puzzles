@@ -70,7 +70,7 @@ const TileWrapper = styled.View`
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  border: 3px solid #0000ff;
+  /* border: 3px solid #0000ff; */
 `;
 const styles = {
   board: css`
