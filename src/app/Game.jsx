@@ -39,7 +39,7 @@ const GameContainer = styled.View`
   margin-bottom: ${hw(63)}px;
   width: 100%;
   align-self: center;
-  border: 1px solid yellowgreen;
+  /* border: 1px solid yellowgreen; */
   display: flex;
   justify-content: space-between;
   align-items: center;
