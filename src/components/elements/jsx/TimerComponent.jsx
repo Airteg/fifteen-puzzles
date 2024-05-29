@@ -5,7 +5,7 @@ import Clock from "../../svg/Clock.jsx";
 import { dfjccaic, hwN } from "../../../global/global-stiles.js";
 
 const TimerComponent = memo(
-  ({ onTimeUp, mode = "countdown", initialTime = 5 }) => {
+  ({ onTimeUp, changeColor, mode = "countdown", initialTime = 5 }) => {
     const [time, setTime] = useState(initialTime);
 
     useEffect(() => {
@@ -31,6 +31,19 @@ const TimerComponent = memo(
         timerId = setInterval(() => {
           setTime((prevTime) => prevTime + 1);
         }, 1000);
+      }
+      if (mode === "countdown") {
+        switch (time) {
+          case 60:
+            changeColor(60);
+            break;
+          case 30:
+            changeColor(30);
+            break;
+          case 10:
+            changeColor(10);
+            break;
+        }
       }
 
       return () => clearInterval(timerId);
