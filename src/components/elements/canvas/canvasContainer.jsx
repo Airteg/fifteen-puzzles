@@ -47,7 +47,7 @@ export default function CanvasContainer({
           dst={rect(0, 0, size.width, size.height)}
           fit="contain"
         >
-          {console.log("FitBox size", size)}
+          {/* {console.log("FitBox size", size)} */}
           {canvasElement}
         </FitBox>
       </Canvas>
