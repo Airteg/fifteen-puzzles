@@ -8,22 +8,28 @@ import { path } from "../svg/path.js";
 import { hw, hwN } from "../../global/global-stiles.js";
 
 //  path={path.home}
-const ButtonsField = () => {
+const ButtonsField = ({ onRestart }) => {
   const router = useRouter();
 
   return (
     <Container>
       <ButtonContainer onPress={() => router.push("/")}>
-        <TileWrapper style={{ width: "76%", marginTop: hwN(8) }}>
+        <TileWrapper style={{ width: "75%", marginTop: hwN(8) }}>
           <SkiaShadow blur={4} dx={0} dy={0} color="#00000090">
             <TileWrapper>
               <BackGround path={path.home} stroke="none" fill="black" />
             </TileWrapper>
           </SkiaShadow>
         </TileWrapper>
+        <TextStyled>HOME</TextStyled>
       </ButtonContainer>
-      <ButtonContainer>
-        <TileWrapper style={{ width: "76%", marginTop: hwN(8) }}>
+      <ButtonContainer
+        onPress={() => {
+          console.log("pressed");
+          onRestart();
+        }}
+      >
+        <TileWrapper style={{ width: "75%", marginTop: hwN(8) }}>
           <SkiaShadow blur={4} dx={0} dy={0} color="#00000090">
             <TileWrapper>
               <BackGround
@@ -35,12 +41,14 @@ const ButtonsField = () => {
             </TileWrapper>
           </SkiaShadow>
         </TileWrapper>
+        <TextStyled>RESTART</TextStyled>
       </ButtonContainer>
     </Container>
   );
 };
 
 export default ButtonsField;
+
 const Container = styled.View`
   flex: 0.4;
   width: 90%;
@@ -57,9 +65,14 @@ const ButtonContainer = styled.Pressable`
   background-color: #71d4eb;
   /* border: 1px solid red; */
   display: flex;
-  flex-direction: row;
-  justify-content: center;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
 `;
 const TileWrapper = styled.View`
   aspect-ratio: 1;
+`;
+const TextStyled = styled.Text`
+  font-family: Mariupol-Regular;
+  font-size: ${hw(13)}px;
 `;

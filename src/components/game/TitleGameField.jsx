@@ -9,7 +9,7 @@ import { dfjccaic, hw, ww } from "../../global/global-stiles.js";
 const TitleGameField = () => {
   const { mode } = useLocalSearchParams();
   const title = mode === "elapsed" ? "CLASSIC" : "LIMIT TIME";
-  console.log("🚀 ~ mode:", mode);
+  // console.log("🚀 ~ mode:", mode);
   return (
     <SkiaShadow blur={8} dx={0} dy={0} color="#00000070">
       <Container>
