@@ -29,6 +29,7 @@ export default function Layout() {
 
     prepare();
   }, [fontsLoaded]);
+
   if (!fontsLoaded) {
     return null;
   }

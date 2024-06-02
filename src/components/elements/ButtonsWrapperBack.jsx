@@ -10,7 +10,7 @@ import {
 } from "@shopify/react-native-skia";
 import { hwN, wwN } from "../../global/global-stiles.js";
 
-export default function BottonsWrapperBack({ height }) {
+export default function ButtonsWrapperBack({ height }) {
   return (
     <Canvas
       style={{
