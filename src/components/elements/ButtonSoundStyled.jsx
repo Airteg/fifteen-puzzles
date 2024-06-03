@@ -6,7 +6,6 @@ import Sound from "../svg/Sound.jsx";
 import { SkiaShadow } from "react-native-skia-shadow";
 
 const ButtonSoundStyled = ({ soundStatus = true }) => {
-  console.log("🚀 ~ soundStatus:", soundStatus);
   const [size, setSize] = useState({ width: 272, height: 220.5 });
 
   return (
@@ -33,7 +32,6 @@ const ButtonSoundStyled = ({ soundStatus = true }) => {
 export default ButtonSoundStyled;
 
 const RecursiveWrapper = ({ size, depth, initialBorderWidth, soundStatus }) => {
-  console.log("🚀 ~ soundStatus:", soundStatus);
   if (depth === 0) return <Sound soundStatus={soundStatus} />;
   const currentBorderWidth = initialBorderWidth + (depth - 1);
 
@@ -56,7 +54,6 @@ const RecursiveWrapper = ({ size, depth, initialBorderWidth, soundStatus }) => {
 };
 
 const Container = styled.View`
-  /* width: ${ww(52)}px; */
   height: ${hw(51)}px;
   aspect-ratio: 1.083;
   border-radius: 6px;

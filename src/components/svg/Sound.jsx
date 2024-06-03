@@ -5,8 +5,6 @@ import styled from "@emotion/native";
 import { dfjccaic } from "../../global/global-stiles.js";
 
 const Sound = ({ soundStatus }) => {
-  console.log("🚀 ~ soundStatus:", soundStatus);
-
   if (!soundStatus)
     return (
       <Wrapper>
