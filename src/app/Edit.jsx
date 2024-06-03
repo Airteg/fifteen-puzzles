@@ -7,6 +7,7 @@ import { dfjccaic, hw, platform, ww } from "../global/global-stiles.js";
 
 import Plan from "../components/Plan.jsx";
 import Timer from "../components/game/Timer.jsx";
+import ButtonSoundStyled from "../components/elements/ButtonSoundStyled.jsx";
 
 const Edit = () => {
   const [value1, setValue1] = useState(0);
@@ -57,7 +58,7 @@ const Edit = () => {
         />
       </View> */}
 
-      <Timer />
+      <ButtonSoundStyled />
     </Container>
   );
 };

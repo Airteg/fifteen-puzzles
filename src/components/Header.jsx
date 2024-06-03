@@ -1,12 +1,15 @@
 import { View, Text, Image } from "react-native";
-import React from "react";
+import React, { useState } from "react";
 import styled, { css } from "@emotion/native";
 
 import { hw, hwN } from "../global/global-stiles.js";
 import CanvasContainer from "./elements/canvas/canvasContainer.jsx";
 import Logo, { dim as dimensionsLogo } from "./elements/canvas/logoOnPlash.js";
+import { usePathname } from "expo-router";
 
 export default function Header() {
+  const [path, setPath] = useState("/");
+
   return (
     <Container>
       <Wrapper>

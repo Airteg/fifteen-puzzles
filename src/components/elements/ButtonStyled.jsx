@@ -5,7 +5,6 @@ import styled from "@emotion/native";
 import {
   Shadow,
   Fill,
-  RoundedRect,
   Canvas,
   Box,
   rrect,
