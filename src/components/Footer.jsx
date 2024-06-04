@@ -1,13 +1,21 @@
 import { View, Text } from "react-native";
 import React from "react";
 import styled from "@emotion/native";
+import { usePathname } from "expo-router";
 import { hw } from "../global/global-stiles.js";
 
 export default function Footer() {
+  const currentPath = usePathname();
   return (
     <ContainerFooter>
-      <TextCont>Privacy Policy</TextCont>
-      <TextCont>User Agreement</TextCont>
+      {currentPath === "/Game" ? (
+        ""
+      ) : (
+        <>
+          <TextCont>Privacy Policy</TextCont>
+          <TextCont>User Agreement</TextCont>
+        </>
+      )}
     </ContainerFooter>
   );
 }

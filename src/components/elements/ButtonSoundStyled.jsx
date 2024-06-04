@@ -1,29 +1,21 @@
 import { View } from "react-native";
-import React, { useState } from "react";
+import React from "react";
 import styled from "@emotion/native";
-import { dfjccaic, hw, ww } from "../../global/global-stiles.js";
+import { dfjccaic, hw, hwN } from "../../global/global-stiles.js";
 import Sound from "../svg/Sound.jsx";
 import { SkiaShadow } from "react-native-skia-shadow";
 
 const ButtonSoundStyled = ({ soundStatus = true }) => {
-  const [size, setSize] = useState({ width: 272, height: 220.5 });
-  const sound = soundStatus;
-  console.log("hw(51", hw(51));
+  const size = { width: hwN(51) * 1.083 - 3, height: hwN(51) - 3 };
   return (
-    <SkiaShadow blur={3} dx={0} dy={0} color="#00000054">
+    <SkiaShadow blur={4} dx={0} dy={0} color="#00000054">
       <Container>
-        <WrapperMain
-          onLayout={(e) => {
-            const { width, height } = e.nativeEvent.layout;
-            setSize({ width, height });
-            console.log("height", height);
-          }}
-        >
+        <WrapperMain>
           <RecursiveWrapper
             size={size}
             depth={10}
             initialBorderWidth={2}
-            soundStatus={sound}
+            soundStatus={soundStatus}
           />
         </WrapperMain>
       </Container>
@@ -64,8 +56,8 @@ const Container = styled.View`
 `;
 
 const WrapperMain = styled.View`
-  width: 100%;
-  height: 100%;
+  height: ${hw(51)}px;
+  aspect-ratio: 1.083;
   border-radius: 3px;
   background-color: #d5f7ff;
   ${dfjccaic}

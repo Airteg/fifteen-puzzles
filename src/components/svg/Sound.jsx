@@ -12,8 +12,8 @@ const Sound = ({ soundStatus }) => {
           <Defs>
             <LinearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
               <Stop offset="0.1" stopColor="#216169" stopOpacity="1" />
-              <Stop offset="0.4" stopColor="#369ca9" stopOpacity="1" />
-              <Stop offset="0.7" stopColor="#216169" stopOpacity="1" />
+              <Stop offset="0.4" stopColor="#367e88" stopOpacity="1" />
+              <Stop offset="0.8" stopColor="#216169" stopOpacity="1" />
             </LinearGradient>
           </Defs>
           <Path
@@ -28,9 +28,9 @@ const Sound = ({ soundStatus }) => {
       <Svg viewBox="0 0 34 28">
         <Defs>
           <LinearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
-            <Stop offset="0.1" stopColor="#dbe13a" stopOpacity="1" />
-            <Stop offset="0.4" stopColor="#FAFF3F" stopOpacity="1" />
-            <Stop offset="0.7" stopColor="#dbe13a" stopOpacity="1" />
+            <Stop offset="0.1" stopColor="#e6eb3c" stopOpacity="1" />
+            <Stop offset="0.4" stopColor="#fbff8f" stopOpacity="1" />
+            <Stop offset="0.7" stopColor="#e6eb3c" stopOpacity="1" />
           </LinearGradient>
         </Defs>
         <Path
