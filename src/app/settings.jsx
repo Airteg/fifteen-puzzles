@@ -40,7 +40,7 @@ export default function Settings() {
             <Wrapper>
               <View style={containerStyle.bigButton}>
                 <Button
-                  onPress={() => router.push("/GameClassic")}
+                  onPress={() => router.push("/")}
                   title="SCIN"
                   backgroundImage={ButtonBackShadow}
                   activeBackgroundImage={ButtonBackShadowActive}

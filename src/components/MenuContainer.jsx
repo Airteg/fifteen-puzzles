@@ -23,8 +23,8 @@ export default function MenuContainer() {
           <ButtonStyled text="New Game" onPress={() => navigate("/newGame")} />
           <ButtonStyled
             text="Settings"
-            onPress={() => navigate("/Edit")}
-            // onPress={() => navigate("/settings")}
+            // onPress={() => navigate("/Edit")}
+            onPress={() => navigate("/settings")}
           />
           <ButtonStyled text="About" onPress={() => navigate("/about")} />
         </ButtonsWrapper>
