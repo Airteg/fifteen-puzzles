@@ -4,13 +4,11 @@ import { router } from "expo-router";
 import ButtonStyled from "./elements/ButtonStyled.jsx";
 import ButtonsWrapperBack from "./elements/ButtonsWrapperBack.jsx";
 import { hwN, hw, ww } from "../global/global-stiles.js";
-import { setCurrentRoute } from "../global/routeTracker.js";
 
 export default function MenuContainer() {
   const height = hwN(302);
 
   const navigate = (path) => {
-    setCurrentRoute(path);
     router.push(path);
   };
 
