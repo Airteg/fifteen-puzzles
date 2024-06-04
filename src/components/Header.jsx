@@ -38,6 +38,10 @@ const Container = styled.View`
   justify-content: space-between;
   align-items: center;
 `;
+const Wrapper = styled.View`
+  width: ${hw(80)}px;
+  height: ${hw(80)}px;
+`;
 const TextCont = styled.View`
   display: flex;
   flex-direction: column;
@@ -54,8 +58,4 @@ const Description = styled.Text`
   font-size: ${hw(16)}px;
   text-align: right;
   color: #216169;
-`;
-const Wrapper = styled.View`
-  width: ${hw(80)}px;
-  height: ${hw(80)}px;
 `;

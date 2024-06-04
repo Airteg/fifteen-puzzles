@@ -7,7 +7,8 @@ import { SkiaShadow } from "react-native-skia-shadow";
 
 const ButtonSoundStyled = ({ soundStatus = true }) => {
   const [size, setSize] = useState({ width: 272, height: 220.5 });
-
+  const sound = soundStatus;
+  console.log("hw(51", hw(51));
   return (
     <SkiaShadow blur={3} dx={0} dy={0} color="#00000054">
       <Container>
@@ -15,13 +16,14 @@ const ButtonSoundStyled = ({ soundStatus = true }) => {
           onLayout={(e) => {
             const { width, height } = e.nativeEvent.layout;
             setSize({ width, height });
+            console.log("height", height);
           }}
         >
           <RecursiveWrapper
             size={size}
             depth={10}
             initialBorderWidth={2}
-            soundStatus={true}
+            soundStatus={sound}
           />
         </WrapperMain>
       </Container>
