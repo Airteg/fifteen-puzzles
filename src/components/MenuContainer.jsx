@@ -19,12 +19,12 @@ export default function MenuContainer() {
         <ButtonsWrapperBack height={height} />
         <ButtonsWrapper height={height}>
           <ButtonStyled text="New Game" onPress={() => navigate("/newGame")} />
+          <ButtonStyled text="Settings" onPress={() => navigate("/settings")} />
           <ButtonStyled
-            text="Settings"
-            // onPress={() => navigate("/Edit")}
-            onPress={() => navigate("/settings")}
+            text="About"
+            // onPress={() => navigate("/about")}
+            onPress={() => navigate("/Edit")}
           />
-          <ButtonStyled text="About" onPress={() => navigate("/about")} />
         </ButtonsWrapper>
       </CanvasWrapper>
     </Wrapper>
