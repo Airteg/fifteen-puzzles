@@ -3,16 +3,14 @@ import React, { useEffect, useRef, useState } from "react";
 import styled, { css } from "@emotion/native";
 import { Audio } from "expo-av";
 import { dfjccaic, hw, platform, ww } from "../global/global-stiles.js";
-import axios from "axios";
+import moveSound from "../assets/sound/move.aac";
 
 const Edit = () => {
   const soundRef = useRef(null);
 
   useEffect(() => {
     const loadSound = async () => {
-      const { sound } = await Audio.Sound.createAsync(
-        require("../assets/sound/move.aac")
-      );
+      const { sound } = await Audio.Sound.createAsync(moveSound);
       soundRef.current = sound;
     };
 
