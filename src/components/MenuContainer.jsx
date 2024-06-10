@@ -2,27 +2,29 @@ import { View, Text } from "react-native";
 import styled from "@emotion/native";
 import { router } from "expo-router";
 import ButtonStyled from "./elements/ButtonStyled.jsx";
-import BottonsWrapperBack from "./elements/BottonsWrapperBack.jsx";
+import ButtonsWrapperBack from "./elements/ButtonsWrapperBack.jsx";
 import { hwN, hw, ww } from "../global/global-stiles.js";
 
 export default function MenuContainer() {
   const height = hwN(302);
+
+  const navigate = (path) => {
+    router.push(path);
+  };
+
   return (
     <Wrapper>
       <TextStyled>MENU</TextStyled>
       <CanvasWrapper height={height}>
-        <BottonsWrapperBack height={height} />
+        <ButtonsWrapperBack height={height} />
         <ButtonsWrapper height={height}>
+          <ButtonStyled text="New Game" onPress={() => navigate("/newGame")} />
+          <ButtonStyled text="Settings" onPress={() => navigate("/settings")} />
           <ButtonStyled
-            text="New Game"
-            onPress={() => router.push("/newGame")}
+            text="About"
+            // onPress={() => navigate("/about")}
+            onPress={() => navigate("/Edit")}
           />
-          <ButtonStyled
-            text="Settings"
-            onPress={() => router.push("/Edit")}
-            // onPress={() => router.push("/settings")}
-          />
-          <ButtonStyled text="About" onPress={() => router.push("/about")} />
         </ButtonsWrapper>
       </CanvasWrapper>
     </Wrapper>

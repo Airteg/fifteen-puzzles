@@ -1,63 +1,36 @@
-import { View, Text } from "react-native";
-import React, { useState } from "react";
+import { View, Text, Button } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
 import styled, { css } from "@emotion/native";
-import Slider from "@react-native-community/slider";
-
+import { Audio } from "expo-av";
 import { dfjccaic, hw, platform, ww } from "../global/global-stiles.js";
-
-import Plan from "../components/Plan.jsx";
-import Timer from "../components/game/Timer.jsx";
+import moveSound from "../assets/sound/move.aac";
 
 const Edit = () => {
-  const [value1, setValue1] = useState(0);
-  const [value2, setValue2] = useState(0);
-  const [value3, setValue3] = useState(0);
-  const [value4, setValue4] = useState(0);
+  const soundRef = useRef(null);
+
+  useEffect(() => {
+    const loadSound = async () => {
+      const { sound } = await Audio.Sound.createAsync(moveSound);
+      soundRef.current = sound;
+    };
+
+    loadSound();
+
+    return () => {
+      if (soundRef.current) {
+        soundRef.current.unloadAsync();
+      }
+    };
+  }, []);
+
+  const handlePress = async () => {
+    if (soundRef.current) {
+      await soundRef.current.replayAsync();
+    }
+  };
   return (
     <Container>
-      {/* <View
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          flexDirection: "column",
-          width: "100%",
-        }}
-      >
-        <Text>x1: {value1.toFixed(0)}</Text>
-        <Slider
-          style={{ width: "100%", height: 15 }}
-          minimumValue={0}
-          maximumValue={100}
-          onValueChange={setValue1}
-          value={value1}
-        />
-        <Text>y1: {value2.toFixed(0)}</Text>
-        <Slider
-          style={{ width: "100%", height: 15 }}
-          minimumValue={0}
-          maximumValue={100}
-          onValueChange={setValue2}
-          value={value2}
-        />
-        <Text>x2: {value3.toFixed(0)}</Text>
-        <Slider
-          style={{ width: "100%", height: 15 }}
-          minimumValue={0}
-          maximumValue={100}
-          onValueChange={setValue3}
-          value={value3}
-        />
-        <Text>y2: {value4.toFixed(0)}</Text>
-        <Slider
-          style={{ width: "100%", height: 15 }}
-          minimumValue={0}
-          maximumValue={100}
-          onValueChange={setValue4}
-          value={value4}
-        />
-      </View> */}
-
-      <Timer />
+      <Button title="Press me" onPress={handlePress} />
     </Container>
   );
 };

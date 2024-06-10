@@ -11,6 +11,7 @@ import { useFonts } from "expo-font";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { globalStyles } from "../global/global-stiles.js";
+import { AppProvider } from "../global/AppContext.js";
 
 export default function Layout() {
   let [fontsLoaded] = useFonts({
@@ -29,20 +30,23 @@ export default function Layout() {
 
     prepare();
   }, [fontsLoaded]);
+
   if (!fontsLoaded) {
     return null;
   }
 
   return (
-    <SafeAreaProvider>
-      <SafeAreaView style={globalStyles.container}>
-        <InnerContainer>
-          <Header />
-          <Slot />
-          <Footer />
-        </InnerContainer>
-      </SafeAreaView>
-    </SafeAreaProvider>
+    <AppProvider>
+      <SafeAreaProvider>
+        <SafeAreaView style={globalStyles.container}>
+          <InnerContainer>
+            <Header />
+            <Slot />
+            <Footer />
+          </InnerContainer>
+        </SafeAreaView>
+      </SafeAreaProvider>
+    </AppProvider>
   );
 }
 

@@ -1,7 +1,7 @@
-import { View, Text, ImageBackground } from "react-native";
+import { View, ImageBackground } from "react-native";
 import styled, { css } from "@emotion/native";
-import { router } from "expo-router";
-import { useState } from "react";
+import { useRouter } from "expo-router";
+import { useContext, useEffect, useState } from "react";
 
 import { dfjccaic, hw, ww } from "../global/global-stiles.js";
 import Button from "../components/elements/jsx/Button.jsx";
@@ -14,9 +14,11 @@ import {
   BackActive,
   BackgroundShadow,
 } from "../assets";
+import { AppContext } from "../global/AppContext.js";
 
 export default function Settings() {
-  const [sound, setSound] = useState(true);
+  const { state, setSound, setThemeColor } = useContext(AppContext);
+  const router = useRouter();
   return (
     <ContainerSetting>
       <SplashBlock>
@@ -40,16 +42,22 @@ export default function Settings() {
             <Wrapper>
               <View style={containerStyle.bigButton}>
                 <Button
-                  onPress={() => router.push("/GameClassic")}
-                  title="SCIN"
+                  onPress={() =>
+                    setThemeColor(
+                      state.themeColor === "light" ? "dark" : "light"
+                    )
+                  }
+                  title={`SCIN ${
+                    state.themeColor === "light" ? "DARK" : "LIGHT"
+                  }`}
                   backgroundImage={ButtonBackShadow}
                   activeBackgroundImage={ButtonBackShadowActive}
                 />
               </View>
               <View style={containerStyle.bigButton}>
                 <Button
-                  onPress={() => setSound((prevSound) => !prevSound)}
-                  title={`SOUND ${sound ? "ON" : "OFF"}`}
+                  onPress={() => setSound(!state.sound)}
+                  title={`SOUND ${state.sound ? "ON" : "OFF"}`}
                   backgroundImage={ButtonBackShadow}
                   activeBackgroundImage={ButtonBackShadowActive}
                 />
@@ -149,3 +157,20 @@ const containerStyle = {
     /* border: solid 1px blue; */
   `,
 };
+const ModalView = styled.View`
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  background-color: white;
+  margin: 20px;
+  padding: 20px;
+  border-radius: 20px;
+  /* shadow-color: #000;
+  shadow-offset: {
+    width: 0;
+    height: 2px;
+  }
+  shadow-opacity: 0.25;
+  shadow-radius: 3.84px;
+  elevation: 5; */
+`;
