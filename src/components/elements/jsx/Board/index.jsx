@@ -5,7 +5,6 @@ import React, {
   useEffect,
   useContext,
 } from "react";
-
 import { SkiaShadow } from "react-native-skia-shadow";
 import { Audio } from "expo-av";
 
@@ -14,12 +13,12 @@ import moveSound from "../../../../assets/sound/move.aac";
 import { shuffleTiles } from "../../../../utils/shuffleTiles.js";
 import Tile from "../Tile.jsx";
 import {
-  Container,
-  OuterContainer,
-  InnerContainer,
-  ColorBoard,
-  TileWrapper,
   BackGround,
+  ColorBoard,
+  Container,
+  InnerContainer,
+  OuterContainer,
+  TileWrapper,
 } from "./styledComponents.js";
 
 const Board = ({ color = "#71D4EB" }) => {
