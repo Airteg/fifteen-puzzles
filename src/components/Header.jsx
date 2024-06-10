@@ -1,5 +1,5 @@
 import { View } from "react-native";
-import React from "react";
+import React, { useContext } from "react";
 import styled from "@emotion/native";
 import { usePathname } from "expo-router";
 
@@ -7,10 +7,11 @@ import { hw } from "../global/global-stiles.js";
 import CanvasContainer from "./elements/canvas/canvasContainer.jsx";
 import Logo, { dim as dimensionsLogo } from "./elements/canvas/logoOnPlash.js";
 import ButtonSoundStyled from "./elements/ButtonSoundStyled.jsx";
+import { AppContext } from "../global/AppContext.js";
 
 export default function Header() {
   const currentPath = usePathname();
-
+  const { state } = useContext(AppContext);
   return (
     <Container>
       <Wrapper>
@@ -20,7 +21,7 @@ export default function Header() {
         />
       </Wrapper>
       {currentPath === "/Game" ? (
-        <ButtonSoundStyled />
+        <ButtonSoundStyled soundStatus={state.sound} />
       ) : (
         <TextCont>
           <Title>FIFTEEN TILES</Title>
