@@ -3,7 +3,7 @@ import React from "react";
 import styled from "@emotion/native";
 import { hw } from "../global/global-stiles.js";
 import LottieView from "lottie-react-native";
-import Salute from "../assets/json/Salute5.json";
+import Salute from "../assets/json/Confety.json";
 
 const YouWin = () => {
   return (
@@ -12,7 +12,7 @@ const YouWin = () => {
       <LottieView
         source={Salute}
         autoPlay
-        loop
+        loop={false}
         style={{ flex: 1 }}
         // style={{ width: 300, height: 550 }}
       />
