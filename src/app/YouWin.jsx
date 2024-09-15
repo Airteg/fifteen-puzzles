@@ -8,14 +8,7 @@ import Salute from "../assets/json/Confety.json";
 const YouWin = () => {
   return (
     <ContainerAboutGame>
-      {/* <Text>YouWin</Text> */}
-      <LottieView
-        source={Salute}
-        autoPlay
-        loop={false}
-        style={{ flex: 1 }}
-        // style={{ width: 300, height: 550 }}
-      />
+      <LottieView source={Salute} autoPlay loop={false} style={{ flex: 1 }} />
     </ContainerAboutGame>
   );
 };
