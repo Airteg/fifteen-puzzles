@@ -4,6 +4,8 @@ import styled, { css } from "@emotion/native";
 import { Audio } from "expo-av";
 import { dfjccaic, hw, platform, ww } from "../global/global-stiles.js";
 import moveSound from "../assets/sound/move.aac";
+import { Defs, LinearGradient, Rect, Stop, Svg } from "react-native-svg";
+import Test3 from "../components/elements/jsx/test3.jsx";
 
 const Edit = () => {
   const soundRef = useRef(null);
@@ -30,7 +32,9 @@ const Edit = () => {
   };
   return (
     <Container>
-      <Button title="Press me" onPress={handlePress} />
+      <TestContainer>
+        <Test3 />
+      </TestContainer>
     </Container>
   );
 };
@@ -43,6 +47,12 @@ const Container = styled.View`
   margin-top: ${hw(43)}px;
   margin-bottom: ${hw(40)}px;
   align-self: center;
-  /* border: 1px solid darkgreen; */
+  border: 1px solid darkgreen;
   ${dfjccaic}
+`;
+const TestContainer = styled(View)`
+  border: 1px solid red;
+  width: 150px;
+  height: 150px;
+  overflow: visible;
 `;

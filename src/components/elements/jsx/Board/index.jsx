@@ -109,7 +109,7 @@ const Board = ({ color = "#71D4EB" }) => {
     },
     [tiles, state.sound]
   );
-  console.log("tiles", tiles);
+
   return (
     <Container>
       <SkiaShadow blur={8} dx={-4} dy={4} color="#17173ecc">
