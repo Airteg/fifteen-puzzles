@@ -2,7 +2,7 @@ import { View } from "react-native";
 import styled from "@emotion/native";
 
 import { dfjccaic } from "../../../../global/global-stiles.js";
-import { Defs, LinearGradient, Rect, Stop, Svg } from "react-native-svg";
+import { Defs, LinearGradient, G, Path, Stop, Svg } from "react-native-svg";
 
 export const Container = styled.View`
   width: 100%;
@@ -49,23 +49,49 @@ export const BackGround = () => (
       overflow: "hidden",
     }}
   >
-    <Svg viewBox="0 0 420 420">
+    <Svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox={"0 0 60 60"}
+      fill="none"
+      // {...props}
+    >
+      <G filter="url(#a)">
+        <Path
+          fill="url(#b)"
+          d="M 55.859 0.101 H 4.14 a 4.04 4.04 0 0 0 -4.04 4.04 V 55.86 a 4.04 4.04 0 0 0 4.04 4.04 H 55.86 a 4.04 4.04 0 0 0 4.04 -4.04 V 4.14 a 4.04 4.04 0 0 0 -4.04 -4.04 Z"
+        />
+        <Path
+          fill="url(#c)"
+          d="M 55.252 0.707 H 4.747 a 4.04 4.04 0 0 0 -4.04 4.04 v 50.505 a 4.04 4.04 0 0 0 4.04 4.04 h 50.505 a 4.04 4.04 0 0 0 4.04 -4.04 V 4.747 a 4.04 4.04 0 0 0 -4.04 -4.04 Z"
+        />
+      </G>
       <Defs>
-        <LinearGradient id="grad" x1="0" y1="1" x2="1" y2="0">
-          <Stop offset="0" stopColor="#FDFDFD" stopOpacity="1" />
-          <Stop offset="0.35" stopColor="#F4F4F4" stopOpacity="1" />
-          <Stop offset="0.65" stopColor="#DCDCDC" stopOpacity="1" />
-          <Stop offset="1" stopColor="#D0D0D0" stopOpacity="1" />
+        <LinearGradient
+          id="b"
+          x1={19.772}
+          x2={52.23}
+          y1={70.808}
+          y2={1.194}
+          gradientUnits="userSpaceOnUse"
+        >
+          <Stop offset={0.17} stopColor="#A4B3BD" />
+          <Stop offset={0.73} stopColor="#EEF1F3" />
+          <Stop offset={0.85} stopColor="#fff" />
+        </LinearGradient>
+        <LinearGradient
+          id="c"
+          x1={20.111}
+          x2={51.891}
+          y1={70.079}
+          y2={1.923}
+          gradientUnits="userSpaceOnUse"
+        >
+          <Stop stopColor="#FDFDFD" />
+          <Stop offset={0.3} stopColor="#F4F4F4" />
+          <Stop offset={0.79} stopColor="#DCDCDC" />
+          <Stop offset={1} stopColor="#D0D0D0" />
         </LinearGradient>
       </Defs>
-      <Rect
-        x={0}
-        y={0}
-        width={420}
-        height={420}
-        fill="url(#grad)"
-        stroke="none"
-      />
     </Svg>
   </View>
 );

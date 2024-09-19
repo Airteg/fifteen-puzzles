@@ -11,7 +11,7 @@ import { router } from "expo-router"; // Додано імпорт router
 import { AppContext } from "../../../../global/AppContext.js";
 import moveSound from "../../../../assets/sound/move.aac";
 import { shuffleTiles } from "../../../../utils/shuffleTiles.js";
-import Tile from "../Tile.jsx";
+import Tile from "../Tile1.jsx";
 import {
   BackGround,
   ColorBoard,
@@ -21,12 +21,12 @@ import {
   TileWrapper,
 } from "./styledComponents.js";
 
-// const WINNING_COMBINATION = [
-//   1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0,
-// ];
 const WINNING_COMBINATION = [
-  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 13, 15, 0,
+  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0,
 ];
+// const WINNING_COMBINATION = [
+//   1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 13, 15, 0,
+// ];
 
 const Board = ({ color = "#71D4EB" }) => {
   const { state } = useContext(AppContext);
@@ -69,6 +69,8 @@ const Board = ({ color = "#71D4EB" }) => {
   //   }
   // };
   const checkForWin = (tiles) => {
+    // console.log("🚀 ~ tiles:", tiles);
+
     for (let i = 0; i < tiles.length; i++) {
       if (tiles[i] !== WINNING_COMBINATION[i]) {
         return false;
@@ -121,8 +123,8 @@ const Board = ({ color = "#71D4EB" }) => {
                 {tiles.map((number, index) => (
                   <Tile
                     key={index}
-                    width="24%"
-                    height="24%"
+                    width="24.5%"
+                    height="24.5%"
                     number={number}
                     onPress={() => handleTileClick(index)}
                   />

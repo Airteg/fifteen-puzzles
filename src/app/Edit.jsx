@@ -5,7 +5,7 @@ import { Audio } from "expo-av";
 import { dfjccaic, hw, platform, ww } from "../global/global-stiles.js";
 import moveSound from "../assets/sound/move.aac";
 import { Defs, LinearGradient, Rect, Stop, Svg } from "react-native-svg";
-import Test3 from "../components/elements/jsx/test3.jsx";
+import TileBase from "../components/elements/jsx/TileBase.jsx";
 
 const Edit = () => {
   const soundRef = useRef(null);
@@ -33,7 +33,7 @@ const Edit = () => {
   return (
     <Container>
       <TestContainer>
-        <Test3 />
+        <TileBase />
       </TestContainer>
     </Container>
   );
@@ -51,7 +51,7 @@ const Container = styled.View`
   ${dfjccaic}
 `;
 const TestContainer = styled(View)`
-  border: 1px solid red;
+  /* border: 1px solid red; */
   width: 150px;
   height: 150px;
   overflow: visible;

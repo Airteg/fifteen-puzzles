@@ -20,6 +20,6 @@ const ContainerAboutGame = styled.View`
   justify-content: space-between;
   padding-top: ${hw(20)}px;
   margin-bottom: ${hw(34)}px;
-  border: 2px solid orangered;
-  background-color: #000;
+  /* border: 2px solid orangered; */
+  background-color: #00000060;
 `;
