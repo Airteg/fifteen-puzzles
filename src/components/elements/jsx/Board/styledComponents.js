@@ -3,6 +3,7 @@ import styled from "@emotion/native";
 
 import { dfjccaic } from "../../../../global/global-stiles.js";
 import { Defs, LinearGradient, G, Path, Stop, Svg } from "react-native-svg";
+import Plan2 from "../../../svg/Plan2.jsx";
 
 export const Container = styled.View`
   width: 100%;
@@ -10,15 +11,31 @@ export const Container = styled.View`
   justify-content: flex-start;
   align-items: center;
 `;
-export const OuterContainer = styled.View`
-  width: 90%;
-  aspect-ratio: 1;
-  background-color: #fff;
-  border-radius: 8px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-`;
+export const OuterContainer = ({ children }) => {
+  return (
+    <View
+      style={{
+        width: "90%",
+        aspectRatio: 1,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <Plan2 style={{ position: "absolute" }} />
+      {children}
+    </View>
+  );
+};
+// export const OuterContainer = styled.View`
+//   width: 90%;
+//   aspect-ratio: 1;
+//   background-color: #fff;
+//   border-radius: 8px;
+//   display: flex;
+//   justify-content: center;
+//   align-items: center;
+// `;
 export const InnerContainer = styled.View`
   width: 98%;
   aspect-ratio: 1;
@@ -28,7 +45,7 @@ export const InnerContainer = styled.View`
 `;
 
 export const ColorBoard = styled.View`
-  width: 96%;
+  width: 94%;
   aspect-ratio: 1;
   background-color: ${(props) => props.color};
   border-radius: 8px;

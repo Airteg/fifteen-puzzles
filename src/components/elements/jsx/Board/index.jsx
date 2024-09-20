@@ -13,7 +13,6 @@ import moveSound from "../../../../assets/sound/move.aac";
 import { shuffleTiles } from "../../../../utils/shuffleTiles.js";
 import Tile from "../Tile1.jsx";
 import {
-  BackGround,
   ColorBoard,
   Container,
   InnerContainer,
@@ -117,7 +116,6 @@ const Board = ({ color = "#71D4EB" }) => {
       <SkiaShadow blur={8} dx={-4} dy={4} color="#17173ecc">
         <OuterContainer>
           <InnerContainer>
-            <BackGround />
             <ColorBoard color={color}>
               <TileWrapper>
                 {tiles.map((number, index) => (

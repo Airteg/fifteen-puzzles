@@ -6,6 +6,8 @@ import { dfjccaic, hw, platform, ww } from "../global/global-stiles.js";
 import moveSound from "../assets/sound/move.aac";
 import { Defs, LinearGradient, Rect, Stop, Svg } from "react-native-svg";
 import TileBase from "../components/elements/jsx/TileBase.jsx";
+import Plan2 from "../components/svg/Plan2.jsx";
+import SvgLogo from "../components/svg/Logo.jsx";
 
 const Edit = () => {
   const soundRef = useRef(null);
@@ -33,7 +35,7 @@ const Edit = () => {
   return (
     <Container>
       <TestContainer>
-        <TileBase />
+        <SvgLogo />
       </TestContainer>
     </Container>
   );

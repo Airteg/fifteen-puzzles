@@ -14,7 +14,7 @@ export default function Home() {
   );
 }
 
-const ContainerHome = styled.View`
+const ContainerHome = styled(View)`
   flex: 1 1 auto;
   padding-top: ${hw(30)}px;
 `;

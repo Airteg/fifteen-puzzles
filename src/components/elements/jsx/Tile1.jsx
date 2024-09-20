@@ -1,7 +1,6 @@
 import { Pressable, Text } from "react-native";
 import React, { memo } from "react";
 import styled from "@emotion/native";
-import { SkiaShadow } from "react-native-skia-shadow";
 import { hwN } from "../../../global/global-stiles.js";
 import BackGround from "../../svg/BackGround.jsx";
 
