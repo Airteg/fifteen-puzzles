@@ -6,7 +6,6 @@ const Plan2 = (props) => (
     xmlns="http://www.w3.org/2000/svg"
     fill="none"
     viewBox="17 10 278 278"
-    iewBox
     {...props}
   >
     <G filter="url(#a)">

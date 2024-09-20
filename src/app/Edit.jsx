@@ -53,7 +53,7 @@ const Container = styled.View`
   ${dfjccaic}
 `;
 const TestContainer = styled(View)`
-  /* border: 1px solid red; */
+  border: 1px solid red;
   width: 150px;
   height: 150px;
   overflow: visible;
