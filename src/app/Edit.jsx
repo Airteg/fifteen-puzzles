@@ -1,13 +1,32 @@
-import { View, Text, Button } from "react-native";
+import { View, Image } from "react-native";
+// import { Image } from "expo-image";
 import React, { useEffect, useRef, useState } from "react";
-import styled, { css } from "@emotion/native";
+import styled from "@emotion/native";
 import { Audio } from "expo-av";
-import { dfjccaic, hw, platform, ww } from "../global/global-stiles.js";
+import { dfjccaic, hw } from "../global/global-stiles.js";
 import moveSound from "../assets/sound/move.aac";
-import { Defs, LinearGradient, Rect, Stop, Svg } from "react-native-svg";
-import TileBase from "../components/elements/jsx/TileBase.jsx";
-import Plan2 from "../components/svg/Plan2.jsx";
+
 import SvgLogo from "../components/svg/Logo.jsx";
+import {
+  Circle,
+  ClipPath,
+  Defs,
+  ForeignObject,
+  G,
+  LinearGradient,
+  RadialGradient,
+  Filter,
+  FeColorMatrix,
+  Ellipse,
+  Polygon,
+  Text,
+  Mask,
+  Rect,
+  Stop,
+  Svg,
+  SvgXml,
+  Use,
+} from "react-native-svg";
 
 const Edit = () => {
   const soundRef = useRef(null);
@@ -32,6 +51,7 @@ const Edit = () => {
       await soundRef.current.replayAsync();
     }
   };
+
   return (
     <Container>
       <TestContainer>
@@ -43,18 +63,14 @@ const Edit = () => {
 
 export default Edit;
 
-const Container = styled.View`
-  flex: 1 1 auto;
-  width: 100%;
-  margin-top: ${hw(43)}px;
-  margin-bottom: ${hw(40)}px;
-  align-self: center;
+const Container = styled(View)`
+  flex: 1;
   border: 1px solid darkgreen;
   ${dfjccaic}
 `;
 const TestContainer = styled(View)`
-  border: 1px solid red;
-  width: 150px;
-  height: 150px;
+  /* border: 1px solid red; */
+  width: 220px;
+  height: 220px;
   overflow: visible;
 `;
