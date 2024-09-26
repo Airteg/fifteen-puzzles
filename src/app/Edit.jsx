@@ -27,6 +27,7 @@ import {
   SvgXml,
   Use,
 } from "react-native-svg";
+import Test from "../components/svg/Test";
 
 const Edit = () => {
   const soundRef = useRef(null);
@@ -54,6 +55,7 @@ const Edit = () => {
 
   return (
     <Container>
+      {/* <Test /> */}
       <TestContainer>
         <SvgLogo />
       </TestContainer>
@@ -69,8 +71,8 @@ const Container = styled(View)`
   ${dfjccaic}
 `;
 const TestContainer = styled(View)`
-  /* border: 1px solid red; */
-  width: 220px;
-  height: 220px;
+  border: 1px solid red;
+  width: 250px;
+  height: 250px;
   overflow: visible;
 `;
