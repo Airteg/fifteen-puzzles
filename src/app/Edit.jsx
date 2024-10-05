@@ -3,7 +3,7 @@ import { View, Image } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
 import styled, { css } from "@emotion/native";
 import { Audio } from "expo-av";
-import { dfjccaic, hw } from "../global/global-stiles.js";
+import { dfjccaic, hw, hwN, wwN } from "../global/global-stiles.js";
 import moveSound from "../assets/sound/move.aac";
 
 import SvgLogo from "../components/svg/Logo.jsx";
@@ -13,6 +13,7 @@ import Logo from "../components/elements/canvas/Logo.jsx";
 import Button from "../components/elements/jsx/Button.jsx";
 import { Back, BackActive } from "../assets/index.js";
 import { router } from "expo-router";
+import BlueBackground from "../components/elements/canvas/blueBackground";
 
 const Edit = () => {
   const soundRef = useRef(null);
@@ -41,9 +42,7 @@ const Edit = () => {
   return (
     <Container>
       <Part1>
-        <TestContainer size={size}>
-          <Logo size={size} />
-        </TestContainer>
+        <BlueBackground width={wwN(340 - 2)} height={hwN(489)} />
       </Part1>
       <Part2>
         <View style={containerStyle.smallButton}>
@@ -75,7 +74,9 @@ const TestContainer = styled(View)`
 `;
 const Part1 = styled(View)`
   flex: 0.8;
+  width: 100%;
   justify-content: center;
+  /* border: 1px solid black; */
 `;
 const Part2 = styled(View)`
   flex: 0.2;

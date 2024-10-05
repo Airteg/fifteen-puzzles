@@ -17,7 +17,7 @@ export default function ButtonStyled({ size = "long", text = "", onPress }) {
   const [longPressActivated, setLongPressActivated] = useState(false);
   const kh = hwN(10),
     kw = wwN(10);
-  //blure(5)+strokeWidth(3)+width(276)+strokeWidth(3)+blure(5)
+
   const height = hwN(58) + hwN(16),
     width = wwN(size === "long" ? 276 : 120) + wwN(16);
   return (

@@ -19,10 +19,6 @@ export default function Header() {
     <Container>
       <Wrapper>
         <Logo size={size} />
-        {/* <CanvasContainer
-          canvasElement={<Logo cx={30} cy={30} />}
-          dimCanvasElement={dimensionsLogo}
-        /> */}
       </Wrapper>
       {currentPath === "/Game" ? (
         <ButtonSoundStyled soundStatus={state.sound} />

@@ -29,6 +29,5 @@ export const globalStyles = {
     justify-content: space-around;
     align-items: center;
     /* border: solid red 2px; */
-    box-sizing: border-box;
   `,
 };
