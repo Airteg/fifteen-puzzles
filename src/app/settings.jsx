@@ -75,7 +75,7 @@ export default function Settings() {
               </View>
               <View style={containerStyle.bigButton}>
                 <Button
-                  onPress={() => navigate("/support2")}
+                  onPress={() => navigate("/support")}
                   title="SUPPORT"
                   backgroundImage={ButtonBackShadow}
                   activeBackgroundImage={ButtonBackShadowActive}
