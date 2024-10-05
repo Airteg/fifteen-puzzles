@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import styled, { css } from "@emotion/native";
 import { AppContext } from "../global/AppContext.js"; // Ваш контекст, якщо користувач вже зареєстрований
-import { dfjccaic, hw } from "../global/global-stiles.js";
+import { dfjccaic, hw, ww } from "../global/global-stiles.js";
 import {
   Back,
   BackActive,
@@ -155,7 +155,8 @@ const TextArea = styled(TextInput)`
 
 const containerStyle = {
   buttons: css`
-    padding: 20px;
+    padding: 20px 9px;
+    ${dfjccaic}/* border: solid 1px blue; */
   `,
   bigButton: css`
     width: 100%;
@@ -170,6 +171,7 @@ const containerStyle = {
     display: flex;
     justify-content: center;
     align-self: flex-end;
+    margin-right: ${ww(3)}px;
     /* border: solid 1px blue; */
   `,
 };
