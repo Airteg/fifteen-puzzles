@@ -9,13 +9,14 @@ import {
 } from "react-native";
 import styled, { css } from "@emotion/native";
 import { AppContext } from "../global/AppContext.js"; // Ваш контекст, якщо користувач вже зареєстрований
-import { dfjccaic, hw, ww } from "../global/global-stiles.js";
+import { dfjccaic, hw, ww, wwN } from "../global/global-stiles.js";
 import {
   Back,
   BackActive,
   BackgroundShadow,
   ButtonBackShadow,
   ButtonBackShadowActive,
+  SUPPORT,
 } from "../assets/index.js";
 import Button from "../components/elements/jsx/Button.jsx";
 import { router } from "expo-router";
@@ -39,19 +40,29 @@ const Support = () => {
     // Логіка для надсилання повідомлення на сервер або email
     Alert.alert("Успіх", "Ваше повідомлення надіслано. Дякуємо за відгук!");
     // Очистити поля після відправлення
+    setEmail("");
     setMessage("");
   };
 
   return (
     <Container>
-      <Title>SUPPORT</Title>
+      <SplashBlock>
+        <ImageBackground
+          source={SUPPORT}
+          resizeMode="contain"
+          style={containerStyle.image}
+        />
+      </SplashBlock>
+      <TitleBlock>
+        <Title>SUPPORT</Title>
+      </TitleBlock>
       <Wrapper>
         <ImageBackground
           source={BackgroundShadow}
           resizeMode="stretch"
           style={{ justifyContent: "center", width: "100%" }}
         >
-          <View style={{ padding: 20 }}>
+          <View style={{ paddingVertical: 10, paddingHorizontal: wwN(28) }}>
             {/* Поле електронної пошти тільки для незареєстрованих користувачів */}
             {!state?.user && (
               <>
@@ -75,25 +86,25 @@ const Support = () => {
 
             {/* <SubmitButton onPress={handleSubmit} title="Надіслати" /> */}
           </View>
+          <View style={{ paddingVertical: 0, paddingHorizontal: wwN(21) }}>
+            <View style={containerStyle.bigButton}>
+              <Button
+                onPress={handleSubmit}
+                title="SUBMIT"
+                backgroundImage={ButtonBackShadow}
+                activeBackgroundImage={ButtonBackShadowActive}
+              />
+            </View>
+            <View style={containerStyle.smallButton}>
+              <Button
+                onPress={() => router.back()}
+                backgroundImage={Back}
+                activeBackgroundImage={BackActive}
+              />
+            </View>
+          </View>
         </ImageBackground>
       </Wrapper>
-      <View style={containerStyle.buttons}>
-        <View style={containerStyle.bigButton}>
-          <Button
-            onPress={handleSubmit}
-            title="SUBMIT"
-            backgroundImage={ButtonBackShadow}
-            activeBackgroundImage={ButtonBackShadowActive}
-          />
-        </View>
-        <View style={containerStyle.smallButton}>
-          <Button
-            onPress={() => router.back()}
-            backgroundImage={Back}
-            activeBackgroundImage={BackActive}
-          />
-        </View>
-      </View>
     </Container>
   );
 };
@@ -108,15 +119,24 @@ const Container = styled(ScrollView)`
   /* justify-content: center; */
   background-color: #d5f7ff;
 `;
-
+const SplashBlock = styled(View)`
+  /* flex: 0.2; */
+  height: 15%;
+`;
+const TitleBlock = styled(View)`
+  /* border: 1px solid coral; */
+  justify-content: center;
+  align-items: center;
+`;
 const Title = styled(Text)`
   font-family: Mariupol-Bold;
   font-size: ${hw(45)}px;
   text-align: center;
   color: #216169;
-  margin: ${hw(20)}px 0;
+  /* margin: ${hw(20)}px 0; */
 `;
 const Wrapper = styled(View)`
+  /* flex: 0.6; */
   /* border: 1px solid coral; */
   width: 100%;
   border-radius: ${hw(8)}px;
@@ -154,8 +174,13 @@ const TextArea = styled(TextInput)`
 `;
 
 const containerStyle = {
+  image: css`
+    flex: 1;
+    justify-content: center;
+    width: 100%;
+  `,
   buttons: css`
-    padding: 20px 9px;
+    /* padding: 20px 9px; */
     ${dfjccaic}/* border: solid 1px blue; */
   `,
   bigButton: css`

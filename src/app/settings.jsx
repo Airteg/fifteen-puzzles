@@ -103,7 +103,7 @@ const ContainerSetting = styled.View`
   padding-top: ${hw(54)}px;
   margin-bottom: ${hw(34)}px;
 `;
-const SplashBlock = styled.View`
+const SplashBlock = styled(View)`
   flex: 0.2;
 `;
 const TitleBlock = styled.View`
