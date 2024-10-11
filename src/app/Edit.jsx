@@ -1,19 +1,10 @@
-import { View, Image } from "react-native";
-// import { Image } from "expo-image";
+import { View } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
 import styled, { css } from "@emotion/native";
 import { Audio } from "expo-av";
-import { dfjccaic, hw, hwN, wwN } from "../global/global-stiles.js";
+import { dfjccaic, hw } from "../global/global-stiles.js";
 import moveSound from "../assets/sound/move.aac";
-
-import SvgLogo from "../components/svg/Logo.jsx";
-
-import Test from "../components/svg/TestCanvase";
-import Logo from "../components/elements/canvas/Logo.jsx";
-import Button from "../components/elements/jsx/Button.jsx";
-import { Back, BackActive } from "../assets/index.js";
-import { router } from "expo-router";
-import BlueBackground from "../components/elements/canvas/blueBackground";
+import ButtonField from "../components/elements/canvas/ButtonField.jsx";
 
 const Edit = () => {
   const soundRef = useRef(null);
@@ -42,17 +33,8 @@ const Edit = () => {
   return (
     <Container>
       <Part1>
-        <BlueBackground width={wwN(340 - 2)} height={hwN(489)} />
+        <ButtonField labels={["B1234", "B2"]} />
       </Part1>
-      <Part2>
-        <View style={containerStyle.smallButton}>
-          <Button
-            onPress={() => router.back()}
-            backgroundImage={Back}
-            activeBackgroundImage={BackActive}
-          />
-        </View>
-      </Part2>
     </Container>
   );
 };
@@ -73,16 +55,13 @@ const TestContainer = styled(View)`
   overflow: visible;
 `;
 const Part1 = styled(View)`
-  flex: 0.8;
+  flex: 1;
   width: 100%;
   justify-content: center;
-  /* border: 1px solid black; */
+  border: 1px solid red;
+  padding: 10px;
 `;
-const Part2 = styled(View)`
-  flex: 0.2;
-  justify-content: flex-end;
-  align-self: flex-end;
-`;
+
 const containerStyle = {
   image: css`
     flex: 1;
