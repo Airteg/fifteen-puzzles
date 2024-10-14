@@ -54,14 +54,14 @@ const ButtonStyled = ({ x, y, label, color }) => {
           text={label} // Текст з пропсів
           color="#216169"
           font={font} // Використовуємо завантажений шрифт
-          // size={hwN(24)} // Розмір шрифту
+          // Розмір шрифта заданий в _layout.js useFont(KronaOne_400Regular, hwN(24))
         />
       )}
       {label === "back" && (
         <Group
           transform={[
-            { translateX: x + hwN(14.15) + width - height },
-            { translateY: y + hwN(16) },
+            { translateX: x + (width - height) + (height - 20) / 2 },
+            { translateY: y + (height - 17.03) / 2 },
           ]}
         >
           <Path
