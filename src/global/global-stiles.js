@@ -5,14 +5,18 @@ const windowDimensions = Dimensions.get("window");
 console.log("🚀 ~ windowDimensions:", windowDimensions);
 export const windowHeight = windowDimensions.height;
 export const windowWidth = windowDimensions.width;
-//Висота вікна, текст
-export const hw = (h) => Math.round((h * windowHeight) / 844).toString();
-//Ширина вікна, текст
-export const ww = (w) => Math.round((w * windowWidth) / 390).toString();
-//Висота вікна, число
-export const hwN = (h) => Math.round((h * windowHeight) / 844);
-//Ширина вікна, число
-export const wwN = (w) => Math.round((w * windowWidth) / 390);
+
+//Висота вікна -> текст
+export const hw = (h) =>
+  (Math.round((h * 1000 * windowHeight) / 844) / 1000).toString();
+//Ширина вікна -> текст
+export const ww = (w) =>
+  (Math.round((w * 1000 * windowWidth) / 390) / 1000).toString();
+//Висота вікна -> число
+export const hwN = (h) => Math.round((h * 1000 * windowHeight) / 844) / 1000;
+//Ширина вікна -> число
+export const wwN = (w) => Math.round((w * 1000 * windowWidth) / 390) / 1000;
+
 export const dfjccaic = `display: flex;
   justify-content: center;
   align-items: center;`;

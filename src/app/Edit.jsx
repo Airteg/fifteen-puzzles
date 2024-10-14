@@ -30,10 +30,11 @@ const Edit = () => {
     }
   };
   const size = 110;
+
   return (
     <Container>
       <Part1>
-        <ButtonField labels={["B1234", "B2"]} />
+        <ButtonField labels={["New Game", "B2", "SGFNHJMN", "back"]} />
       </Part1>
     </Container>
   );
@@ -43,7 +44,7 @@ export default Edit;
 
 const Container = styled(View)`
   flex: 1;
-  border: 0.5px solid darkgreen;
+  /* border: 0.5px solid darkgreen; */
   ${dfjccaic}
 `;
 const TestContainer = styled(View)`
@@ -55,11 +56,11 @@ const TestContainer = styled(View)`
   overflow: visible;
 `;
 const Part1 = styled(View)`
-  flex: 1;
+  flex: 0.6;
   width: 100%;
   justify-content: center;
-  border: 1px solid red;
-  padding: 10px;
+  /* border: 1px solid red; */
+  background-color: #0f0;
 `;
 
 const containerStyle = {

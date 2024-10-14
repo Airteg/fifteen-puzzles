@@ -17,7 +17,7 @@ import {
   ButtonBackShadow,
   ButtonBackShadowActive,
   SUPPORT,
-} from "../assets/index.js";
+} from "../assets";
 import Button from "../components/elements/jsx/Button.jsx";
 import { router } from "expo-router";
 

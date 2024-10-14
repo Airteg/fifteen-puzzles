@@ -7,11 +7,14 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import * as SplashScreen from "expo-splash-screen";
 import { KronaOne_400Regular } from "@expo-google-fonts/krona-one";
 import { useFonts } from "expo-font";
+import { useFont } from "@shopify/react-native-skia";
 
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { globalStyles } from "../global/global-stiles.js";
+import { globalStyles, hwN } from "../global/global-stiles.js";
 import { AppProvider } from "../global/AppContext.js";
+
+export let skiaFont; // Створюємо змінну для експорту шрифта
 
 export default function Layout() {
   let [fontsLoaded] = useFonts({
@@ -21,17 +24,21 @@ export default function Layout() {
     "Mariupol-Regular": require("../assets/fonts/Mariupol-Regular.ttf"),
     MariupolSymbols: require("../assets/fonts/MariupolSymbols.ttf"),
   });
+
+  // Завантажуємо шрифт для Skia
+  skiaFont = useFont(KronaOne_400Regular, hwN(24)); // Тепер skiaFont доступний глобально для імпорту
+
   useEffect(() => {
     async function prepare() {
-      if (fontsLoaded) {
+      if (fontsLoaded && skiaFont) {
         await SplashScreen.hideAsync();
       }
     }
 
     prepare();
-  }, [fontsLoaded]);
+  }, [fontsLoaded, skiaFont]);
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded || !skiaFont) {
     return null;
   }
 

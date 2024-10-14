@@ -1,18 +1,19 @@
 import React from "react";
-import { RoundedRect, Text } from "@shopify/react-native-skia";
-import { useFont } from "@shopify/react-native-skia";
-import { KronaOne_400Regular } from "@expo-google-fonts/krona-one"; // Підключення шрифту через Expo
+import {
+  RoundedRect,
+  Text,
+  Path,
+  Group,
+  Shadow,
+  scale,
+} from "@shopify/react-native-skia";
+import { skiaFont as font } from "../../../app/_layout.jsx";
+
 import { hwN, wwN } from "../../../global/global-stiles.js";
 
 const ButtonStyled = ({ x, y, label, color }) => {
-  const font = useFont(KronaOne_400Regular, hwN(24)); // Шрифт постійний для кнопки
-
   const width = wwN(276); // Фіксована ширина
   const height = hwN(58); // Фіксована висота
-
-  if (!font) {
-    return null; // Повертаємо null, поки шрифт не завантажиться
-  }
 
   // Вимірюємо розмір тексту
   const textMetrics = font.measureText(label); // Отримуємо об'єкт з розмірами тексту
@@ -26,23 +27,60 @@ const ButtonStyled = ({ x, y, label, color }) => {
     <>
       {/* Прямокутник кнопки */}
       <RoundedRect
-        x={x}
+        x={x + (label === "back" ? width - height : 0)}
         y={y}
-        width={width}
+        width={label === "back" ? height : width}
         height={height}
         r={8} // Фіксований радіус заокруглення
+        color="#D5F7FF"
+      >
+        <Shadow dx={0} dy={0} blur={6} color="#00000040" />
+      </RoundedRect>
+      <RoundedRect
+        x={x + 2 + (label === "back" ? width - height : 0)}
+        y={y + 2}
+        width={(label === "back" ? height : width) - 4}
+        height={height - 4}
+        r={8} // Фіксований радіус заокруглення
         color={color}
-      />
+      >
+        <Shadow dx={0} dy={0} blur={6} color="#00000040" inner />
+      </RoundedRect>
       {/* Текст всередині кнопки */}
-      {font && (
+      {font && label !== "back" && (
         <Text
           x={textX} // Позиція по X
           y={textY} // Позиція по Y
           text={label} // Текст з пропсів
-          color="black"
-          size={24} // Розмір шрифту
+          color="#216169"
           font={font} // Використовуємо завантажений шрифт
+          // size={hwN(24)} // Розмір шрифту
         />
+      )}
+      {label === "back" && (
+        <Group
+          transform={[
+            { translateX: x + hwN(14.15) + width - height },
+            { translateY: y + hwN(16) },
+          ]}
+        >
+          <Path
+            path="m19.9979 16.9594c-2.4732-2.9679-4.5932-4.6638-6.5011-5.0878-1.9079-.424-3.7452-.4946-5.4411-.212V17.03L0 8.2677 8.0557 0v5.0878c3.1799 0 5.8651 1.1306 8.1264 3.3919 2.1906 2.2612 3.5332 5.0878 3.8159 8.409z"
+            // style="stroke"
+            color={color}
+            strokeWidth={1}
+          >
+            <Shadow dx={0} dy={0} blur={4} color="#00000020" inner />
+          </Path>
+          <Path
+            path="m19.9979 16.9594c-2.4732-2.9679-4.5932-4.6638-6.5011-5.0878-1.9079-.424-3.7452-.4946-5.4411-.212V17.03L0 8.2677 8.0557 0v5.0878c3.1799 0 5.8651 1.1306 8.1264 3.3919 2.1906 2.2612 3.5332 5.0878 3.8159 8.409z"
+            style="stroke"
+            color="#216169"
+            strokeWidth={1.5}
+          >
+            <Shadow dx={0} dy={0} blur={4} color="#00000020" inner />
+          </Path>
+        </Group>
       )}
     </>
   );
