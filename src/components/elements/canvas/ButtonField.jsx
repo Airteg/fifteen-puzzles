@@ -3,6 +3,7 @@ import {
   Canvas,
   Group,
   RoundedRect,
+  Shadow,
   useTouchHandler,
 } from "@shopify/react-native-skia";
 import { View, Alert } from "react-native";
@@ -65,7 +66,9 @@ const ButtonField = ({ labels }) => {
           height={canvasHeight}
           r={8}
           color={"#71D4EB"}
-        />
+        >
+          <Shadow dx={0} dy={0} blur={8} color="#00000040" inner />
+        </RoundedRect>
         {buttons.map((btn, index) => {
           return (
             <ButtonStyled
@@ -77,14 +80,9 @@ const ButtonField = ({ labels }) => {
             />
           );
         })}
-        {back ? <Back></Back> : ""}
       </Canvas>
     </View>
   );
 };
 
 export default ButtonField;
-
-const Back = () => {
-  <Group></Group>;
-};

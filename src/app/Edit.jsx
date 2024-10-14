@@ -60,7 +60,7 @@ const Part1 = styled(View)`
   width: 100%;
   justify-content: center;
   /* border: 1px solid red; */
-  background-color: #0f0;
+  /* background-color: #0f0; */
 `;
 
 const containerStyle = {
