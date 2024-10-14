@@ -24,7 +24,7 @@ const ButtonField = ({ labels }) => {
     y: hwN(40) + index * (hwN(58) + hwN(24)), // Початкове Y = 40, наступні з відступом 24px
     label,
   }));
-  console.log("buttons", buttons);
+
   // Розрахунок висоти Canvas на основі кількості кнопок
   const canvasHeight = hwN(64) + buttons.length * (hwN(58) + hwN(24)); // Висота Canvas залежить від кількості кнопок
 
@@ -36,7 +36,7 @@ const ButtonField = ({ labels }) => {
       // Логіка для визначення натиснутої кнопки
       buttons.forEach((btn, index) => {
         if (
-          x >= btn.x &&
+          x >= btn.x + (btn.label === "back" ? wwN(276) - hwN(58) : 0) &&
           x <= btn.x + wwN(276) && // Фіксована ширина
           y >= btn.y &&
           y <= btn.y + hwN(58) // Фіксована висота
