@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Canvas,
-  Group,
   RoundedRect,
   Shadow,
   useTouchHandler,
@@ -9,7 +8,8 @@ import {
 
 import { View, Alert } from "react-native";
 import ButtonStyled from "./ButtonStyled.jsx"; // Імпорт кнопок
-import { color, hwN, wwN } from "../../global/global-stiles.js";
+import { color as systemColor, hwN, wwN } from "../../global/global-stiles.js";
+import { isButtonPressed } from "./utils.js";
 
 const ButtonField = ({ labels }) => {
   const [layoutInfo, setLayoutInfo] = useState(null);
@@ -39,15 +39,6 @@ const ButtonField = ({ labels }) => {
   const touchHandler = useTouchHandler({
     onStart: (touch) => {
       const { x, y } = touch;
-      const isButtonPressed = (touch, btn) => {
-        const { x, y } = touch;
-        return (
-          x >= btn.x + (btn.label === "back" ? wwN(276) - hwN(58) : 0) &&
-          x <= btn.x + wwN(276) &&
-          y >= btn.y &&
-          y <= btn.y + hwN(58)
-        );
-      };
       // Логіка для визначення натиснутої кнопки
       buttons.forEach((btn, index) => {
         if (isButtonPressed(touch, btn)) {
@@ -75,9 +66,15 @@ const ButtonField = ({ labels }) => {
           width={wwN(340)}
           height={canvasHeight}
           r={8}
-          color={color.BUTTON_FIELD}
+          color={systemColor.BUTTON_FIELD}
         >
-          <Shadow dx={0} dy={0} blur={8} color={color.SHADOW_COLOR} inner />
+          <Shadow
+            dx={0}
+            dy={0}
+            blur={8}
+            color={systemColor.SHADOW_COLOR}
+            inner
+          />
         </RoundedRect>
         {buttons.map((btn, index) => {
           return (
@@ -86,7 +83,11 @@ const ButtonField = ({ labels }) => {
               x={btn.x}
               y={btn.y}
               label={btn.label}
-              color={pressedIndex === index ? "yellow" : "#D5F7FF"} // Жовта під час натискання, початковий колір у звичайному стані
+              color={
+                pressedIndex === index
+                  ? systemColor.ACTIVE
+                  : systemColor.MAIN_COLOR
+              } // Жовта під час натискання, початковий колір у звичайному стані
             />
           );
         })}

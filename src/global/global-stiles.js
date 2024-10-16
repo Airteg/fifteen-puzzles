@@ -28,7 +28,12 @@ export const color = {
   BUTTON_FIELD: "#71D4EB",
   ACTIVE: "#FAFF3F",
 };
-
+export const dim = {
+  BUTTON_WIDTH: wwN(276),
+  BUTTON_HEIGHT: hwN(58),
+  BUTTON_RADIUS: 8,
+  CANVAS_PADDING: 24,
+};
 export const globalStyles = {
   container: css`
     margin: 0;
