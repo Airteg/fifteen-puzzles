@@ -39,6 +39,7 @@ export default function Layout() {
   }, [fontsLoaded, skiaFont]);
 
   if (!fontsLoaded || !skiaFont) {
+    console.log("Font is not loaded yet");
     return null;
   }
 

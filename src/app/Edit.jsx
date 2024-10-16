@@ -4,37 +4,39 @@ import styled, { css } from "@emotion/native";
 import { Audio } from "expo-av";
 import { dfjccaic, hw } from "../global/global-stiles.js";
 import moveSound from "../assets/sound/move.aac";
-import ButtonField from "../components/elements/canvas/ButtonField.jsx";
+import ButtonField from "../components/ButtonField";
 
 const Edit = () => {
-  const soundRef = useRef(null);
+  // const soundRef = useRef(null);
 
-  useEffect(() => {
-    const loadSound = async () => {
-      const { sound } = await Audio.Sound.createAsync(moveSound);
-      soundRef.current = sound;
-    };
+  // useEffect(() => {
+  //   const loadSound = async () => {
+  //     const { sound } = await Audio.Sound.createAsync(moveSound);
+  //     soundRef.current = sound;
+  //   };
 
-    loadSound();
+  //   loadSound();
 
-    return () => {
-      if (soundRef.current) {
-        soundRef.current.unloadAsync();
-      }
-    };
-  }, []);
+  //   return () => {
+  //     if (soundRef.current) {
+  //       soundRef.current.unloadAsync();
+  //     }
+  //   };
+  // }, []);
 
-  const handlePress = async () => {
-    if (soundRef.current) {
-      await soundRef.current.replayAsync();
-    }
-  };
-  const size = 110;
+  // const handlePress = async () => {
+  //   if (soundRef.current) {
+  //     await soundRef.current.replayAsync();
+  //   }
+  // };
+  // const size = 110;
 
   return (
     <Container>
       <Part1>
-        <ButtonField labels={["New Game", "B2", "SGFNHJMN", "C$%^^", "back"]} />
+        <ButtonField
+          labels={["New Game", "Settings", "About", "Blkjhg", "back"]}
+        />
       </Part1>
     </Container>
   );

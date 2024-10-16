@@ -1,124 +1,84 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Canvas,
   RoundedRect,
-  Text,
+  Shadow,
   useTouchHandler,
-  useFont,
 } from "@shopify/react-native-skia";
-import { View } from "react-native";
-import Marik from "../../../assets/fonts/Mariupol-Regular.ttf"; // Потрібно використовувати локальний файл шрифту
-import { KronaOne_400Regular } from "@expo-google-fonts/krona-one";
+import { View, Alert } from "react-native";
+import ButtonStyled from "./ButtonStyled";
+import { color, hwN, wwN } from "../../../global/global-stiles.js";
 
-// Компонент для прямокутника з текстом
-const ColoredRoundedRect = ({ x, y, width, height, color, label, font }) => {
-  return (
-    <>
-      {/* Прямокутник */}
-      <RoundedRect
-        x={x}
-        y={y}
-        width={width}
-        height={height}
-        r={25} // Фіксований радіус заокруглення
-        color={color}
-      />
-      {/* Текст всередині прямокутника */}
-      {font && (
-        <Text
-          x={x + width / 2} // Відцентровуємо по X
-          y={y + height / 2} // Відцентровуємо по Y
-          text={label} // Відображаємо текст з пропса
-          color="black"
-          size={24}
-          align="center"
-          verticalAlign="center"
-          font={font} // Встановлюємо шрифт
-        />
-      )}
-    </>
+const ButtonField = React.memo(({ labels }) => {
+  const [pressedIndex, setPressedIndex] = useState(null);
+  const [layoutInfo, setLayoutInfo] = useState(null);
+
+  const buttons = labels.map((label, index) => ({
+    x: wwN(32),
+    y: hwN(40) + index * (hwN(58) + hwN(24)),
+    label,
+  }));
+
+  const canvasHeight = hwN(64) + buttons.length * (hwN(58) + hwN(24));
+
+  const touchHandler = useTouchHandler(
+    useCallback(
+      {
+        onStart: (touch) => {
+          const { x, y } = touch;
+          buttons.forEach((btn, index) => {
+            if (
+              x >= btn.x + (btn.label === "back" ? wwN(276) - hwN(58) : 0) &&
+              x <= btn.x + wwN(276) &&
+              y >= btn.y &&
+              y <= btn.y + hwN(58)
+            ) {
+              setPressedIndex(index);
+              Alert.alert("Button pressed", `You pressed ${btn.label}`);
+            }
+          });
+        },
+        onEnd: () => setPressedIndex(null),
+      },
+      [buttons]
+    )
   );
-};
 
-// Головний компонент для Canvas
-const Test = () => {
-  // Спільний стан для зміни кольору при натисканні
-  const [pressedColor, setPressedColor] = useState("lightblue");
-
-  // Завантажуємо шрифт через Skia
-  const font = useFont(KronaOne_400Regular, 24); // Підключаємо шрифт і задаємо розмір тексту
-
-  // Позиції та розміри для прямокутників
-  const firstRect = {
-    x: 0,
-    y: 0,
-    width: 256,
-    height: 100,
+  const handleLayout = (event) => {
+    const { width, height } = event.nativeEvent.layout;
+    // console.log("Canvas layout dimensions:", { width, height });
+    setLayoutInfo({ width, height });
   };
-
-  const secondRect = {
-    x: 0,
-    y: 120, // Відступ після першого прямокутника
-    width: 256,
-    height: 100,
-  };
-
-  // Обробка дотиків для всього Canvas
-  const touchHandler = useTouchHandler({
-    onStart: (touch) => {
-      const { x, y } = touch;
-
-      // Якщо натискання відбулося на будь-який з прямокутників, змінюємо колір
-      if (
-        (x >= firstRect.x &&
-          x <= firstRect.x + firstRect.width &&
-          y >= firstRect.y &&
-          y <= firstRect.y + firstRect.height) ||
-        (x >= secondRect.x &&
-          x <= secondRect.x + secondRect.width &&
-          y >= secondRect.y &&
-          y <= secondRect.y + secondRect.height)
-      ) {
-        setPressedColor("yellow");
-      }
-    },
-    onEnd: () => {
-      // Повертаємо колір після завершення натискання
-      setPressedColor("lightblue");
-    },
-  });
-
-  // Якщо шрифт ще не завантажений, можна відобразити заглушку або текст не відображати
-  if (!font) {
-    return null; // Або покажіть індикатор завантаження
-  }
-
   return (
     <View style={{ flex: 1 }}>
-      <Canvas style={{ flex: 0.8 }} onTouch={touchHandler}>
-        {/* Перший прямокутник з текстом */}
-        <ColoredRoundedRect
-          x={firstRect.x}
-          y={firstRect.y}
-          width={firstRect.width}
-          height={firstRect.height}
-          color={pressedColor}
-          label="NNN First Rect"
-          font={font}
-        />
-        {/* Другий прямокутник з текстом */}
-        <ColoredRoundedRect
-          x={secondRect.x}
-          y={secondRect.y}
-          width={secondRect.width}
-          height={secondRect.height}
-          color={pressedColor}
-          label="Second Rect"
-          font={font}
-        />
+      <Canvas
+        style={{ width: wwN(340), height: canvasHeight }}
+        onTouch={touchHandler}
+        onLayout={handleLayout}
+      >
+        <RoundedRect
+          x={0}
+          y={0}
+          width={wwN(340)}
+          height={canvasHeight}
+          r={8}
+          color={color.BUTTON_FIELD}
+        >
+          <Shadow dx={0} dy={0} blur={8} color={color.SHADOW_COLOR} inner />
+        </RoundedRect>
+        {buttons.map((btn, index) => (
+          <ButtonStyled
+            key={index}
+            x={btn.x}
+            y={btn.y}
+            label={btn.label}
+            color={pressedIndex === index ? "yellow" : "#D5F7FF"}
+          />
+        ))}
       </Canvas>
+      {console.log("End of rendering")}
     </View>
   );
-};
+});
 
-export default Test;
+export default ButtonField;

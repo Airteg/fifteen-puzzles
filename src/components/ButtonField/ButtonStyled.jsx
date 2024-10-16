@@ -1,22 +1,19 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   RoundedRect,
   Text,
   Path,
   Group,
   Shadow,
-  scale,
 } from "@shopify/react-native-skia";
-import { skiaFont as font } from "../../../app/_layout.jsx";
-
-import { hwN, wwN } from "../../../global/global-stiles.js";
+import { skiaFont as font } from "../../app/_layout.jsx";
+import { hwN, wwN } from "../../global/global-stiles.js";
 
 const ButtonStyled = ({ x, y, label, color }) => {
   const width = wwN(276); // Фіксована ширина
   const height = hwN(58); // Фіксована висота
-
   // Вимірюємо розмір тексту
-  const textMetrics = font.measureText(label); // Отримуємо об'єкт з розмірами тексту
+  const textMetrics = useMemo(() => font.measureText(label), [label]); // Отримуємо об'єкт з розмірами тексту
   const textWidth = textMetrics.width; // Отримуємо ширину тексту
 
   // Позиціюємо текст по центру

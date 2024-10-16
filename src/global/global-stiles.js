@@ -21,13 +21,20 @@ export const dfjccaic = `display: flex;
   justify-content: center;
   align-items: center;`;
 export const platform = Platform.OS === "ios";
+export const color = {
+  MAIN_COLOR: "#D5F7FF",
+  SHADOW_COLOR: "#00000040",
+  TEXT_COLOR: "#216169",
+  BUTTON_FIELD: "#71D4EB",
+  ACTIVE: "#FAFF3F",
+};
 
 export const globalStyles = {
   container: css`
     margin: 0;
     padding-left: ${ww(25)}px;
     padding-right: ${ww(25)}px;
-    background-color: #d5f7ff;
+    background-color: ${color.MAIN_COLOR};
     flex: 1;
     display: flex;
     justify-content: space-around;
@@ -35,3 +42,7 @@ export const globalStyles = {
     /* border: solid red 2px; */
   `,
 };
+export const count = (() => {
+  let c = 0;
+  return () => c++;
+})();

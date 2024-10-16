@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Canvas,
   Group,
@@ -6,11 +6,17 @@ import {
   Shadow,
   useTouchHandler,
 } from "@shopify/react-native-skia";
+
 import { View, Alert } from "react-native";
-import ButtonStyled from "./ButtonStyled"; // Імпорт кнопок
-import { hwN, wwN } from "../../../global/global-stiles.js";
+import ButtonStyled from "./ButtonStyled.jsx"; // Імпорт кнопок
+import { color, hwN, wwN } from "../../global/global-stiles.js";
 
 const ButtonField = ({ labels }) => {
+  const [layoutInfo, setLayoutInfo] = useState(null);
+  const handleLayout = (event) => {
+    const { width, height } = event.nativeEvent.layout;
+    setLayoutInfo({ width, height });
+  };
   // Перевірка, чи передано масив від 2 до 6 елементів
   if (!Array.isArray(labels) || labels.length < 2 || labels.length > 6) {
     throw new Error("The labels array must contain between 2 and 6 items.");
@@ -33,17 +39,20 @@ const ButtonField = ({ labels }) => {
   const touchHandler = useTouchHandler({
     onStart: (touch) => {
       const { x, y } = touch;
-
+      const isButtonPressed = (touch, btn) => {
+        const { x, y } = touch;
+        return (
+          x >= btn.x + (btn.label === "back" ? wwN(276) - hwN(58) : 0) &&
+          x <= btn.x + wwN(276) &&
+          y >= btn.y &&
+          y <= btn.y + hwN(58)
+        );
+      };
       // Логіка для визначення натиснутої кнопки
       buttons.forEach((btn, index) => {
-        if (
-          x >= btn.x + (btn.label === "back" ? wwN(276) - hwN(58) : 0) &&
-          x <= btn.x + wwN(276) && // Фіксована ширина
-          y >= btn.y &&
-          y <= btn.y + hwN(58) // Фіксована висота
-        ) {
-          setPressedIndex(index); // Зберігаємо індекс натиснутої кнопки
-          Alert.alert("Button pressed", `You pressed ${btn.label}`); // Вивести повідомлення про натиснуту кнопку
+        if (isButtonPressed(touch, btn)) {
+          setPressedIndex(index);
+          Alert.alert("Button pressed", `You pressed ${btn.label}`);
         }
       });
     },
@@ -58,6 +67,7 @@ const ButtonField = ({ labels }) => {
       <Canvas
         style={{ width: wwN(340), height: canvasHeight }}
         onTouch={touchHandler}
+        onLayout={handleLayout}
       >
         <RoundedRect
           x={0}
@@ -65,9 +75,9 @@ const ButtonField = ({ labels }) => {
           width={wwN(340)}
           height={canvasHeight}
           r={8}
-          color={"#71D4EB"}
+          color={color.BUTTON_FIELD}
         >
-          <Shadow dx={0} dy={0} blur={8} color="#00000040" inner />
+          <Shadow dx={0} dy={0} blur={8} color={color.SHADOW_COLOR} inner />
         </RoundedRect>
         {buttons.map((btn, index) => {
           return (
@@ -85,4 +95,4 @@ const ButtonField = ({ labels }) => {
   );
 };
 
-export default ButtonField;
+export default React.memo(ButtonField);
