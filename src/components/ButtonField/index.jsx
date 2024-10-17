@@ -1,28 +1,23 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
+import { useRouter } from "expo-router";
 import {
   Canvas,
   RoundedRect,
   Shadow,
   useTouchHandler,
 } from "@shopify/react-native-skia";
-
-import { View, Alert } from "react-native";
+import { View } from "react-native";
 import ButtonStyled from "./ButtonStyled.jsx"; // Імпорт кнопок
 import { color as systemColor, hwN, wwN } from "../../global/global-stiles.js";
-import { isButtonPressed } from "./utils.js";
+import { isButtonPressed } from "./utils.js"; // Функція для перевірки натискання
+import { handleButtonAction } from "./utils.js"; // Імпорт обробника подій
+import { AppContext } from "../../global/AppContext.js"; // Імпорт контексту
 
 const ButtonField = ({ labels }) => {
-  const [layoutInfo, setLayoutInfo] = useState(null);
-  const handleLayout = (event) => {
-    const { width, height } = event.nativeEvent.layout;
-    setLayoutInfo({ width, height });
-  };
-  // Перевірка, чи передано масив від 2 до 6 елементів
-  if (!Array.isArray(labels) || labels.length < 2 || labels.length > 6) {
-    throw new Error("The labels array must contain between 2 and 6 items.");
-  }
-  const back = labels[labels.length - 1] === "back";
-  // Стан для збереження індексу натиснутої кнопки
+  // Використовуємо контекст для доступу до стану додатка
+  const { state, setSound, setThemeColor } = useContext(AppContext);
+  const router = useRouter();
+
   const [pressedIndex, setPressedIndex] = useState(null);
 
   // Позиції для кнопок (розрахунок координат на основі порядкового номера)
@@ -43,13 +38,18 @@ const ButtonField = ({ labels }) => {
       buttons.forEach((btn, index) => {
         if (isButtonPressed(touch, btn)) {
           setPressedIndex(index);
-          Alert.alert("Button pressed", `You pressed ${btn.label}`);
+          // Викликаємо обробник подій з utils.js
+          handleButtonAction(btn.label, {
+            state,
+            setSound,
+            setThemeColor,
+            router,
+          });
         }
       });
     },
     onEnd: () => {
-      // Повертаємо стан до початкового при відпусканні натискання
-      setPressedIndex(null);
+      setPressedIndex(null); // Повертаємо стан до початкового при відпусканні натискання
     },
   });
 
@@ -58,7 +58,6 @@ const ButtonField = ({ labels }) => {
       <Canvas
         style={{ width: wwN(340), height: canvasHeight }}
         onTouch={touchHandler}
-        onLayout={handleLayout}
       >
         <RoundedRect
           x={0}

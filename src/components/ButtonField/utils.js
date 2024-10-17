@@ -9,3 +9,37 @@ export const isButtonPressed = (touch, btn) => {
     y <= btn.y + hwN(58)
   );
 };
+// utils.js
+export const handleButtonAction = (
+  label,
+  { state, setSound, setThemeColor, router }
+) => {
+  switch (label) {
+    case "New Game":
+      console.log("Navigating to 'New Game' screen...");
+      // Логіка переходу на інший екран
+      break;
+
+    case "soundToggle":
+      setSound(!state.sound);
+      console.log(`Sound ${state.sound ? "OFF" : "ON"}`);
+      break;
+
+    case "themeToggle":
+      setThemeColor(state.themeColor === "light" ? "dark" : "light");
+      console.log(
+        `Theme changed to ${state.themeColor === "light" ? "dark" : "light"}`
+      );
+      break;
+
+    case "back":
+      router.back();
+      console.log("Navigating back...");
+      // Логіка переходу назад
+      break;
+
+    default:
+      console.log(`No action defined for ${label}`);
+      break;
+  }
+};
