@@ -9,24 +9,48 @@ export const isButtonPressed = (touch, btn) => {
     y <= btn.y + hwN(58)
   );
 };
-// utils.js
+
 export const handleButtonAction = (
   label,
-  { state, setSound, setThemeColor, router }
+  { sound, themeColor, setSound, setThemeColor, router }
 ) => {
+  console.log("----Utils sound", sound);
   switch (label) {
     case "New Game":
-      console.log("Navigating to 'New Game' screen...");
+      router.push("/newGame");
+      console.log("Navigating to ", label, " screen...");
       // Логіка переходу на інший екран
       break;
-
-    case "soundToggle":
-      setSound(!state.sound);
-      console.log(`Sound ${state.sound ? "OFF" : "ON"}`);
+    case "Settings":
+      router.push("/settings");
+      console.log("Navigating to ", label, " screen...");
+      // Логіка переходу на інший екран
       break;
-
+    case "About":
+      router.push("/about");
+      console.log("Navigating to ", label, " screen...");
+      // Логіка переходу на інший екран
+      break;
+    case "SUPPORT":
+      router.push("/support");
+      console.log("Navigating to ", label, " screen...");
+      // Логіка переходу на інший екран
+      break;
+    case "CLASSIC":
+      router.push("/Game?mode=elapsed&initialTime=0");
+      console.log("Navigating to ", label, " screen...");
+      // Логіка переходу на інший екран
+      break;
+    case "LIMIT TIME":
+      router.push("/Game?mode=countdown&initialTime=120");
+      console.log("Navigating to ", label, " screen...");
+      // Логіка переходу на інший екран
+      break;
+    case "SOUND":
+      setSound(!sound);
+      break;
     case "themeToggle":
-      setThemeColor(state.themeColor === "light" ? "dark" : "light");
+      setThemeColor(themeColor === "light" ? "dark" : "light");
       console.log(
         `Theme changed to ${state.themeColor === "light" ? "dark" : "light"}`
       );

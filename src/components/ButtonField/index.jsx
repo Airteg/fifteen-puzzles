@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useRef, useEffect } from "react";
 import { useRouter } from "expo-router";
 import {
   Canvas,
@@ -7,40 +7,48 @@ import {
   useTouchHandler,
 } from "@shopify/react-native-skia";
 import { View } from "react-native";
-import ButtonStyled from "./ButtonStyled.jsx"; // Імпорт кнопок
+import ButtonStyled from "./ButtonStyled.jsx";
 import { color as systemColor, hwN, wwN } from "../../global/global-stiles.js";
-import { isButtonPressed } from "./utils.js"; // Функція для перевірки натискання
-import { handleButtonAction } from "./utils.js"; // Імпорт обробника подій
-import { AppContext } from "../../global/AppContext.js"; // Імпорт контексту
+import { handleButtonAction, isButtonPressed } from "./utils.js";
+import { AppContext } from "../../global/AppContext.js";
 
 const ButtonField = ({ labels }) => {
-  // Використовуємо контекст для доступу до стану додатка
-  const { state, setSound, setThemeColor } = useContext(AppContext);
+  const { state, setSound, setThemeColor } = useContext(AppContext); // Доступ до контексту
   const router = useRouter();
-
   const [pressedIndex, setPressedIndex] = useState(null);
 
-  // Позиції для кнопок (розрахунок координат на основі порядкового номера)
+  // Використовуємо один useRef для зберігання звуку і теми
+  const stateRef = useRef({ sound: state.sound, themeColor: state.themeColor });
+
+  // Оновлюємо реф щоразу, коли змінюється стан звуку або теми
+  useEffect(() => {
+    stateRef.current.sound = state.sound;
+    stateRef.current.themeColor = state.themeColor;
+  }, [state.sound, state.themeColor]); // Спрацьовує при зміні стану звуку і теми
+
+  // Позиції для кнопок
   const buttons = labels.map((label, index) => ({
     x: wwN(32),
-    y: hwN(40) + index * (hwN(58) + hwN(24)), // Початкове Y = 40, наступні з відступом 24px
+    y: hwN(40) + index * (hwN(58) + hwN(24)),
     label,
   }));
 
-  // Розрахунок висоти Canvas на основі кількості кнопок
-  const canvasHeight = hwN(64) + buttons.length * (hwN(58) + hwN(24)); // Висота Canvas залежить від кількості кнопок
+  const canvasHeight = hwN(64) + buttons.length * (hwN(58) + hwN(24));
 
   // Обробка дотиків для всього Canvas
   const touchHandler = useTouchHandler({
     onStart: (touch) => {
       const { x, y } = touch;
-      // Логіка для визначення натиснутої кнопки
       buttons.forEach((btn, index) => {
         if (isButtonPressed(touch, btn)) {
           setPressedIndex(index);
-          // Викликаємо обробник подій з utils.js
+
+          // Отримуємо поточні значення звуку і теми з рефа
+          const { sound, themeColor } = stateRef.current;
+
           handleButtonAction(btn.label, {
-            state,
+            sound,
+            themeColor,
             setSound,
             setThemeColor,
             router,
@@ -49,7 +57,7 @@ const ButtonField = ({ labels }) => {
       });
     },
     onEnd: () => {
-      setPressedIndex(null); // Повертаємо стан до початкового при відпусканні натискання
+      setPressedIndex(null);
     },
   });
 
@@ -75,21 +83,23 @@ const ButtonField = ({ labels }) => {
             inner
           />
         </RoundedRect>
-        {buttons.map((btn, index) => {
-          return (
-            <ButtonStyled
-              key={index}
-              x={btn.x}
-              y={btn.y}
-              label={btn.label}
-              color={
-                pressedIndex === index
-                  ? systemColor.ACTIVE
-                  : systemColor.MAIN_COLOR
-              } // Жовта під час натискання, початковий колір у звичайному стані
-            />
-          );
-        })}
+        {buttons.map((btn, index) => (
+          <ButtonStyled
+            key={index}
+            x={btn.x}
+            y={btn.y}
+            label={
+              btn.label === "SOUND"
+                ? `SOUND ${state.sound ? "ON" : "OFF"}`
+                : btn.label
+            }
+            color={
+              pressedIndex === index
+                ? systemColor.ACTIVE
+                : systemColor.MAIN_COLOR
+            }
+          />
+        ))}
       </Canvas>
     </View>
   );
