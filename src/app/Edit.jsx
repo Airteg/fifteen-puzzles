@@ -34,9 +34,7 @@ const Edit = () => {
   return (
     <Container>
       {/* <Part1> */}
-      <ButtonField
-        labels={["New Game", "SOUND", "LIMIT TIME", "Blkjhg", "back"]}
-      />
+      <ButtonField labels={["SKIN", "SOUND", "STATISTIC", "SUPPORT", "back"]} />
       {/* </Part1> */}
     </Container>
   );
