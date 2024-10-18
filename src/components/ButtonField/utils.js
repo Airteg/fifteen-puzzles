@@ -36,6 +36,11 @@ export const handleButtonAction = (
       console.log("Navigating to ", label, " screen...");
       // Логіка переходу на інший екран
       break;
+    case "EDIT":
+      router.push("/Edit");
+      console.log("Navigating to ", label, " screen...");
+      // Логіка переходу на інший екран
+      break;
     case "CLASSIC":
       router.push("/Game?mode=elapsed&initialTime=0");
       console.log("Navigating to ", label, " screen...");

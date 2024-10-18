@@ -33,11 +33,11 @@ const Edit = () => {
 
   return (
     <Container>
-      <Part1>
-        <ButtonField
-          labels={["New Game", "SOUND", "LIMIT TIME", "Blkjhg", "back"]}
-        />
-      </Part1>
+      {/* <Part1> */}
+      <ButtonField
+        labels={["New Game", "SOUND", "LIMIT TIME", "Blkjhg", "back"]}
+      />
+      {/* </Part1> */}
     </Container>
   );
 };
@@ -58,11 +58,11 @@ const TestContainer = styled(View)`
   overflow: visible;
 `;
 const Part1 = styled(View)`
-  flex: 0.6;
+  /* flex: 0.6; */
   width: 100%;
   justify-content: center;
-  /* border: 1px solid red; */
-  /* background-color: #0f0; */
+  border: 1px solid red;
+  background-color: #0f0;
 `;
 
 const containerStyle = {
