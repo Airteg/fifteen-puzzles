@@ -23,9 +23,6 @@ import {
 const WINNING_COMBINATION = [
   1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0,
 ];
-// const WINNING_COMBINATION = [
-//   1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 13, 15, 0,
-// ];
 
 const Board = ({ color = "#71D4EB" }) => {
   const { state } = useContext(AppContext);

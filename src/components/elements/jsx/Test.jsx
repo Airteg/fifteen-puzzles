@@ -1,121 +1,51 @@
-import styled from "@emotion/native";
-import { View } from "react-native";
-import LGr from "./LGr.jsx";
-import { topRight } from "@shopify/react-native-skia";
+import { StyleSheet, Button, View } from "react-native";
+import { Video } from "expo-av";
+import React from "react";
 
-const a = 0.3;
-const computeSize = (size) => Math.min(size.width, size.height) * a;
+export default function GameResultVideo() {
+  const video = React.useRef(null);
+  const [status, setStatus] = React.useState({});
 
-const Test = ({ width, height }) => {
-  const s = computeSize({ width, height });
-  const size = {
-    sq: s,
-    rw: { width: s, height: height - 2 * s },
-    rc: { width: width - 2 * s, height: height - 2 * s },
-    rg: { width: s / a - 2 * s, height: s },
-  };
-
-  // console.log("size", size);
   return (
-    <View
-      style={{
-        width,
-        height,
-        overflow: "visible",
-        flexDirection: "row",
-        justifyContent: "space-between",
-      }}
-    >
-      <Column
-        width={`${size.rw.width}px`}
-        height={`100%`}
-        bgColor={"transparent"}
-      >
-        <Square size={`${size.sq}px`} bgColor="transparent">
-          <LGr params={[1, 1, 0, 0]} style={{ width: "150%" }} />
-        </Square>
-        <Remainder
-          width={`${size.rw.width}px`}
-          height={`${size.rw.height}px`}
-          bgColor="transparent"
-        >
-          <LGr
-            params={[1, 0, -1, 0]}
-            style={[
-              {
-                width: "200%",
-                height: "100%",
-                position: "absolute",
-                top: 0,
-                right: 0,
-              },
-            ]}
-          />
-        </Remainder>
-        <Square size={`${size.sq}px`} bgColor="transparent">
-          <LGr params={[1.5, 0.5, 0.3, 1.3]} />
-        </Square>
-      </Column>
-      <Column
-        width={`${size.rc.width}px`}
-        height={`${size.rc.height}px`}
-        bgColor="transparent"
-      >
-        <Remainder
-          width={`${size.rc.width}px`}
-          height={`${size.sq}px`}
-          bgColor="transparent"
-        />
-        <Remainder
-          width={`${size.rc.width}px`}
-          height={`${size.rc.height}px`}
-          bgColor="blue"
-        />
-        <Remainder
-          width={`${size.rc.width}px`}
-          height={`${size.sq}px`}
-          bgColor="transparent"
-        />
-      </Column>
-      <Column
-        width={`${size.rw.width}px`}
-        height={`100%`}
-        bgColor="transparent"
-      >
-        <Square size={`${size.sq}px`} bgColor="transparent" />
-        <Remainder
-          width={`${size.rw.width}px`}
-          height={`${size.rw.height}px`}
-          bgColor="transparent"
-        />
-        <Square size={`${size.sq}px`} bgColor="transparent" />
-      </Column>
+    <View style={styles.container}>
+      <Video
+        ref={video}
+        style={styles.video}
+        source={{
+          uri: "http://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4",
+        }}
+        useNativeControls
+        resizeMode="contain"
+        isLooping
+        onPlaybackStatusUpdate={setStatus}
+      />
+      <View style={styles.buttons}>
+        {/* <Button
+          title="Play from 5s"
+          onPress={() => video.current.playFromPositionAsync(5000)}
+        /> */}
+        {/* <Button
+          title={status.isLooping ? "Set to not loop" : "Set to loop"}
+          onPress={() => video.current.setIsLoopingAsync(!status.isLooping)}
+        /> */}
+      </View>
     </View>
   );
-};
+}
 
-export default Test;
-
-const Square = styled.View`
-  width: ${(props) => props.size};
-  height: ${(props) => props.size};
-  background-color: ${(props) => props.bgColor || "red"};
-  overflow: visible;
-`;
-
-const Remainder = styled.View`
-  /* width: ${(props) => props.width};
-  height: ${(props) => props.height}; */
-  align-self: stretch;
-  background-color: ${(props) => props.bgColor};
-  overflow: visible;
-`;
-
-const Column = styled.View`
-  width: ${(props) => props.width};
-  background-color: ${(props) => props.bgColor};
-  overflow: visible;
-
-  flex-direction: "column";
-  justify-content: "space-between";
-`;
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    width: "100%",
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  video: {
+    flex: 1,
+    alignSelf: "stretch",
+  },
+  buttons: {
+    margin: 16,
+  },
+});

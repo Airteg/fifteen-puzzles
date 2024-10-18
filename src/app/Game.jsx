@@ -8,7 +8,7 @@ import {
   ButtonsField,
   TitleGameField,
 } from "../components/game/index.js";
-import { hw, windowHeight } from "../global/global-stiles.js";
+import { windowHeight } from "../global/global-stiles.js";
 
 export default function Game() {
   const [reloadKey, setReloadKey] = useState(0);
@@ -28,7 +28,6 @@ export default function Game() {
 
   return (
     <GameContainer margin={margin}>
-      {console.log("~~~~~~ Game ~~~~~")}
       <Timer
         key={`timer-${reloadKey}`}
         mode={mode || "countdown"}
@@ -42,7 +41,7 @@ export default function Game() {
   );
 }
 
-const GameContainer = styled.View`
+const GameContainer = styled(View)`
   flex: 1 1 auto;
   margin-top: ${(props) => props.margin}px;
   margin-bottom: ${(props) => props.margin}px;

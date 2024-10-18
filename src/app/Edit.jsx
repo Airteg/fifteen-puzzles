@@ -5,6 +5,7 @@ import { Audio } from "expo-av";
 import { dfjccaic, hw } from "../global/global-stiles.js";
 import moveSound from "../assets/sound/move.aac";
 import ButtonField from "../components/ButtonField";
+import GameResultVideo from "../components/elements/jsx/Test.jsx";
 
 const Edit = () => {
   // const soundRef = useRef(null);
@@ -34,7 +35,7 @@ const Edit = () => {
   return (
     <Container>
       {/* <Part1> */}
-      <ButtonField labels={["SKIN", "SOUND", "STATISTIC", "SUPPORT", "back"]} />
+      <GameResultVideo isWinner={true} />
       {/* </Part1> */}
     </Container>
   );
@@ -44,7 +45,7 @@ export default Edit;
 
 const Container = styled(View)`
   flex: 1;
-  /* border: 0.5px solid darkgreen; */
+  border: 0.5px solid darkgreen;
   ${dfjccaic}
 `;
 const TestContainer = styled(View)`
