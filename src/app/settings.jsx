@@ -19,6 +19,9 @@ import { AppContext } from "../global/AppContext.js";
 export default function Settings() {
   const { state, setSound, setThemeColor } = useContext(AppContext);
   const router = useRouter();
+  const navigate = (path) => {
+    router.push(path);
+  };
   return (
     <ContainerSetting>
       <SplashBlock>
@@ -72,7 +75,7 @@ export default function Settings() {
               </View>
               <View style={containerStyle.bigButton}>
                 <Button
-                  onPress={() => router.push("/GameLimitTime")}
+                  onPress={() => navigate("/support")}
                   title="SUPPORT"
                   backgroundImage={ButtonBackShadow}
                   activeBackgroundImage={ButtonBackShadowActive}
@@ -100,7 +103,7 @@ const ContainerSetting = styled.View`
   padding-top: ${hw(54)}px;
   margin-bottom: ${hw(34)}px;
 `;
-const SplashBlock = styled.View`
+const SplashBlock = styled(View)`
   flex: 0.2;
 `;
 const TitleBlock = styled.View`

@@ -5,6 +5,7 @@ import Back from "./png/Back.png";
 import BackActive from "./png/BackActive.png";
 import BackgroundShadow from "./png/BackgroundShadow.png";
 import SETTINGS from "./png/SETTINGS.png";
+import SUPPORT from "./png/SUPPORT.png";
 import HOME from "./png/HOME.png";
 import HOME_Active from "./png/HOME_Active.png";
 import RESTART_Active from "./png/RESTART_Active.png";
@@ -28,4 +29,5 @@ export {
   PlanForTileY,
   PlanForTileB,
   Tile_white,
+  SUPPORT,
 };

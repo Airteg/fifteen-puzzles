@@ -3,22 +3,22 @@ import React, { useContext } from "react";
 import styled from "@emotion/native";
 import { usePathname } from "expo-router";
 
-import { hw } from "../global/global-stiles.js";
+import { hw, hwN } from "../global/global-stiles.js";
 import CanvasContainer from "./elements/canvas/canvasContainer.jsx";
-import Logo, { dim as dimensionsLogo } from "./elements/canvas/logoOnPlash.js";
+// import Logo, { dim as dimensionsLogo } from "./elements/canvas/logoOnPlash.js";
 import ButtonSoundStyled from "./elements/ButtonSoundStyled.jsx";
 import { AppContext } from "../global/AppContext.js";
+import Logo from "./elements/canvas/Logo.jsx";
 
+const size = hwN(80);
 export default function Header() {
   const currentPath = usePathname();
   const { state } = useContext(AppContext);
+
   return (
     <Container>
       <Wrapper>
-        <CanvasContainer
-          canvasElement={<Logo cx={30} cy={30} />}
-          dimCanvasElement={dimensionsLogo}
-        />
+        <Logo size={size} />
       </Wrapper>
       {currentPath === "/Game" ? (
         <ButtonSoundStyled soundStatus={state.sound} />

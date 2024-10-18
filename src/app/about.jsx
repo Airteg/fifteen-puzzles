@@ -103,8 +103,8 @@ const Wrapper = styled.View`
   /* border: solid 1px red; */
 `;
 const Description = styled.Text`
-  font-family: Mariupol-Bold;
-  font-size: ${hw(16)}px;
+  font-family: Mariupol-Regular;
+  font-size: ${hw(15)}px;
   text-align: left;
   color: #216169;
 `;

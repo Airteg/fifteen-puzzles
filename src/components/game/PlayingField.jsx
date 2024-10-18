@@ -1,7 +1,7 @@
 import { View, Text } from "react-native";
 import React from "react";
 import styled from "@emotion/native";
-import Board from "../elements/jsx/Board.jsx";
+import Board from "../elements/jsx/index.jsx";
 
 const PlayingField = () => {
   return (

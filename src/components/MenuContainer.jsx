@@ -24,6 +24,7 @@ export default function MenuContainer() {
             text="About"
             // onPress={() => navigate("/about")}
             onPress={() => navigate("/Edit")}
+            // onPress={() => navigate("/YouWin")}
           />
         </ButtonsWrapper>
       </CanvasWrapper>
