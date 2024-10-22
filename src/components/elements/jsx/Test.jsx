@@ -1,34 +1,37 @@
-import { StyleSheet, Button, View } from "react-native";
+import React, { useRef, useState } from "react";
+import { StyleSheet, View, Alert } from "react-native";
 import { Video } from "expo-av";
-import React from "react";
+
+import winner from "../../../assets/video/big_buck_bunny.mp4";
 
 export default function GameResultVideo() {
-  const video = React.useRef(null);
-  const [status, setStatus] = React.useState({});
+  const video = useRef(null);
+  const [status, setStatus] = useState({});
+
+  // Функція для обробки статусу відео
+  const handlePlaybackStatusUpdate = (status) => {
+    setStatus(() => status);
+    if (status.didJustFinish && !status.isLooping) {
+      // Показуємо повідомлення, коли відео завершилося
+      Alert.alert("Кінець", "Відео завершилося.");
+    }
+  };
 
   return (
     <View style={styles.container}>
       <Video
         ref={video}
         style={styles.video}
-        source={{
-          uri: "http://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4",
-        }}
+        // source={{
+        //   uri: "http://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4",
+        // }}
+        source={require("../../../assets/video/winner_converted.mp4")}
+        // source={winner}
         useNativeControls
         resizeMode="contain"
-        isLooping
-        onPlaybackStatusUpdate={setStatus}
+        isLooping={false} // Забороняємо зациклення
+        onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
       />
-      <View style={styles.buttons}>
-        {/* <Button
-          title="Play from 5s"
-          onPress={() => video.current.playFromPositionAsync(5000)}
-        /> */}
-        {/* <Button
-          title={status.isLooping ? "Set to not loop" : "Set to loop"}
-          onPress={() => video.current.setIsLoopingAsync(!status.isLooping)}
-        /> */}
-      </View>
     </View>
   );
 }
@@ -44,8 +47,5 @@ const styles = StyleSheet.create({
   video: {
     flex: 1,
     alignSelf: "stretch",
-  },
-  buttons: {
-    margin: 16,
   },
 });
