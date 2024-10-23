@@ -92,8 +92,8 @@ const ButtonField = ({ labels }) => {
               btn.label === "SOUND"
                 ? `SOUND ${state.sound ? "ON" : "OFF"}`
                 : btn.label === "SKIN"
-                ? `SKIN ${state.themeColor === "light" ? "LIGHT" : "DARK"}`
-                : btn.label
+                  ? `SKIN ${state.themeColor === "light" ? "LIGHT" : "DARK"}`
+                  : btn.label
             }
             color={
               pressedIndex === index

@@ -59,7 +59,7 @@ const BackBoard = ({
         // fill="red"
         stroke={fill}
         strokeWidth={border}
-      />
+      />,
     );
     whiteSquares.push(
       <Rect
@@ -74,7 +74,7 @@ const BackBoard = ({
         // fill="red"
         stroke={fillW}
         strokeWidth={border}
-      />
+      />,
     );
     k++;
     // console.log("1 / (i * wStep", i / wStep);
@@ -125,7 +125,7 @@ const BackBoard = ({
         strokeWidth={border}
         strokeOpacity={o}
         // scale={1 / (wStep)}
-      />
+      />,
     );
   }
 

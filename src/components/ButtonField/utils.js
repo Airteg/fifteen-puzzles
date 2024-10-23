@@ -12,7 +12,7 @@ export const isButtonPressed = (touch, btn) => {
 
 export const handleButtonAction = (
   label,
-  { sound, themeColor, setSound, setThemeColor, router }
+  { sound, themeColor, setSound, setThemeColor, router },
 ) => {
   console.log("----Utils sound", sound);
   switch (label) {
@@ -58,7 +58,7 @@ export const handleButtonAction = (
     case "SKIN":
       setThemeColor(themeColor === "light" ? "dark" : "light");
       console.log(
-        `Theme changed to ${themeColor === "light" ? "dark" : "light"}`
+        `Theme changed to ${themeColor === "light" ? "dark" : "light"}`,
       );
       break;
 

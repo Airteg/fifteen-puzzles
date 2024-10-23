@@ -46,7 +46,7 @@ export default function ButtonStyled({ size = "long", text = "", onPress }) {
                 box={rrect(
                   rect(kw, kh, width - kw * 2, height - kh * 2),
                   kw,
-                  kh
+                  kh,
                 )}
                 color="#D5F7FF"
                 style="fill" // Бордер зверху
@@ -58,7 +58,7 @@ export default function ButtonStyled({ size = "long", text = "", onPress }) {
                 box={rrect(
                   rect(kw + 3, kh + 3, width - 6 - kw * 2, height - 6 - kh * 2),
                   kw,
-                  kh
+                  kh,
                 )}
                 color={color}
                 style="fill" // Бордер зверху

@@ -91,8 +91,8 @@ const Board = ({ color = "#71D4EB" }) => {
               ? 1
               : -1
             : clickedIndex < emptyIndex
-            ? 4
-            : -4;
+              ? 4
+              : -4;
 
         for (let i = emptyIndex; i !== clickedIndex; i -= step) {
           newTiles[i] = newTiles[i - step];
@@ -105,7 +105,7 @@ const Board = ({ color = "#71D4EB" }) => {
         checkForWin(newTiles);
       }
     },
-    [tiles, state.sound]
+    [tiles, state.sound],
   );
 
   return (

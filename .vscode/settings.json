@@ -1,3 +1,1 @@
-{
-  "cSpell.language": "en,ua,ua-UA,uk"
-}
+{ "cSpell.language": "en,ua,ua-UA,uk", "prettier.endOfLine": "auto" }
