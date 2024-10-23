@@ -2,6 +2,7 @@
   "name": "fifteen-puzzles",
   "version": "1.0.0",
   "main": "expo-router/entry",
+  "type": "module",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
@@ -41,11 +42,7 @@
   "devDependencies": {
     "@babel/core": "^7.24.5",
     "@babel/plugin-proposal-private-property-in-object": "^7.21.0",
-    "@emotion/babel-plugin": "^11.11.0",
-    "eslint": "^9.2.0"
+    "@emotion/babel-plugin": "^11.11.0"
   },
-  "plugins": [
-    "@emotion"
-  ],
   "private": true
 }
