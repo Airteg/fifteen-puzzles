@@ -33,7 +33,7 @@ const Tile = memo(({ width, height, number, onPress }) => {
     </Size>
   );
 });
-
+Tile.displayName = "Tile";
 export default React.memo(Tile);
 
 const Size = styled(Pressable)`

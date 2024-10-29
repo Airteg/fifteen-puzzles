@@ -24,7 +24,7 @@ export default function Logo({ size = 250 }) {
           style="stroke"
           strokeWidth={3}
         >
-          <Shadow dx={0} dy={0} blur={4} color="#00000040" />
+          <Shadow dx={0} dy={0} blur={12} color="#000000f0" />
         </Path>
 
         <Path

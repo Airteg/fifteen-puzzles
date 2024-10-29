@@ -34,10 +34,12 @@ module.exports = {
         endOfLine: "auto", // Автоматична підтримка кінця рядків
       },
     ],
+    "react-native/no-color-literals": "off", // Вимикає перевірку кольорів-літералів
+    "react-native/sort-styles": "off", // Вимкнути сортування стилів
     "@emotion/jsx-import": "error", // Специфічні правила для @emotion
     "@emotion/pkg-renaming": "error",
     "react/react-in-jsx-scope": "off", // Вимикаємо для нового JSX runtime
-    "react-native/no-inline-styles": "warn", // Попередження для інлайн-стилів
+    "react-native/no-inline-styles": "off", // Попередження для інлайн-стилів
     "react/prop-types": "off", // Вимикаємо вимогу використовувати PropTypes
   },
   settings: {
