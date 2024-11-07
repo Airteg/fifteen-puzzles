@@ -10,7 +10,14 @@ module.exports = {
     "plugin:react-native/all", // Плагін для React Native, який забезпечує всі правила
     "plugin:prettier/recommended", // Prettier для забезпечення стилю коду
   ],
-  overrides: [],
+  overrides: [
+    {
+      files: ["*.md"],
+      rules: {
+        "prettier/prettier": "off", // Вимкнути форматування для md файлів
+      },
+    },
+  ],
   parserOptions: {
     ecmaVersion: "latest",
     sourceType: "module",
