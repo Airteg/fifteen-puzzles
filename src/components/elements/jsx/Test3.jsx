@@ -7,18 +7,24 @@ import { ww } from "../../../global/global-stiles.js";
 import SvgShadow from "../../svg/SvgShadow/index.jsx";
 
 export default function Test() {
-  const initialSize = 100;
-  const color = "lightblue"; // Задайте колір або габарити динамічно
+  const initialSizeX = 150;
+  const initialSizeY = 200;
+
+  const color = "#00000080"; // Задайте колір або габарити динамічно
 
   return (
     <Container>
-      <SvgContainer width={initialSize}>
+      <SvgContainer width={initialSizeX}>
         <SvgShadow
           Fgr={RectSvg}
-          w={initialSize}
-          h={initialSize}
+          w={initialSizeX}
+          h={initialSizeY}
           r={10}
-          fill={color}
+          fill="#ffff00"
+          shadowColor={color}
+          offsetX={0}
+          offsetY={0}
+          blur={4}
         />
       </SvgContainer>
     </Container>
