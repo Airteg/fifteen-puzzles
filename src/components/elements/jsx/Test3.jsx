@@ -14,7 +14,7 @@ export default function Test() {
 
   return (
     <Container>
-      <SvgContainer width={initialSizeX}>
+      <SvgContainer width={initialSizeX} height={initialSizeY}>
         <SvgShadow
           Fgr={RectSvg}
           w={initialSizeX}
@@ -24,7 +24,7 @@ export default function Test() {
           shadowColor={color}
           offsetX={0}
           offsetY={0}
-          blur={4}
+          blur={5}
         />
       </SvgContainer>
     </Container>
@@ -41,6 +41,6 @@ const Container = styled(View)`
 
 const SvgContainer = styled(View)`
   width: ${(props) => ww(props.width)}px;
-  height: ${(props) => ww(props.width)}px;
-  border: 1px solid green;
+  height: ${(props) => ww(props.height)}px;
+  /* border: 1px solid green; */
 `;

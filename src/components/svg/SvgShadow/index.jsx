@@ -10,7 +10,7 @@ export default function SvgShadow({
   r,
   fill,
   shadowColor = "#00000080",
-  blur = 4,
+  blur = 5,
   offsetX = 0,
   offsetY = 0,
 }) {
@@ -24,16 +24,27 @@ export default function SvgShadow({
   // Розрахунок фіксованої прозорості для кожного шару (в HEX)
   const layerOpacityHex = opacityHex(colorTransparency / figureCount);
 
+  // Розрахунок максимальних розмірів тіньових фігур з урахуванням blur
+  const maxBlurWidth = w * (1 + stepScaleX * figureCount);
+  console.log("🚀 ~ maxBlurWidth:", maxBlurWidth);
+  const maxBlurHeight = h * (1 + stepScaleY * figureCount);
+  console.log("🚀 ~ maxBlurHeight:", maxBlurHeight);
+
   // Розрахунок viewBox з урахуванням blur та offset
-  const viewWidth = w + 2 * blur + Math.abs(offsetX);
-  const viewHeight = h + 2 * blur + Math.abs(offsetY);
-  const viewBoxX = -blur / 2 + Math.min(offsetX, 0);
-  const viewBoxY = -blur / 2 + Math.min(offsetY, 0);
+  const viewWidth = maxBlurWidth + Math.abs(offsetX) + blur;
+  console.log("🚀 ~ viewWidth:", Math.round(viewWidth));
+  const viewHeight = maxBlurHeight + Math.abs(offsetY) + blur;
+  console.log("🚀 ~ viewHeight:", Math.round(viewHeight));
+  // const viewBoxX = -blur / 2 - Math.abs(offsetX) / 2;
+  // const viewBoxY = -blur / 2 - Math.abs(offsetY) / 2;
+  const viewBoxX = 0;
+  const viewBoxY = 0;
+
   console.log("->");
   console.log("Dim", w, h);
-  console.log("blur", blur, "offsetX", offsetX, "offsetY", offsetY);
+  console.log("blur:", blur, "offsetX:", offsetX, "offsetY:", offsetY);
 
-  console.log("viewBox", `${viewBoxX} ${viewBoxY} ${viewWidth} ${viewHeight}`);
+  console.log("viewBox:", `${viewBoxX} ${viewBoxY} ${viewWidth} ${viewHeight}`);
   console.log(
     "oldDim",
     w,
@@ -57,6 +68,12 @@ export default function SvgShadow({
     });
     return { element, scaleX, scaleY };
   });
+  const blEl = blurElements.map(({ scaleX, scaleY }) => [
+    Math.round(scaleX * w * 1000) / 1000,
+    Math.round(scaleY * h * 1000) / 1000,
+  ]);
+
+  console.log("🚀 ~ blEl:", blEl);
 
   // Знаходимо найменші значення scaleX і scaleY для найменшої фігури
   const minScaleX = 1 - stepScaleX * figureCount;
@@ -82,10 +99,11 @@ export default function SvgShadow({
         scaleX={minScaleX}
         scaleY={minScaleY}
         originX={(viewWidth - viewBoxX) / 2}
-        originY={(viewHeight - viewWidth) / 2}
+        originY={(viewHeight - viewBoxY) / 2}
       >
         {Fgr({ w, h, r, fill }).element}
       </G>
+      {}
       <Rect
         x={viewBoxX}
         y={viewBoxY}

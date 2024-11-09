@@ -15,6 +15,7 @@ module.exports = {
       files: ["*.md"],
       rules: {
         "prettier/prettier": "off", // Вимкнути форматування для md файлів
+        "no-trailing-spaces": "off", // Вимкнути перевірку на пробіли в кінці рядків
       },
     },
   ],
