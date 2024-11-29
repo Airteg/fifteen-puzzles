@@ -7,20 +7,20 @@ import { ww } from "../../../global/global-stiles.js";
 import SvgShadow from "../../svg/SvgShadow/index.jsx";
 
 export default function Test() {
-  const initialSizeX = 155;
-  const initialSizeY = 130;
+  const initialSizeX = 200;
+  const initialSizeY = 200;
 
   const color = "#00000080"; // Задайте колір або габарити динамічно
-
+  console.log("ww(", ww(initialSizeX), "hw(", ww(initialSizeY));
   return (
     <Container>
-      <SvgContainer width={initialSizeX} height={initialSizeY}>
+      <SvgContainer width={ww(initialSizeX)} height={ww(initialSizeY)}>
         <SvgShadow
           Fgr={RectSvg}
-          // w={initialSizeX}
-          // h={initialSizeY}
+          w={ww(initialSizeX)}
+          h={ww(initialSizeY)}
           // r={10}
-          fill="#ffff00"
+          fill="#ffff0050"
           // shadowColor={color}
           // offsetX={0}
           // offsetY={0}
@@ -36,11 +36,13 @@ const Container = styled(View)`
   width: 100%;
   justify-content: center;
   align-items: center;
-  border: 1px solid red;
+  border: 5px solid darkorange;
 `;
 
 const SvgContainer = styled(View)`
   width: ${(props) => ww(props.width)}px;
   height: ${(props) => ww(props.height)}px;
-  /* border: 1px solid green; */
+
+  overflow: visible;
+  border: 1px solid red;
 `;
