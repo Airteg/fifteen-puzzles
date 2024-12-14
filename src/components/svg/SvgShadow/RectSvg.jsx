@@ -1,10 +1,4 @@
-// Rect.jsx
+import React from "react";
 import { Rect } from "react-native-svg";
 
-export default function RectSvg({ w, h, fill }) {
-  return {
-    w,
-    h,
-    element: <Rect x={0} y={0} width={w} height={h} fill={fill} />,
-  };
-}
+export const MyRect = <Rect x={10} y={10} width={50} height={50} fill="blue" />;
