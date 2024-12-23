@@ -1,9 +1,9 @@
 import { View, Text } from "react-native";
 import React from "react";
 import styled from "@emotion/native";
-import { hw } from "../global/global-stiles.js";
+import { color, hw } from "../global/global-stiles.js";
 import LottieView from "lottie-react-native";
-import Salute from "../assets/json/Confety.json";
+import Salute from "../assets/json/Confety2.json";
 
 const YouWin = () => {
   return (
@@ -21,5 +21,5 @@ const ContainerAboutGame = styled.View`
   padding-top: ${hw(20)}px;
   margin-bottom: ${hw(34)}px;
   /* border: 2px solid orangered; */
-  background-color: #00000060;
+  background-color: ${color.MAIN_COLOR};
 `;
