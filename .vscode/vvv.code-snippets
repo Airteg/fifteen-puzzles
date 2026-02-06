@@ -24,9 +24,9 @@
       "const TextStyled = styled(Text)``;",
       "const styles = {",
       "  style1: css``,",
-      "};"
+      "};",
     ],
-    "description": "react-native fc with @emotion/native"
+    "description": "react-native fc with @emotion/native",
   },
   "add shopify-rn-skia": {
     "prefix": "svvv",
@@ -46,8 +46,8 @@
       "",
       "const styles = {",
       "  style1: css``,",
-      "};"
+      "};",
     ],
-    "description": "add shopify-rn-skia"
-  }
+    "description": "add shopify-rn-skia",
+  },
 }

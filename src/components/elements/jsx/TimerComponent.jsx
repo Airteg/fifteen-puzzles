@@ -69,7 +69,7 @@ const TimerComponent = memo(
         </Text>
       </Wrapper>
     );
-  }
+  },
 );
 
 export default TimerComponent;

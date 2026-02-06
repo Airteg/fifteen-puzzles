@@ -65,7 +65,7 @@ const BackBoard = ({
           stroke={fill}
           strokeWidth={wStep + 2}
         />
-      </G>
+      </G>,
     );
   }
 

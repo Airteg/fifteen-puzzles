@@ -23,9 +23,6 @@ import {
 const WINNING_COMBINATION = [
   1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0,
 ];
-// const WINNING_COMBINATION = [
-//   1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 13, 15, 0,
-// ];
 
 const Board = ({ color = "#71D4EB" }) => {
   const { state } = useContext(AppContext);
@@ -94,8 +91,8 @@ const Board = ({ color = "#71D4EB" }) => {
               ? 1
               : -1
             : clickedIndex < emptyIndex
-            ? 4
-            : -4;
+              ? 4
+              : -4;
 
         for (let i = emptyIndex; i !== clickedIndex; i -= step) {
           newTiles[i] = newTiles[i - step];
@@ -108,7 +105,7 @@ const Board = ({ color = "#71D4EB" }) => {
         checkForWin(newTiles);
       }
     },
-    [tiles, state.sound]
+    [tiles, state.sound],
   );
 
   return (

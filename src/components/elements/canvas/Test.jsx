@@ -40,8 +40,8 @@ const ButtonField = React.memo(({ labels }) => {
         },
         onEnd: () => setPressedIndex(null),
       },
-      [buttons]
-    )
+      [buttons],
+    ),
   );
 
   const handleLayout = (event) => {

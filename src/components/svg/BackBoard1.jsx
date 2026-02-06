@@ -53,11 +53,11 @@ const BackBoard = ({
     const yw = (size.x - trueSize.x) / 2 - i * wStep;
     const xSh =
       Math.round(
-        10 * ((size.x - trueSize.x) / 2 + (i * wStep) / Math.sqrt(2))
+        10 * ((size.x - trueSize.x) / 2 + (i * wStep) / Math.sqrt(2)),
       ) / 10;
     const ySh =
       Math.round(
-        10 * ((size.x - trueSize.x) / 2 + (i * wStep) / Math.sqrt(2))
+        10 * ((size.x - trueSize.x) / 2 + (i * wStep) / Math.sqrt(2)),
       ) / 10;
     const shadowSize = {
       x: trueSize.x - (2 * i) / Math.sqrt(2),
@@ -103,7 +103,7 @@ const BackBoard = ({
       <G>
         <Rect {...commonStyles[0]} />
         <Rect {...commonStyles[1]} />
-      </G>
+      </G>,
     );
     squaresInnerShadow.push(<Rect {...commonStyles[2]} />);
   }

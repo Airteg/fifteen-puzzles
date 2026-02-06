@@ -3,7 +3,6 @@ import {
   LinearGradient,
   Path,
   Shadow,
-  scale,
   vec,
 } from "@shopify/react-native-skia";
 
