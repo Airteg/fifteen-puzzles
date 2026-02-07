@@ -1,0 +1,7 @@
+D:\ProjectsVVV\_Native\fifteen-puzzles\app
+├── (tabs)
+│   ├── _layout.tsx
+│   ├── explore.tsx
+│   └── index.tsx
+├── _layout.tsx
+└── modal.tsx
