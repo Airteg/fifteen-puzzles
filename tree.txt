@@ -1,7 +1,33 @@
-D:\ProjectsVVV\_Native\fifteen-puzzles\app
-├── (tabs)
-│   ├── _layout.tsx
-│   ├── explore.tsx
-│   └── index.tsx
-├── _layout.tsx
-└── modal.tsx
+Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
+├── assets
+│   └── images
+├── scripts
+│   └── reset-project.js
+├── src
+│   ├── navigation
+│   │   ├── RootNavigator.tsx
+│   │   └── types.ts
+│   ├── screens
+│   │   ├── modals
+│   │   │   ├── SkinModal.tsx
+│   │   │   ├── SoundModal.tsx
+│   │   │   └── StatisticModal.tsx
+│   │   ├── AboutScreen.tsx
+│   │   ├── GameScreen.tsx
+│   │   ├── MainMenuScreen.tsx
+│   │   ├── SettingsScreen.tsx
+│   │   ├── SplashScreen.tsx
+│   │   └── SupportScreen.tsx
+│   └── ui
+│       └── TextScreen.tsx
+├── .gitignore
+├── app.json
+├── App.tsx
+├── eslint.config.js
+├── expo-env.d.ts
+├── package.json
+├── pnpm-lock.yaml
+├── pnpm-workspace.yaml
+├── README.md
+├── tree.txt
+└── tsconfig.json
