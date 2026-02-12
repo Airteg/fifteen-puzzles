@@ -1,28 +1,29 @@
 Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 ├── assets
 │   └── images
-├── scripts
-│   └── reset-project.js
+│       ├── android-icon-background.png
+│       ├── android-icon-foreground.png
+│       ├── android-icon-monochrome.png
+│       └── splash-icon.png
 ├── src
 │   ├── navigation
-│   │   ├── RootNavigator.tsx
-│   │   └── types.ts
+│   │   └── RootNavigator.tsx
 │   ├── screens
-│   │   ├── modals
-│   │   │   ├── SkinModal.tsx
-│   │   │   ├── SoundModal.tsx
-│   │   │   └── StatisticModal.tsx
 │   │   ├── AboutScreen.tsx
 │   │   ├── GameScreen.tsx
-│   │   ├── MainMenuScreen.tsx
+│   │   ├── HomeScreen.tsx
 │   │   ├── SettingsScreen.tsx
-│   │   ├── SplashScreen.tsx
-│   │   └── SupportScreen.tsx
-│   └── ui
-│       └── TextScreen.tsx
+│   │   ├── StatisticScreen.tsx
+│   │   ├── SupportScreen.tsx
+│   │   └── WinScreen.tsx
+│   ├── styles
+│   │   └── globalStyles.ts
+│   └── types
+│       └── types.ts
 ├── .gitignore
 ├── app.json
 ├── App.tsx
+├── combined.txt
 ├── eslint.config.js
 ├── expo-env.d.ts
 ├── package.json

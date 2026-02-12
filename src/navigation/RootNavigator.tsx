@@ -1,75 +1,63 @@
-import React from "react";
+import AboutScreen from "@/screens/AboutScreen";
+import GameScreen from "@/screens/GameScreen";
+import HomeScreen from "@/screens/HomeScreen";
+import SettingsScreen from "@/screens/SettingsScreen";
+import StatisticScreen from "@/screens/StatisticScreen";
+import SupportScreen from "@/screens/SupportScreen";
+import WinScreen from "@/screens/WinScreen";
+import { RootStackParamList } from "@/types/types";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import type { RootStackParamList } from "./types";
-
-import { SplashScreen } from "../screens/SplashScreen";
-import { MainMenuScreen } from "../screens/MainMenuScreen";
-import { GameScreen } from "../screens/GameScreen";
-import { SettingsScreen } from "../screens/SettingsScreen";
-import { AboutScreen } from "../screens/AboutScreen";
-import { SupportScreen } from "../screens/SupportScreen";
-
-import { SkinModal } from "../screens/modals/SkinModal";
-import { SoundModal } from "../screens/modals/SoundModal";
-import { StatisticModal } from "../screens/modals/StatisticModal";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function RootNavigator() {
   return (
-    <Stack.Navigator initialRouteName="Splash">
-      {/* Main flow */}
-      <Stack.Screen
-        name="Splash"
-        component={SplashScreen}
-        options={{ headerShown: false }}
-      />
-
-      <Stack.Screen
-        name="MainMenu"
-        component={MainMenuScreen}
-        options={{ headerShown: false }}
-      />
-
-      <Stack.Screen
-        name="Game"
-        component={GameScreen}
-        options={{ headerShown: false }}
-      />
-
-      <Stack.Screen
-        name="Settings"
-        component={SettingsScreen}
-        options={{ title: "Settings" }}
-      />
-
-      <Stack.Screen
-        name="About"
-        component={AboutScreen}
-        options={{ title: "About Game" }}
-      />
-
-      <Stack.Screen
-        name="Support"
-        component={SupportScreen}
-        options={{ title: "Support" }}
-      />
-
-      <Stack.Group screenOptions={{ presentation: "modal" }}>
+    <Stack.Navigator initialRouteName="Home" id="RootStack">
+      <Stack.Group>
         <Stack.Screen
-          name="SkinModal"
-          component={SkinModal}
-          options={{ title: "Skin" }}
+          name="Home"
+          component={HomeScreen}
+          options={{ title: "15 Puzzles" }}
         />
         <Stack.Screen
-          name="SoundModal"
-          component={SoundModal}
-          options={{ title: "Sound" }}
+          name="Settings"
+          component={SettingsScreen}
+          options={{ title: "Settings" }}
         />
         <Stack.Screen
-          name="StatisticModal"
-          component={StatisticModal}
-          options={{ title: "Statistic" }}
+          name="About"
+          component={AboutScreen}
+          options={{ title: "Про гру" }}
+        />
+        <Stack.Screen
+          name="Support"
+          component={SupportScreen}
+          options={{ title: "Describe your problems" }}
+        />
+
+        <Stack.Screen
+          name="Game"
+          component={GameScreen}
+          options={({ route }) => ({ title: `Рівень ${route.params.level}` })}
+        />
+
+        <Stack.Screen
+          name="Win"
+          component={WinScreen}
+          options={{ headerShown: false }}
+        />
+      </Stack.Group>
+      <Stack.Group
+        screenOptions={{
+          presentation: "transparentModal",
+          headerShown: false,
+          animation: "fade",
+        }}
+      >
+        <Stack.Screen
+          name="Statistic"
+          component={StatisticScreen}
+          options={{ title: "Моя Статистика" }}
         />
       </Stack.Group>
     </Stack.Navigator>
