@@ -47,6 +47,7 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │       └── splash-icon.png
 ├── src
 │   ├── context
+│   │   ├── AppShell.tsx
 │   │   ├── FontProvider.tsx
 │   │   └── GameStateProvider.tsx
 │   ├── navigation
@@ -61,8 +62,10 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   └── WinScreen.tsx
 │   ├── styles
 │   │   └── globalStyles.ts
-│   └── types
-│       └── types.ts
+│   ├── types
+│   │   └── types.ts
+│   └── utils
+│       └── splash.ts
 ├── .gitignore
 ├── app.json
 ├── App.tsx
