@@ -1,11 +1,54 @@
 Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 ├── assets
+│   ├── fonts
+│   │   ├── Krona_One
+│   │   │   ├── KronaOne-Regular.ttf
+│   │   │   └── OFL.txt
+│   │   ├── Mulish
+│   │   │   ├── static
+│   │   │   │   ├── Mulish-Black.ttf
+│   │   │   │   ├── Mulish-BlackItalic.ttf
+│   │   │   │   ├── Mulish-Bold.ttf
+│   │   │   │   ├── Mulish-BoldItalic.ttf
+│   │   │   │   ├── Mulish-ExtraBold.ttf
+│   │   │   │   ├── Mulish-ExtraBoldItalic.ttf
+│   │   │   │   ├── Mulish-ExtraLight.ttf
+│   │   │   │   ├── Mulish-ExtraLightItalic.ttf
+│   │   │   │   ├── Mulish-Italic.ttf
+│   │   │   │   ├── Mulish-Light.ttf
+│   │   │   │   ├── Mulish-LightItalic.ttf
+│   │   │   │   ├── Mulish-Medium.ttf
+│   │   │   │   ├── Mulish-MediumItalic.ttf
+│   │   │   │   ├── Mulish-Regular.ttf
+│   │   │   │   ├── Mulish-SemiBold.ttf
+│   │   │   │   └── Mulish-SemiBoldItalic.ttf
+│   │   │   ├── Mulish-Italic-VariableFont_wght.ttf
+│   │   │   ├── Mulish-VariableFont_wght.ttf
+│   │   │   ├── OFL.txt
+│   │   │   └── README.txt
+│   │   ├── Overpass_Mono
+│   │   │   ├── static
+│   │   │   │   ├── OverpassMono-Bold.ttf
+│   │   │   │   ├── OverpassMono-Light.ttf
+│   │   │   │   ├── OverpassMono-Medium.ttf
+│   │   │   │   ├── OverpassMono-Regular.ttf
+│   │   │   │   └── OverpassMono-SemiBold.ttf
+│   │   │   ├── OFL.txt
+│   │   │   ├── OverpassMono-VariableFont_wght.ttf
+│   │   │   └── README.txt
+│   │   ├── Mariupol-Bold.ttf
+│   │   ├── Mariupol-Medium.ttf
+│   │   ├── Mariupol-Regular.ttf
+│   │   └── MariupolSymbols.ttf
 │   └── images
 │       ├── android-icon-background.png
 │       ├── android-icon-foreground.png
 │       ├── android-icon-monochrome.png
 │       └── splash-icon.png
 ├── src
+│   ├── context
+│   │   ├── FontProvider.tsx
+│   │   └── GameStateProvider.tsx
 │   ├── navigation
 │   │   └── RootNavigator.tsx
 │   ├── screens
