@@ -50,6 +50,8 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   ├── AppShell.tsx
 │   │   ├── FontProvider.tsx
 │   │   └── GameStateProvider.tsx
+│   ├── engine
+│   │   └── render
 │   ├── navigation
 │   │   └── RootNavigator.tsx
 │   ├── screens
@@ -64,6 +66,12 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   └── globalStyles.ts
 │   ├── types
 │   │   └── types.ts
+│   ├── ui
+│   │   ├── skia
+│   │   │   ├── PanelSurface.tsx
+│   │   │   └── SkiaButtonSkin.tsx
+│   │   ├── PanelZone.tsx
+│   │   └── pixel.ts
 │   └── utils
 │       └── splash.ts
 ├── .gitignore
