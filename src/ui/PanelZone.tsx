@@ -1,4 +1,3 @@
-// src/ui/PanelZone.tsx
 import React, { useCallback, useMemo, useState } from "react";
 import { View, Pressable, StyleSheet, LayoutChangeEvent } from "react-native";
 import { Canvas } from "@shopify/react-native-skia";
@@ -13,10 +12,8 @@ type ButtonSpec = { id: string; title: string };
 type Props = {
   buttons: ButtonSpec[];
   onPress: (id: string) => void;
-
-  // Layout tokens in DESIGN units (will be scaled by S)
-  paddingDesign?: number; // default 40
-  gapDesign?: number; // default 24
+  paddingDesign?: number;
+  gapDesign?: number;
 };
 
 export function PanelZone({
@@ -26,21 +23,10 @@ export function PanelZone({
   gapDesign = 24,
 }: Props) {
   const { S, panelW, buttonW, buttonH, snap } = useLayoutMetrics();
-
-  // Skia font comes from your FontProvider.
-  // You said it doesn't accept size args, so we use it as-is for now.
   const skiaFont = useSkiaFont();
-
-  // Measure panel height (RN content -> onLayout)
   const [panelHeight, setPanelHeight] = useState<number>(0);
-
-  // Button rects come from RN layout (panel-local coords)
   const [buttonRects, setButtonRects] = useState<Record<string, Rect>>({});
-
-  // Pressed state (visual only)
   const [pressedId, setPressedId] = useState<string | null>(null);
-
-  // Panel rect in its own local coordinate system
   const panelRect: Rect = useMemo(() => {
     return snapRect({ x: 0, y: 0, width: panelW, height: panelHeight });
   }, [panelW, panelHeight]);
@@ -73,18 +59,13 @@ export function PanelZone({
     });
   }, []);
 
-  // Scale padding/gap uniformly
   const padding = snap(paddingDesign * S);
   const gap = snap(gapDesign * S);
 
   return (
     <View style={[styles.panelWrap, { width: panelW }]}>
-      {/* One canvas behind */}
       <Canvas style={StyleSheet.absoluteFill}>
-        {/* Panel background */}
         {panelHeight > 0 && <PanelSurface rect={panelRect} />}
-
-        {/* Button skins (and Skia text inside skin) */}
         {skiaFont &&
           buttons.map((b) => {
             const rect = buttonRects[b.id];
@@ -101,8 +82,6 @@ export function PanelZone({
             );
           })}
       </Canvas>
-
-      {/* RN layout layer defines geometry & hit testing */}
       <View
         onLayout={onPanelContentLayout}
         style={{
@@ -125,9 +104,7 @@ export function PanelZone({
               alignSelf: "center",
             }}
             android_ripple={{ color: "rgba(0,0,0,0.05)" }}
-          >
-            {/* Intentionally empty: Skia draws visuals */}
-          </Pressable>
+          ></Pressable>
         ))}
       </View>
     </View>
