@@ -1,74 +1,63 @@
-import { Canvas } from "@shopify/react-native-skia";
+// src/ui/PanelZone.tsx
 import React, { useCallback, useMemo, useState } from "react";
-import {
-  LayoutChangeEvent,
-  Pressable,
-  StyleSheet,
-  useWindowDimensions,
-  View,
-} from "react-native";
-import { snapRect, type Rect } from "./pixel";
-import { PanelSurface } from "./skia/PanelSurface";
-
-import { useSkiaFont } from "../context/FontProvider";
-import { SkiaButtonSkin } from "./skia/SkiaButtonSkin";
+import { View, Pressable, StyleSheet, LayoutChangeEvent } from "react-native";
+import { Canvas } from "@shopify/react-native-skia";
+import { useLayoutMetrics } from "@/context/LayoutMetricsProvider";
+import { useSkiaFont } from "@/context/FontProvider";
+import { snapRect, type Rect } from "@/ui/pixel";
+import { PanelSurface } from "@/ui/skia/PanelSurface";
+import { SkiaButtonSkin } from "@/ui/skia/SkiaButtonSkin";
 
 type ButtonSpec = { id: string; title: string };
 
 type Props = {
   buttons: ButtonSpec[];
   onPress: (id: string) => void;
-  // токени макета
-  padding?: number;
-  gap?: number;
-  sideMarginMin?: number;
-  designW?: number; // 390
-  designH?: number; // 844
+
+  // Layout tokens in DESIGN units (will be scaled by S)
+  paddingDesign?: number; // default 40
+  gapDesign?: number; // default 24
 };
 
 export function PanelZone({
   buttons,
   onPress,
-  padding = 40,
-  gap = 24,
-  sideMarginMin = 16,
-  designW = 390,
-  designH = 844,
+  paddingDesign = 40,
+  gapDesign = 24,
 }: Props) {
-  const { width: sw, height: sh } = useWindowDimensions();
+  const { S, panelW, buttonW, buttonH, snap } = useLayoutMetrics();
 
-  // Єдиний масштаб S
-  const S = Math.min(sw / designW, sh / designH);
-
-  // Правило ширини панелі: min(sw - 2*sideMarginMin, 340*S)
-  const panelWidth = Math.min(sw - 2 * sideMarginMin, 340 * S);
-
-  // Шрифт Skia (Krona One завантажується у FontProvider)
+  // Skia font comes from your FontProvider.
+  // You said it doesn't accept size args, so we use it as-is for now.
   const skiaFont = useSkiaFont();
-  if (!skiaFont) return null; // або нічого не рендеримо, доки шрифт не готовий
 
-  // Вимірюємо висоту панелі за макетом вмісту RN
+  // Measure panel height (RN content -> onLayout)
   const [panelHeight, setPanelHeight] = useState<number>(0);
 
-  // Зберігаємо прямокутники кнопок у локальних координатах панелі
+  // Button rects come from RN layout (panel-local coords)
   const [buttonRects, setButtonRects] = useState<Record<string, Rect>>({});
 
-  // Відстежуємо id натиснутої кнопки (взаємодія RN). Перерендерюється лише PanelZone.
+  // Pressed state (visual only)
   const [pressedId, setPressedId] = useState<string | null>(null);
 
+  // Panel rect in its own local coordinate system
   const panelRect: Rect = useMemo(() => {
-    return snapRect({ x: 0, y: 0, width: panelWidth, height: panelHeight });
-  }, [panelWidth, panelHeight]);
+    return snapRect({ x: 0, y: 0, width: panelW, height: panelHeight });
+  }, [panelW, panelHeight]);
 
-  const onPanelContentLayout = useCallback((e: LayoutChangeEvent) => {
-    const { height } = e.nativeEvent.layout;
-    // Прив'язуємо висоту до піксельної сітки
-    setPanelHeight((prev) => (prev === height ? prev : height));
-  }, []);
+  const onPanelContentLayout = useCallback(
+    (e: LayoutChangeEvent) => {
+      const { height } = e.nativeEvent.layout;
+      const h = snap(height);
+      setPanelHeight((prev) => (prev === h ? prev : h));
+    },
+    [snap],
+  );
 
   const onButtonLayout = useCallback((id: string, e: LayoutChangeEvent) => {
     const { x, y, width, height } = e.nativeEvent.layout;
     const r = snapRect({ x, y, width, height });
+
     setButtonRects((prev) => {
       const old = prev[id];
       if (
@@ -77,42 +66,49 @@ export function PanelZone({
         old.y === r.y &&
         old.width === r.width &&
         old.height === r.height
-      )
+      ) {
         return prev;
+      }
       return { ...prev, [id]: r };
     });
   }, []);
 
+  // Scale padding/gap uniformly
+  const padding = snap(paddingDesign * S);
+  const gap = snap(gapDesign * S);
+
   return (
-    <View style={[styles.panelWrap, { width: panelWidth }]}>
-      {/* 1) Один Canvas позаду */}
+    <View style={[styles.panelWrap, { width: panelW }]}>
+      {/* One canvas behind */}
       <Canvas style={StyleSheet.absoluteFill}>
-        {/* Фон панелі */}
+        {/* Panel background */}
         {panelHeight > 0 && <PanelSurface rect={panelRect} />}
 
-        {/* Скіни кнопок + текст Skia (без зміщення RN) */}
-        {buttons.map((b) => {
-          const rect = buttonRects[b.id];
-          if (!rect) return null;
-          return (
-            <SkiaButtonSkin
-              key={b.id}
-              rect={rect}
-              title={b.title}
-              font={skiaFont}
-              pressed={pressedId === b.id}
-            />
-          );
-        })}
+        {/* Button skins (and Skia text inside skin) */}
+        {skiaFont &&
+          buttons.map((b) => {
+            const rect = buttonRects[b.id];
+            if (!rect) return null;
+
+            return (
+              <SkiaButtonSkin
+                key={b.id}
+                rect={rect}
+                title={b.title}
+                font={skiaFont}
+                pressed={pressedId === b.id}
+              />
+            );
+          })}
       </Canvas>
 
-      {/* 2) Вміст RN задає макет і виконує вимірювання */}
+      {/* RN layout layer defines geometry & hit testing */}
       <View
-        style={{
-          padding: padding * S,
-          rowGap: gap * S,
-        }}
         onLayout={onPanelContentLayout}
+        style={{
+          padding,
+          rowGap: gap,
+        }}
       >
         {buttons.map((b) => (
           <Pressable
@@ -123,11 +119,14 @@ export function PanelZone({
             onPressOut={() =>
               setPressedId((cur) => (cur === b.id ? null : cur))
             }
-            style={styles.hitArea}
+            style={{
+              width: buttonW,
+              height: buttonH,
+              alignSelf: "center",
+            }}
             android_ripple={{ color: "rgba(0,0,0,0.05)" }}
           >
-            {/* Тут НІЧОГО не рендеримо. Це тільки hit-area. */}
-            <View style={styles.hitFill} />
+            {/* Intentionally empty: Skia draws visuals */}
           </Pressable>
         ))}
       </View>
@@ -140,15 +139,6 @@ const styles = StyleSheet.create({
     position: "relative",
     alignSelf: "center",
   },
-  hitArea: {
-    // це "блоки макета"; розмір задається вашими токенами/дизайном
-    width: "100%",
-    // висота фіксується висотою кнопки в дизайні
-    // Але можна зафіксувати жорстко: 58*S через обгортку, якщо потрібно.
-  },
-  hitFill: {
-    // Робимо так, щоб Pressable мав видимий розмір:
-    // Якщо потрібен точний масштабований 276x58, можна задати явно:
-    height: 58, // буде масштабуватись через S за потреби, див. примітку вище
-  },
 });
+
+export default PanelZone;

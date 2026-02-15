@@ -1,6 +1,6 @@
-import React from "react";
-import { Group, RoundedRect, Shadow, Text } from "@shopify/react-native-skia";
 import type { SkFont } from "@shopify/react-native-skia";
+import { Group, RoundedRect, Shadow, Text } from "@shopify/react-native-skia";
+import React from "react";
 import type { Rect } from "../pixel";
 
 type Props = {
