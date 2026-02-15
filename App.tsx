@@ -7,17 +7,13 @@ import "react-native-gesture-handler";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export default function App() {
-  console.log(
-    "Engine:",
-    typeof (global as any).HermesInternal !== "undefined" ? "Hermes" : "JSC",
-  );
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <FontProvider>
-        <LayoutMetricsProvider>
+      <LayoutMetricsProvider>
+        <FontProvider>
           <AppShell />
-        </LayoutMetricsProvider>
-      </FontProvider>
+        </FontProvider>
+      </LayoutMetricsProvider>
     </GestureHandlerRootView>
   );
 }
