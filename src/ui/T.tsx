@@ -1,9 +1,15 @@
+import { useLayoutMetrics } from "@/context/LayoutMetricsProvider";
+import { Typography } from "@/theme/typography";
 import React from "react";
 import { Text, TextProps, TextStyle } from "react-native";
-import { Typography } from "@/theme/typography";
-import { useLayoutMetrics } from "@/context/LayoutMetricsProvider";
 
-type Variant = "title" | "subtitle" | "body" | "kronaButton";
+type Variant =
+  | "title"
+  | "subtitle"
+  | "body"
+  | "kronaButton"
+  | "headerTitle"
+  | "headerDesc";
 
 type Props = TextProps & {
   v: Variant;
@@ -14,13 +20,17 @@ export function T({ v, style, ...rest }: Props) {
   const { S } = useLayoutMetrics();
 
   const base =
-    v === "title"
-      ? Typography.mariupol.screenTitle(S)
-      : v === "subtitle"
-        ? Typography.mariupol.headerSubtitle(S)
-        : v === "kronaButton"
-          ? Typography.krona.buttonLabel(S)
-          : Typography.mariupol.body(S);
+    v === "headerTitle"
+      ? Typography.krona.headerTitle(S)
+      : v === "headerDesc"
+        ? Typography.mariupol.headerDesc(S)
+        : v === "title"
+          ? Typography.mariupol.screenTitle(S)
+          : v === "subtitle"
+            ? Typography.mariupol.headerSubtitle(S)
+            : v === "kronaButton"
+              ? Typography.krona.buttonLabel(S)
+              : Typography.mariupol.body(S);
 
   return <Text {...rest} style={[base, style]} />;
 }

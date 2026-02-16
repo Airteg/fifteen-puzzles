@@ -24,6 +24,7 @@ export const FontProvider = ({ children }: { children: ReactNode }) => {
   const [expoFontsLoaded] = useFonts({
     KronaOne: KRONA_TTF,
     "Mariupol-Bold": require("../../assets/fonts/Mariupol-Bold.ttf"),
+    "Mariupol-Regular": require("../../assets/fonts/Mariupol-Regular.ttf"),
     "Mulish-Regular": require("../../assets/fonts/Mulish/static/Mulish-Regular.ttf"),
   });
 

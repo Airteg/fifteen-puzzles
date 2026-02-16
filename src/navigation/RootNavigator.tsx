@@ -12,40 +12,18 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function RootNavigator() {
   return (
-    <Stack.Navigator initialRouteName="Home" id="RootStack">
+    <Stack.Navigator
+      initialRouteName="Home"
+      id="RootStack"
+      screenOptions={{ headerShown: false }}
+    >
       <Stack.Group>
-        <Stack.Screen
-          name="Home"
-          component={HomeScreen}
-          options={{ title: "15 Puzzles" }}
-        />
-        <Stack.Screen
-          name="Settings"
-          component={SettingsScreen}
-          options={{ title: "Settings" }}
-        />
-        <Stack.Screen
-          name="About"
-          component={AboutScreen}
-          options={{ title: "Про гру" }}
-        />
-        <Stack.Screen
-          name="Support"
-          component={SupportScreen}
-          options={{ title: "Describe your problems" }}
-        />
-
-        <Stack.Screen
-          name="Game"
-          component={GameScreen}
-          options={({ route }) => ({ title: `Рівень ${route.params.level}` })}
-        />
-
-        <Stack.Screen
-          name="Win"
-          component={WinScreen}
-          options={{ headerShown: false }}
-        />
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Settings" component={SettingsScreen} />
+        <Stack.Screen name="About" component={AboutScreen} />
+        <Stack.Screen name="Support" component={SupportScreen} />
+        <Stack.Screen name="Game" component={GameScreen} />
+        <Stack.Screen name="Win" component={WinScreen} />
       </Stack.Group>
       <Stack.Group
         screenOptions={{

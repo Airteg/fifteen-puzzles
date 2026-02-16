@@ -1,14 +1,16 @@
 import { styles } from "@/styles/globalStyles";
 import { PanelZone } from "@/ui/PanelZone";
-import { Text, View } from "react-native";
-import { Props } from "../types/types";
 import { T } from "@/ui/T";
+import { AppHeader } from "@/ui/header/AppHeader";
+import { View } from "react-native";
+import { Props } from "../types/types";
 
 const HomeScreen = ({ navigation }: Props<"Home">) => {
   return (
     <View style={styles.container}>
-      {/* <Text style={styles.title}>🏠 menu</Text> */}
+      <AppHeader />
       <T v="title">MENU</T>
+
       <View style={{ flex: 1, justifyContent: "center" }}>
         <PanelZone
           buttons={[

@@ -49,7 +49,8 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   ├── context
 │   │   ├── AppShell.tsx
 │   │   ├── FontProvider.tsx
-│   │   └── GameStateProvider.tsx
+│   │   ├── GameStateProvider.tsx
+│   │   └── LayoutMetricsProvider.tsx
 │   ├── engine
 │   │   └── render
 │   ├── navigation
@@ -64,14 +65,22 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   └── WinScreen.tsx
 │   ├── styles
 │   │   └── globalStyles.ts
+│   ├── theme
+│   │   └── typography.ts
 │   ├── types
+│   │   ├── rngh-children.d.ts
 │   │   └── types.ts
 │   ├── ui
+│   │   ├── header
+│   │   │   └── AppHeader.tsx
 │   │   ├── skia
+│   │   │   ├── AppHeaderSurface.tsx
+│   │   │   ├── LogoSurface.tsx
 │   │   │   ├── PanelSurface.tsx
 │   │   │   └── SkiaButtonSkin.tsx
 │   │   ├── PanelZone.tsx
-│   │   └── pixel.ts
+│   │   ├── pixel.ts
+│   │   └── T.tsx
 │   └── utils
 │       └── splash.ts
 ├── .gitignore

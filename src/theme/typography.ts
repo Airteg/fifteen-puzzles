@@ -46,6 +46,18 @@ export const Typography = {
         includeFontPadding: false,
       };
     },
+    headerDesc: (scale = 1): TextStyle => {
+      const fs = snap(16 * scale);
+      return {
+        fontFamily: "Mariupol-Regular",
+        fontSize: fs,
+        lineHeight: snap(20 * scale),
+        letterSpacing: 0,
+        color: colorDarkBlue,
+        textAlign: "right",
+        includeFontPadding: false,
+      };
+    },
   },
 
   // Krona namespace (mostly for Skia, but available for RN if ever needed)
@@ -59,6 +71,18 @@ export const Typography = {
         letterSpacing: ls(fs),
         color: colorDarkBlue,
         textAlign: "center",
+        includeFontPadding: false,
+      };
+    },
+    headerTitle: (scale = 1): TextStyle => {
+      const fs = snap(24 * scale);
+      return {
+        fontFamily: "KronaOne",
+        fontSize: fs,
+        lineHeight: snap(30 * scale),
+        letterSpacing: ls(fs), // 0.04em
+        color: colorDarkBlue,
+        textAlign: "center", // як у Figma
         includeFontPadding: false,
       };
     },
