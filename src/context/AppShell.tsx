@@ -1,3 +1,5 @@
+import { StatusBar } from "expo-status-bar";
+
 import { RootNavigator } from "@/navigation/RootNavigator";
 import { ensureSplashPrevented, hideSplash } from "@/utils/splash";
 import { NavigationContainer } from "@react-navigation/native";
@@ -22,6 +24,7 @@ export default function AppShell() {
   return (
     <GameStateProvider>
       <NavigationContainer>
+        <StatusBar style="dark" backgroundColor="#D5F7FF" />
         <RootNavigator />
       </NavigationContainer>
     </GameStateProvider>
