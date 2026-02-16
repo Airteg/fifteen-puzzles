@@ -35,7 +35,7 @@ export function RootNavigator() {
         <Stack.Screen
           name="Statistic"
           component={StatisticScreen}
-          options={{ title: "Моя Статистика" }}
+          options={{ title: "Statistic" }}
         />
       </Stack.Group>
     </Stack.Navigator>
