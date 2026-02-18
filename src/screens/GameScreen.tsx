@@ -1,29 +1,20 @@
-import { Button, Text, View } from "react-native";
+import { useSkiaFonts } from "@/context/FontProvider"; // [cite: 31]
+import { RnghSmoke } from "@/test/RnghSmoke";
+import { GameBoardView } from "@/ui/game/GameBoardView";
+import { View } from "react-native";
 import { styles } from "../styles/globalStyles";
 import { Props } from "../types/types";
 
 const GameScreen = ({ navigation, route }: Props<"Game">) => {
   const { level } = route.params;
+  const { title: tileFont } = useSkiaFonts(); // Беремо Krona для плиток [cite: 21, 32]
 
   return (
-    <View style={[styles.container, { backgroundColor: "#e0f7fa" }]}>
-      <Text style={styles.title}>🎮 Гра: Рівень {level}</Text>
-      <Text style={styles.text}>Тут відбувається магія...</Text>
-
-      <View style={{ gap: 10, marginTop: 20, width: "100%" }}>
-        <Button
-          title="Наступний рівень (Push)"
-          onPress={() => navigation.push("Game", { level: level + 1 })}
-        />
-
-        <Button
-          title="Я виграв! (Replace)"
-          onPress={() => navigation.replace("Win", { score: level * 100 })}
-        />
-
-        <Button title="Назад (GoBack)" onPress={() => navigation.goBack()} />
-      </View>
+    <View style={[styles.container, { backgroundColor: "#D5F7FF" }]}>
+      <GameBoardView tileFont={tileFont} />
+      {/* <RnghSmoke /> */}
     </View>
   );
 };
+
 export default GameScreen;

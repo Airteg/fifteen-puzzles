@@ -9,16 +9,31 @@ import React from "react";
 
 type Props = {
   rect: Rect;
+
+  // Уже snapped зовні (або теж можна тут робити)
   radius: number;
-  blurA: number; // для великої м'якої тіні
-  blurB: number; // для другої
+  blurA: number; // біла (менша) тінь
+  blurB: number; // чорна (більша) тінь
+
+  // Додаємо єдине джерело масштабу/округлення
+  S: number;
+  snap: (v: number) => number;
 };
 
-export function BoardSkin({ rect, radius, blurA, blurB }: Props) {
-  // з SVG:
-  // filter0: dx=4 dy=-4 blur~3.35 color white alpha 0.5
-  // filter1: dx=-4 dy=4 blur=7 color black alpha 0.4
-  // gradients paint0, paint1 аналогічні
+export function BoardSkin({ rect, radius, blurA, blurB, S, snap }: Props) {
+  // З SVG (design):
+  // filter0: dx=4 dy=-4 blur ~3.35, white 0.5
+  // filter1: dx=-4 dy=4 blur=7, black 0.4
+  //
+  // Важливо: dx/dy і інсети мають масштабуватись через S+snap
+  const dx = snap(4 * S);
+  const dy = snap(4 * S);
+
+  const inset = snap(3 * S); // було +3 / -6
+
+  // Зменшення радіуса для внутрішнього шару (було -2)
+  const innerRadius = Math.max(0, radius - snap(2 * S));
+
   return (
     <>
       {/* Base */}
@@ -30,8 +45,8 @@ export function BoardSkin({ rect, radius, blurA, blurB }: Props) {
         r={radius}
         color="#B7B7B7"
       >
-        <Shadow dx={-4} dy={4} blur={blurB} color="rgba(0,0,0,0.4)" />
-        <Shadow dx={4} dy={-4} blur={blurA} color="rgba(255,255,255,0.5)" />
+        <Shadow dx={-dx} dy={dy} blur={blurB} color="rgba(0,0,0,0.4)" />
+        <Shadow dx={dx} dy={-dy} blur={blurA} color="rgba(255,255,255,0.5)" />
       </RoundedRect>
 
       {/* paint0 */}
@@ -50,13 +65,13 @@ export function BoardSkin({ rect, radius, blurA, blurB }: Props) {
         />
       </RoundedRect>
 
-      {/* paint1 */}
+      {/* paint1 (inner) */}
       <RoundedRect
-        x={rect.x + 3}
-        y={rect.y + 3}
-        width={rect.width - 6}
-        height={rect.height - 6}
-        r={Math.max(0, radius - 2)}
+        x={rect.x + inset}
+        y={rect.y + inset}
+        width={rect.width - inset * 2}
+        height={rect.height - inset * 2}
+        r={innerRadius}
       >
         <LinearGradient
           start={vec(rect.x + rect.width * 0.22, rect.y + rect.height * 1.02)}

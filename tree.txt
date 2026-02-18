@@ -44,6 +44,7 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │       ├── android-icon-background.png
 │       ├── android-icon-foreground.png
 │       ├── android-icon-monochrome.png
+│       ├── logo.png
 │       └── splash-icon.png
 ├── src
 │   ├── context
@@ -51,11 +52,11 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   ├── FontProvider.tsx
 │   │   ├── GameStateProvider.tsx
 │   │   └── LayoutMetricsProvider.tsx
-│   ├── engine
-│   │   └── render
 │   ├── navigation
 │   │   └── RootNavigator.tsx
 │   ├── screens
+│   │   ├── components
+│   │   │   └── HomeFooterLinks.tsx
 │   │   ├── AboutScreen.tsx
 │   │   ├── GameScreen.tsx
 │   │   ├── HomeScreen.tsx
@@ -65,19 +66,38 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   └── WinScreen.tsx
 │   ├── styles
 │   │   └── globalStyles.ts
+│   ├── test
+│   │   └── RnghSmoke.tsx
 │   ├── theme
 │   │   └── typography.ts
 │   ├── types
 │   │   ├── rngh-children.d.ts
 │   │   └── types.ts
 │   ├── ui
+│   │   ├── animation
+│   │   │   ├── placeholders
+│   │   │   │   ├── HomeAnimationPlaceholder.tsx
+│   │   │   │   ├── NewGameAnimationPlaceholder.tsx
+│   │   │   │   └── SettingsAnimationPlaceholder.tsx
+│   │   │   └── animation.ts
+│   │   ├── game
+│   │   │   ├── boardGeometry.ts
+│   │   │   ├── BoardGestureOverlay.tsx
+│   │   │   ├── GameBoardView.tsx
+│   │   │   └── gameMetrics.ts
 │   │   ├── header
 │   │   │   └── AppHeader.tsx
+│   │   ├── shell
+│   │   │   ├── GameScreenShell.tsx
+│   │   │   └── ScreenShell.tsx
 │   │   ├── skia
 │   │   │   ├── AppHeaderSurface.tsx
+│   │   │   ├── BoardSkin.tsx
+│   │   │   ├── LogoFrameSkin.tsx
 │   │   │   ├── LogoSurface.tsx
 │   │   │   ├── PanelSurface.tsx
-│   │   │   └── SkiaButtonSkin.tsx
+│   │   │   ├── SkiaButtonSkin.tsx
+│   │   │   └── TileSkin.tsx
 │   │   ├── PanelZone.tsx
 │   │   ├── pixel.ts
 │   │   └── T.tsx
