@@ -14,12 +14,6 @@ const HomeScreen = ({ navigation }: Props<"Home">) => {
       titleToContentGapDesign={24} // приклад
       animation={<HomeAnimationPlaceholder />}
       footer={<HomeFooterLinks />}
-      // footer={
-      //   <HomeFooterLinks
-      //     onPrivacy={() => navigation.navigate("PrivacyPolicy")}
-      //     onAgreement={() => navigation.navigate("UserAgreement")}
-      //   />
-      // }
       footerBottomGapDesign={24}
     >
       <PanelZone

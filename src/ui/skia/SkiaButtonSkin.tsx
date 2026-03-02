@@ -1,25 +1,36 @@
 import type { SkFont } from "@shopify/react-native-skia";
-import { Group, RoundedRect, Shadow, Text } from "@shopify/react-native-skia";
-import React from "react";
-import type { Rect } from "../pixel";
+import {
+  Group,
+  Rect,
+  RuntimeShader,
+  Shader,
+  Skia,
+  Text,
+} from "@shopify/react-native-skia";
+import React, { useMemo } from "react";
+import type { Rect as UIRect } from "../pixel";
+
+// Імпортуємо наш нативний шейдер!
+import buttonSksl from "./shaders/button.sksl";
+
+const buttonEffect = Skia.RuntimeEffect.Make(buttonSksl)!;
 
 type Props = {
-  rect: Rect;
+  rect: UIRect;
   title: string;
   font: SkFont;
   pressed?: boolean;
 };
 
 export function SkiaButtonSkin({ rect, title, font, pressed = false }: Props) {
-  const r = 8;
-  const borderW = 3;
-
-  const fillDefault = "#D5F7FF";
-  const fillPressed = "#FAFF3F";
-  const fill = pressed ? fillPressed : fillDefault;
-
   const textColor = "#216169";
 
+  // Відступ для малювання тіні (щоб вона не обрізалася)
+  const SHADOW_BLUR = 10;
+  const canvasW = rect.width + SHADOW_BLUR * 2;
+  const canvasH = rect.height + SHADOW_BLUR * 2;
+
+  // Центрування тексту відносно оригінального rect
   const m = font.measureText(title);
   const textX = rect.x + (rect.width - m.width) / 2;
   const textY =
@@ -28,50 +39,36 @@ export function SkiaButtonSkin({ rect, title, font, pressed = false }: Props) {
     m.height / 2 -
     (m.height - font.getSize()) * 0.15;
 
+  // Параметри для GPU
+  const uniforms = useMemo(() => {
+    return {
+      canvasSize: [canvasW, canvasH],
+      buttonSize: [rect.width, rect.height],
+      radius: 8.0,
+      // borderWidth: 3.0,
+      isPressed: pressed ? 1.0 : 0.0,
+    };
+  }, [canvasW, canvasH, rect.width, rect.height, pressed]);
+
+  if (!buttonEffect) return null;
+
   return (
     <Group>
-      <RoundedRect
-        x={rect.x}
-        y={rect.y}
-        width={rect.width}
-        height={rect.height}
-        r={r}
-        color={fill}
+      {/* Зміщуємо координати назад на розмір відступу для тіні, 
+        щоб візуальний центр кнопки залишився точно там, де просить UI 
+      */}
+      <Group
+        transform={[
+          { translateX: rect.x - SHADOW_BLUR },
+          { translateY: rect.y - SHADOW_BLUR },
+        ]}
       >
-        <Shadow dx={0} dy={0} blur={10} color="rgba(0,0,0,0.25)" />
-      </RoundedRect>
-      <RoundedRect
-        x={rect.x}
-        y={rect.y}
-        width={rect.width}
-        height={rect.height}
-        r={r}
-        color={fill}
-      />
-      <RoundedRect
-        x={rect.x + borderW / 2}
-        y={rect.y + borderW / 2}
-        width={rect.width - borderW}
-        height={rect.height - borderW}
-        r={r}
-        color={fillDefault}
-        style="stroke"
-        strokeWidth={borderW}
-        strokeJoin="round"
-        strokeCap="round"
-      />
-      <RoundedRect
-        x={rect.x + borderW}
-        y={rect.y + borderW}
-        width={rect.width - borderW * 2}
-        height={rect.height - borderW * 2}
-        r={r - 1}
-        color="rgba(0,0,0,0.20)"
-        style="stroke"
-        strokeWidth={10}
-        strokeJoin="round"
-        strokeCap="round"
-      />
+        <Rect x={0} y={0} width={canvasW} height={canvasH}>
+          <Shader source={buttonEffect} uniforms={uniforms} />
+        </Rect>
+      </Group>
+
+      {/* Текст малюємо поверх процедурної кнопки */}
       <Text x={textX} y={textY} text={title} font={font} color={textColor} />
     </Group>
   );

@@ -87,6 +87,7 @@ export function axisLock(
   thresholdRatio = 1.2,
   thresholdAbs = 2, // px, мінімальний рух щоб лочити
 ): "x" | "y" | null {
+  "worklet";
   const adx = Math.abs(dx);
   const ady = Math.abs(dy);
 
@@ -101,6 +102,7 @@ export function axisLock(
  * Напр: translation=1.7*step => steps=2
  */
 export function snapSteps(translation: number, step: number): number {
+  "worklet";
   if (step <= 0) return 0;
   return Math.round(translation / step);
 }

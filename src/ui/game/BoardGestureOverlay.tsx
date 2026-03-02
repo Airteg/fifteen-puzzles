@@ -1,116 +1,229 @@
-import React, { useMemo, useRef } from "react";
+import React, { useMemo } from "react";
 import { View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import type { SharedValue } from "react-native-reanimated";
+import { useSharedValue } from "react-native-reanimated";
+
 import type { BoardMetrics } from "@/ui/game/boardGeometry";
-import { axisLock, constrainToAxis, snapSteps } from "@/ui/game/boardGeometry";
+import { axisLock, snapSteps } from "@/ui/game/boardGeometry";
+
+export type DragEvent = {
+  phase: "start" | "end";
+  axis: "x" | "y" | null;
+  steps: number;
+  x: number; // finger x inside board (без pad)
+  y: number; // finger y inside board (без pad)
+};
 
 type Props = {
   m: BoardMetrics;
-  pad: number; // translateX/Y(pad) у Canvas
+  pad: number; // translate(pad,pad) у Canvas
   canvasSize: number;
 
-  lockAbs: number; // px
+  lockAbs: number;
   lockRatio?: number;
 
-  onDrag?: (e: {
-    phase: "start" | "move" | "end";
-    x: number; // board-local
-    y: number; // board-local
-    tx: number;
-    ty: number;
-    axis: "x" | "y" | null;
-    steps: number;
-  }) => void;
+  // optional external shared state (для Skia preview шару)
+  emptyRow?: SharedValue<number>;
+  emptyCol?: SharedValue<number>;
+
+  dragActive?: SharedValue<number>; // 0|1
+  dragAxis?: SharedValue<number>; // 0 none, 1 x, 2 y
+  dragSteps?: SharedValue<number>; // integer steps (clamped)
+  dragLine?: SharedValue<number>; // row for x, col for y
+
+  // optional JS callbacks (тільки onEnd / tap)
+  onCommitShift?: (axis: "x" | "y", steps: number) => void;
+  onTapCell?: (row: number, col: number) => void;
+
+  // optional debug hook (start/end only)
+  onDrag?: (e: DragEvent) => void;
 };
 
-export function BoardGestureOverlay({
-  m,
-  pad,
-  canvasSize,
-  lockAbs,
-  lockRatio = 1.2,
-  onDrag,
-}: Props) {
-  const state = useRef({ axis: null as "x" | "y" | null });
+export function BoardGestureOverlay(props: Props) {
+  const {
+    m,
+    pad,
+    canvasSize,
+    lockAbs,
+    lockRatio = 1.2,
+    onCommitShift,
+    onTapCell,
+    onDrag,
+  } = props;
 
-  const pan = useMemo(() => {
-    return Gesture.Pan()
-      .runOnJS(true) // 🔥 ключ: усе в JS thread, без worklet сюрпризів
+  // ---- provide internal shared values if not passed ----
+  const emptyRowSV = props.emptyRow ?? useSharedValue(3);
+  const emptyColSV = props.emptyCol ?? useSharedValue(3);
+
+  const dragActiveSV = props.dragActive ?? useSharedValue(0);
+  const dragAxisSV = props.dragAxis ?? useSharedValue(0);
+  const dragStepsSV = props.dragSteps ?? useSharedValue(0);
+  const dragLineSV = props.dragLine ?? useSharedValue(-1);
+
+  const commit = onCommitShift ?? (() => {});
+  const tapCell = onTapCell ?? (() => {});
+
+  const gesture = useMemo(() => {
+    // JS-local state (бо runOnJS(true))
+    let startRow = -1;
+    let startCol = -1;
+
+    const resetDrag = () => {
+      dragActiveSV.value = 0;
+      dragAxisSV.value = 0;
+      dragStepsSV.value = 0;
+      dragLineSV.value = -1;
+      startRow = -1;
+      startCol = -1;
+    };
+
+    const inBoard = (x: number, y: number) =>
+      x >= 0 && y >= 0 && x <= m.boardSize && y <= m.boardSize;
+
+    const pointToCell = (x: number, y: number) => {
+      const localX = x - m.inset;
+      const localY = y - m.inset;
+
+      let col = Math.floor(localX / m.step);
+      let row = Math.floor(localY / m.step);
+
+      if (col < 0) col = 0;
+      if (col > 3) col = 3;
+      if (row < 0) row = 0;
+      if (row > 3) row = 3;
+
+      return { row, col };
+    };
+
+    const clampSteps = (rawSteps: number, distToEmpty: number) => {
+      if (distToEmpty === 0) return 0;
+
+      if (distToEmpty > 0) {
+        if (rawSteps < 0) return 0;
+        return rawSteps > distToEmpty ? distToEmpty : rawSteps;
+      }
+
+      if (rawSteps > 0) return 0;
+      return rawSteps < distToEmpty ? distToEmpty : rawSteps;
+    };
+
+    const pan = Gesture.Pan()
+      .runOnJS(true)
       .minDistance(lockAbs)
       .onBegin((ev) => {
-        state.current.axis = null;
-
         const x = ev.x - pad;
         const y = ev.y - pad;
 
-        // guard: якщо тап поза бордом — ігноруємо (щоб не ловити дивні координати)
-        if (x < 0 || y < 0 || x > m.boardSize || y > m.boardSize) return;
-
-        onDrag?.({ phase: "start", x, y, tx: 0, ty: 0, axis: null, steps: 0 });
-      })
-      .onUpdate((ev) => {
-        const x = ev.x - pad;
-        const y = ev.y - pad;
-        if (x < 0 || y < 0 || x > m.boardSize || y > m.boardSize) return;
-
-        const txRaw = ev.translationX;
-        const tyRaw = ev.translationY;
-
-        const axis =
-          state.current.axis ?? axisLock(txRaw, tyRaw, lockRatio, lockAbs);
-
-        if (state.current.axis == null && axis != null) {
-          state.current.axis = axis;
+        if (!inBoard(x, y)) {
+          resetDrag();
+          return;
         }
 
-        const locked = axis
-          ? constrainToAxis(axis, txRaw, tyRaw)
-          : { tx: txRaw, ty: tyRaw };
-        const translation = axis === "y" ? locked.ty : locked.tx;
-        const steps = axis ? snapSteps(translation, m.step) : 0;
+        const cell = pointToCell(x, y);
+        startRow = cell.row;
+        startCol = cell.col;
 
-        onDrag?.({
-          phase: "move",
-          x,
-          y,
-          tx: locked.tx,
-          ty: locked.ty,
-          axis,
-          steps,
-        });
+        dragActiveSV.value = 1;
+        dragAxisSV.value = 0;
+        dragStepsSV.value = 0;
+        dragLineSV.value = -1;
+
+        onDrag?.({ phase: "start", axis: null, steps: 0, x, y });
       })
+      .onUpdate((ev) => {
+        if (dragActiveSV.value !== 1) return;
+
+        const x = ev.x - pad;
+        const y = ev.y - pad;
+        if (!inBoard(x, y)) return;
+
+        const tx = ev.translationX;
+        const ty = ev.translationY;
+
+        let axis: "x" | "y" | null = null;
+        if (dragAxisSV.value === 1) axis = "x";
+        else if (dragAxisSV.value === 2) axis = "y";
+        else axis = axisLock(tx, ty, lockRatio, lockAbs);
+
+        if (!axis) return;
+
+        if (dragAxisSV.value === 0) {
+          dragAxisSV.value = axis === "x" ? 1 : 2;
+          dragLineSV.value = axis === "x" ? startRow : startCol;
+        }
+
+        // allow drag only if empty is on the same line as the start cell
+        if (axis === "x") {
+          if (startRow !== emptyRowSV.value) {
+            dragStepsSV.value = 0;
+            return;
+          }
+          const dist = emptyColSV.value - startCol;
+          const raw = snapSteps(tx, m.step);
+          dragStepsSV.value = clampSteps(raw, dist);
+        } else {
+          if (startCol !== emptyColSV.value) {
+            dragStepsSV.value = 0;
+            return;
+          }
+          const dist = emptyRowSV.value - startRow;
+          const raw = snapSteps(ty, m.step);
+          dragStepsSV.value = clampSteps(raw, dist);
+        }
+      })
+      .onEnd((ev) => {
+        const axis =
+          dragAxisSV.value === 1 ? "x" : dragAxisSV.value === 2 ? "y" : null;
+        const steps = dragStepsSV.value;
+
+        const x = ev.x - pad;
+        const y = ev.y - pad;
+
+        onDrag?.({ phase: "end", axis, steps, x, y });
+
+        resetDrag();
+
+        if (axis && steps !== 0) {
+          commit(axis, steps);
+        }
+      })
+      .onFinalize(() => {
+        if (dragActiveSV.value === 1) resetDrag();
+      });
+
+    const tap = Gesture.Tap()
+      .runOnJS(true)
       .onEnd((ev) => {
         const x = ev.x - pad;
         const y = ev.y - pad;
+        if (!inBoard(x, y)) return;
 
-        // end може прийти вже “ззовні” — але це ок, просто clamp
-        const cx = Math.max(0, Math.min(m.boardSize, x));
-        const cy = Math.max(0, Math.min(m.boardSize, y));
-
-        const axis = state.current.axis;
-        const locked = axis
-          ? constrainToAxis(axis, ev.translationX, ev.translationY)
-          : { tx: ev.translationX, ty: ev.translationY };
-
-        const translation = axis === "y" ? locked.ty : locked.tx;
-        const steps = axis ? snapSteps(translation, m.step) : 0;
-
-        onDrag?.({
-          phase: "end",
-          x: cx,
-          y: cy,
-          tx: locked.tx,
-          ty: locked.ty,
-          axis,
-          steps,
-        });
-
-        state.current.axis = null;
+        const { row, col } = pointToCell(x, y);
+        tapCell(row, col);
       });
-  }, [lockAbs, lockRatio, m.boardSize, m.step, onDrag, pad]);
+
+    return Gesture.Simultaneous(pan, tap);
+  }, [
+    m.boardSize,
+    m.inset,
+    m.step,
+    pad,
+    lockAbs,
+    lockRatio,
+    onDrag,
+    commit,
+    tapCell,
+    emptyRowSV,
+    emptyColSV,
+    dragActiveSV,
+    dragAxisSV,
+    dragStepsSV,
+    dragLineSV,
+  ]);
 
   return (
-    <GestureDetector gesture={pan}>
+    <GestureDetector gesture={gesture}>
       <View
         style={{
           position: "absolute",
