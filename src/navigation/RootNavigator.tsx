@@ -1,6 +1,7 @@
 import AboutScreen from "@/screens/AboutScreen";
 import GameScreen from "@/screens/GameScreen";
 import HomeScreen from "@/screens/HomeScreen";
+import NewGame from "@/screens/NewGameScreen";
 import SettingsScreen from "@/screens/SettingsScreen";
 import StatisticScreen from "@/screens/StatisticScreen";
 import SupportScreen from "@/screens/SupportScreen";
@@ -22,6 +23,7 @@ export function RootNavigator() {
         <Stack.Screen name="Settings" component={SettingsScreen} />
         <Stack.Screen name="About" component={AboutScreen} />
         <Stack.Screen name="Support" component={SupportScreen} />
+        <Stack.Screen name="NewGame" component={NewGame} />
         <Stack.Screen name="Game" component={GameScreen} />
         <Stack.Screen name="Win" component={WinScreen} />
       </Stack.Group>

@@ -1,9 +1,7 @@
-import { Pressable, Text, View } from "react-native";
-import { Props } from "../types/types";
-import { styles } from "../styles/globalStyles";
-import { ScreenShell } from "@/ui/shell/ScreenShell";
 import SettingsAnimationPlaceholder from "@/ui/animation/placeholders/SettingsAnimationPlaceholder";
 import PanelZone from "@/ui/PanelZone";
+import { ScreenShell } from "@/ui/shell/ScreenShell";
+import { Props } from "../types/types";
 
 const SettingsScreen = ({ navigation }: Props<"Settings">) => {
   return (
@@ -18,14 +16,18 @@ const SettingsScreen = ({ navigation }: Props<"Settings">) => {
     >
       <PanelZone
         buttons={[
-          { id: "about", title: "ABOUT GAME" },
-          { id: "settings", title: "SETTINGS" },
-          { id: "new", title: "NEW GAME" },
+          { id: "skin", title: "SKIN" },
+          { id: "sound", title: "SOUND" },
+          { id: "statistic", title: "STATISTIC" },
+          { id: "support", title: "SUPPORT" },
+          { id: "back", title: "back" },
         ]}
         onPress={(id) => {
-          if (id === "about") navigation.navigate("About");
-          if (id === "settings") navigation.navigate("Settings");
-          if (id === "new") navigation.navigate("Game", { level: 1 });
+          if (id === "skin") navigation.navigate("About");
+          if (id === "sound") navigation.navigate("About");
+          if (id === "statistic") navigation.navigate("About");
+          if (id === "support") navigation.navigate("About");
+          if (id === "back") navigation.goBack();
         }}
       />
     </ScreenShell>

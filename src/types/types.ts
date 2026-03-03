@@ -6,6 +6,7 @@ export type RootStackParamList = {
   Settings: undefined;
   Support: undefined;
   Statistic: undefined;
+  NewGame: undefined;
   Game: { level: number };
   Win: { score: number };
 };

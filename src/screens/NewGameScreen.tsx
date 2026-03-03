@@ -4,10 +4,10 @@ import { ScreenShell } from "@/ui/shell/ScreenShell";
 import { Props } from "../types/types";
 import { HomeFooterLinks } from "./components/HomeFooterLinks";
 
-const HomeScreen = ({ navigation }: Props<"Home">) => {
+const NewGame = ({ navigation }: Props<"NewGame">) => {
   return (
     <ScreenShell
-      title="MENU"
+      title="NEW GAME"
       animationHeightDesign={210} // приклад
       headerToAnimationGapDesign={24} // приклад
       animationToTitleGapDesign={16} // приклад
@@ -18,17 +18,15 @@ const HomeScreen = ({ navigation }: Props<"Home">) => {
     >
       <PanelZone
         buttons={[
-          { id: "about", title: "ABOUT GAME" },
-          { id: "settings", title: "SETTINGS" },
-          { id: "new", title: "NEW GAME" },
+          { id: "classic", title: "CLASSIC" },
+          { id: "limitTime", title: "LIMIT TIME" },
         ]}
         onPress={(id) => {
-          if (id === "about") navigation.navigate("About");
-          if (id === "settings") navigation.navigate("Settings");
-          if (id === "new") navigation.navigate("NewGame");
+          if (id === "classic") navigation.navigate("About");
+          if (id === "limitTime") navigation.navigate("About");
         }}
       />
     </ScreenShell>
   );
 };
-export default HomeScreen;
+export default NewGame;
