@@ -1,8 +1,8 @@
 import type { SkFont } from "@shopify/react-native-skia";
 import {
+  Blur,
   Group,
   Rect,
-  RuntimeShader,
   Shader,
   Skia,
   Text,
@@ -23,10 +23,11 @@ type Props = {
 };
 
 export function SkiaButtonSkin({ rect, title, font, pressed = false }: Props) {
+  // console.log("🚀 ~ font:", font);
   const textColor = "#216169";
 
   // Відступ для малювання тіні (щоб вона не обрізалася)
-  const SHADOW_BLUR = 10;
+  const SHADOW_BLUR = 11;
   const canvasW = rect.width + SHADOW_BLUR * 2;
   const canvasH = rect.height + SHADOW_BLUR * 2;
 
@@ -52,11 +53,12 @@ export function SkiaButtonSkin({ rect, title, font, pressed = false }: Props) {
 
   if (!buttonEffect) return null;
 
+  const textPath = useMemo(() => {
+    return Skia.Path.MakeFromText(title, textX, textY, font)!;
+  }, [title, textX, textY, font]);
+
   return (
     <Group>
-      {/* Зміщуємо координати назад на розмір відступу для тіні, 
-        щоб візуальний центр кнопки залишився точно там, де просить UI 
-      */}
       <Group
         transform={[
           { translateX: rect.x - SHADOW_BLUR },
@@ -68,8 +70,25 @@ export function SkiaButtonSkin({ rect, title, font, pressed = false }: Props) {
         </Rect>
       </Group>
 
-      {/* Текст малюємо поверх процедурної кнопки */}
-      <Text x={textX} y={textY} text={title} font={font} color={textColor} />
+      {/* <Text x={textX} y={textY} text={title} font={font} color={textColor} /> */}
+      <Group>
+        {/* Основний текст */}
+        <Text x={textX} y={textY} text={title} font={font} color="#216169" />
+        {/* Внутрішня тінь */}
+        <Group clip={textPath}>
+          <Text
+            x={textX}
+            y={textY + 4}
+            text={title}
+            font={font}
+            color="#00000042" // підбери під свій дизайн (1F = 31/255)
+          >
+            <Blur blur={4} mode="decal" />
+          </Text>
+        </Group>
+      </Group>
+      {/* === ДЕБАГ === */}
+      {/* <DebugBounds rect={rect} SHADOW_BLUR={SHADOW_BLUR} /> */}
     </Group>
   );
 }
