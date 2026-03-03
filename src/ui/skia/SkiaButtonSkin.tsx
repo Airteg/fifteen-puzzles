@@ -23,7 +23,6 @@ type Props = {
 };
 
 export function SkiaButtonSkin({ rect, title, font, pressed = false }: Props) {
-  // console.log("🚀 ~ font:", font);
   const textColor = "#216169";
 
   // Відступ для малювання тіні (щоб вона не обрізалася)

@@ -68,9 +68,10 @@ export function PanelZone({
         {panelHeight > 0 && <PanelSurface rect={panelRect} />}
         {skiaFont &&
           buttons.map((b) => {
+            console.log("🚀 ~ b:", b);
             const rect = buttonRects[b.id];
-            if (!rect) return null;
 
+            if (!rect) return null;
             return (
               <SkiaButtonSkin
                 key={b.id}
