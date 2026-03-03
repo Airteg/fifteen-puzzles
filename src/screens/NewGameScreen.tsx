@@ -20,10 +20,12 @@ const NewGame = ({ navigation }: Props<"NewGame">) => {
         buttons={[
           { id: "classic", title: "CLASSIC" },
           { id: "limitTime", title: "LIMIT TIME" },
+          { id: "back", title: "back" },
         ]}
         onPress={(id) => {
           if (id === "classic") navigation.navigate("About");
           if (id === "limitTime") navigation.navigate("About");
+          if (id === "back") navigation.goBack();
         }}
       />
     </ScreenShell>

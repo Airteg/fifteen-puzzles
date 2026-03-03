@@ -7,7 +7,7 @@ const SettingsScreen = ({ navigation }: Props<"Settings">) => {
   return (
     <ScreenShell
       title="SETTINGS"
-      animationHeightDesign={210} // приклад
+      animationHeightDesign={100} // приклад
       headerToAnimationGapDesign={24} // приклад
       animationToTitleGapDesign={16} // приклад
       titleToContentGapDesign={24} // приклад
