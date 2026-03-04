@@ -1,0 +1,26 @@
+uniform vec2 size;
+uniform vec4 baseColor;
+
+vec4 main(vec2 coord) {
+    // Нормалізовані координати від 0.0 до 1.0
+    vec2 uv = coord / size;
+    
+    // Створюємо діагональне освітлення
+    float light = smoothstep(1.5, -0.5, uv.x + uv.y);
+    vec3 finalColor = baseColor.rgb * (0.7 + light * 0.4);
+    
+    // Імітація фаски (bevel) по краях для об'єму
+    float edgeDistX = min(coord.x, size.x - coord.x);
+    float edgeDistY = min(coord.y, size.y - coord.y);
+    float edgeDist = min(edgeDistX, edgeDistY);
+    
+    // Товщина фаски (наприклад, 4% від ширини)
+    float bevelWidth = size.x * 0.04; 
+    
+    if (edgeDist < bevelWidth) {
+        float isTopLeft = step(coord.x + coord.y, size.x);
+        finalColor += (isTopLeft - 0.5) * 0.3;
+    }
+
+    return vec4(finalColor, baseColor.a);
+}

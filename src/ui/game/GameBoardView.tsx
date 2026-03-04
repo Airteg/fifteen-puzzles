@@ -3,8 +3,8 @@ import { Canvas, Group } from "@shopify/react-native-skia";
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { View } from "react-native";
 import type { SharedValue } from "react-native-reanimated";
-import Animated, {
-  useAnimatedProps,
+import {
+  useDerivedValue,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
@@ -22,8 +22,6 @@ type Props = {
 };
 
 type Tile = { id: number; label: string; row: number; col: number };
-
-const AnimatedGroup = Animated.createAnimatedComponent(Group);
 
 function makeDefaultGrid(): number[] {
   const g: number[] = [];
@@ -56,20 +54,9 @@ function tilesFromGrid(grid: number[]): Tile[] {
   return out;
 }
 
-function isAdjacent(
-  a: { row: number; col: number },
-  b: { row: number; col: number },
-) {
-  const dr = Math.abs(a.row - b.row);
-  const dc = Math.abs(a.col - b.col);
-  return (dr === 1 && dc === 0) || (dr === 0 && dc === 1);
-}
-
-/**
- * Commit shift:
- * - steps > 0: "towards + axis" (для X це drag вправо, для Y це drag вниз)
- * - кожен крок пересуває ОДНУ плитку в empty
- */
+// ------------------------------------------------------------------
+// Логіка зсуву працює як з 1 плиткою, так і з групою (до 3 плиток)
+// ------------------------------------------------------------------
 function commitShift(
   grid: number[],
   empty: { row: number; col: number },
@@ -89,7 +76,6 @@ function commitShift(
 
   for (let k = 0; k < count; k++) {
     if (axis === "x") {
-      // dir>0: empty "йде" вліво, плитки зліва заходять вправо в empty
       const srcC = dir > 0 ? ec - 1 : ec + 1;
       if (srcC < 0 || srcC > 3) return null;
 
@@ -134,11 +120,11 @@ type TileNodeProps = {
   emptyRow: SharedValue<number>;
   emptyCol: SharedValue<number>;
   dragActive: SharedValue<number>;
-  dragAxis: SharedValue<number>; // 0 none, 1 x, 2 y
+  dragAxis: SharedValue<number>;
   dragSteps: SharedValue<number>;
   dragLine: SharedValue<number>;
 
-  animT: SharedValue<number>; // 0..1
+  animT: SharedValue<number>;
   animAxis: "x" | "y";
   animDir: 1 | -1;
   animMoved: boolean;
@@ -165,20 +151,17 @@ const TileNode = memo(function TileNode(props: TileNodeProps) {
 
   const step = m.step;
 
-  const animatedProps = useAnimatedProps(() => {
+  const transform = useDerivedValue(() => {
     let dx = 0;
     let dy = 0;
 
-    // ----- Drag preview (дискретний stepsPreview) -----
     if (dragActive.value === 1) {
       const steps = dragSteps.value;
 
       if (steps !== 0) {
         if (dragAxis.value === 1) {
-          // X, line = row
           if (tile.row === dragLine.value && tile.row === emptyRow.value) {
             const eC = emptyCol.value;
-
             if (steps > 0) {
               if (tile.col >= eC - steps && tile.col <= eC - 1) dx += step;
             } else {
@@ -187,10 +170,8 @@ const TileNode = memo(function TileNode(props: TileNodeProps) {
             }
           }
         } else if (dragAxis.value === 2) {
-          // Y, line = col
           if (tile.col === dragLine.value && tile.col === emptyCol.value) {
             const eR = emptyRow.value;
-
             if (steps > 0) {
               if (tile.row >= eR - steps && tile.row <= eR - 1) dy += step;
             } else {
@@ -202,34 +183,32 @@ const TileNode = memo(function TileNode(props: TileNodeProps) {
       }
     }
 
-    // ----- Commit animation (offset back -> 0) -----
     if (animMoved) {
       const back = (1 - animT.value) * step;
       if (animAxis === "x") dx += -animDir * back;
       else dy += -animDir * back;
     }
 
-    if (dx === 0 && dy === 0) return { transform: [] as any[] };
-    return { transform: [{ translateX: dx }, { translateY: dy }] as any[] };
+    return [{ translateX: dx }, { translateY: dy }];
   }, [animMoved, animAxis, animDir, step]);
 
   return (
-    <AnimatedGroup animatedProps={animatedProps as any}>
+    <Group transform={transform}>
       <TileSkin
         rect={cellRect(m, tile.row, tile.col)}
         label={tile.label}
         font={font}
         S={S}
         snap={snap}
+        baseColor={[0.88, 0.92, 0.95, 1.0]}
+        textColor="#1C2833"
       />
-    </AnimatedGroup>
+    </Group>
   );
 });
 
 export function GameBoardView({ tileFont }: Props) {
   const lm = useLayoutMetrics();
-
-  // якщо snap десь знов undefined — краще впасти тут, ніж у BoardSkin
   const S = lm.S;
   const snap = lm.snap;
 
@@ -251,12 +230,10 @@ export function GameBoardView({ tileFont }: Props) {
   const pad = snap(14 * S);
   const canvasSize = m.boardSize + pad * 2;
 
-  // ---- one truth ----
   const [grid, setGrid] = useState<number[]>(() => makeDefaultGrid());
   const empty = useMemo(() => findEmpty(grid), [grid]);
   const tiles = useMemo(() => tilesFromGrid(grid), [grid]);
 
-  // ---- shared values for preview ----
   const emptyRow = useSharedValue(empty.row);
   const emptyCol = useSharedValue(empty.col);
 
@@ -270,7 +247,6 @@ export function GameBoardView({ tileFont }: Props) {
     emptyCol.value = empty.col;
   }, [empty.row, empty.col, emptyRow, emptyCol]);
 
-  // ---- commit animation ----
   const animT = useSharedValue(1);
   const [animMovedIds, setAnimMovedIds] = useState<number[]>([]);
   const [animAxis, setAnimAxis] = useState<"x" | "y">("x");
@@ -278,18 +254,22 @@ export function GameBoardView({ tileFont }: Props) {
 
   const onTapCell = useCallback(
     (row: number, col: number) => {
-      const tapped = { row, col };
-      if (!isAdjacent(tapped, empty)) return;
+      // 1. Перевіряємо, чи знаходиться тапнута плитка в тому ж рядку або стовпці, що й пуста
+      if (row !== empty.row && col !== empty.col) return;
+
+      // 2. Не реагуємо на клік по самій пустій клітинці
+      if (row === empty.row && col === empty.col) return;
 
       let axis: "x" | "y";
       let steps: number;
 
+      // 3. Рахуємо точну кількість плиток (steps), яку треба зсунути (від 1 до 3)
       if (row === empty.row) {
         axis = "x";
-        steps = col < empty.col ? 1 : -1;
+        steps = empty.col - col;
       } else {
         axis = "y";
-        steps = row < empty.row ? 1 : -1;
+        steps = empty.row - row;
       }
 
       const res = commitShift(grid, empty, axis, steps);
@@ -379,16 +359,6 @@ export function GameBoardView({ tileFont }: Props) {
         dragLine={dragLine}
         onTapCell={onTapCell}
         onCommitShift={onCommitShift}
-        onDrag={(e) => {
-          if (__DEV__ && (e.phase === "start" || e.phase === "end")) {
-            console.log("[Drag]", e.phase, {
-              axis: e.axis,
-              steps: e.steps,
-              x: Math.round(e.x),
-              y: Math.round(e.y),
-            });
-          }
-        }}
       />
     </View>
   );

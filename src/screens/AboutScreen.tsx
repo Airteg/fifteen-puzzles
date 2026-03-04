@@ -1,79 +1,108 @@
-import {
-  Canvas,
-  Group,
-  rect,
-  RoundedRect,
-  rrect,
-  Shadow,
-} from "@shopify/react-native-skia";
-import { Button, View } from "react-native";
-import { styles } from "../styles/globalStyles";
+import React, { useState } from "react";
+import { View, Button, Text, StyleSheet } from "react-native";
+import { Canvas, Group, useFont } from "@shopify/react-native-skia";
+import { styles as globalStyles } from "../styles/globalStyles";
 import { Props } from "../types/types";
 
+// Імпортуємо наш новий компонент
+import { TileSkin } from "../ui/skia/TileSkin";
+
 const AboutScreen = ({ navigation }: Props<"About">) => {
-  const width = 276;
-  const height = 58;
-  const r = 8;
-  const strokeWidth = 3;
+  const [scale, setScale] = useState(1);
+  const BASE_TILE_SIZE = 100;
 
-  // Створюємо об'єкт Rounded Rect (SkRRect)
-  const buttonRect = rrect(rect(0, 0, width, height), r, r);
+  // Завантажуємо шрифт для перевірки тексту на плитці
+  // Використовуємо Krona One згідно з твоєю структурою файлів
+  const font = useFont(
+    require("../../assets/fonts/Krona_One/KronaOne-Regular.ttf"),
+    40,
+  );
+
+  const handleZoomIn = () => setScale((s) => Math.min(5, s + 0.5));
+  const handleZoomOut = () => setScale((s) => Math.max(0.5, s - 0.5));
+  const handleReset = () => setScale(1);
+
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: "#0d676b",
-        },
-      ]}
-    >
-      <Canvas style={{ width: 300, height: 100 }}>
-        {/* 1. Малюємо основу з зовнішньою тінню */}
-        <RoundedRect
-          x={10}
-          y={10}
-          width={width}
-          height={height}
-          r={r}
-          color="#D5F7FF"
+    <View style={[globalStyles.container, localStyles.container]}>
+      {/* 1. Верхня панель: Движок масштабування */}
+      <View style={localStyles.controls}>
+        <Text style={localStyles.scaleText}>Масштаб: {scale.toFixed(1)}x</Text>
+        <View style={localStyles.row}>
+          <Button title="  -  " onPress={handleZoomOut} />
+          <View style={{ width: 15 }} />
+          <Button title=" 1x " onPress={handleReset} />
+          <View style={{ width: 15 }} />
+          <Button title="  +  " onPress={handleZoomIn} />
+        </View>
+      </View>
+
+      {/* 2. Центральна зона: Тестовий стенд */}
+      <View style={localStyles.testArea}>
+        <Canvas
+          style={{
+            width: BASE_TILE_SIZE * scale,
+            height: BASE_TILE_SIZE * scale,
+          }}
         >
-          <Shadow dx={0} dy={0} blur={10} color="rgba(0, 0, 0, 0.25)" />
-        </RoundedRect>
+          <Group transform={[{ scale: scale }]}>
+            {/* Використовуємо справжній TileSkin */}
+            {font && (
+              <TileSkin
+                rect={{
+                  x: 0,
+                  y: 0,
+                  width: BASE_TILE_SIZE,
+                  height: BASE_TILE_SIZE,
+                }}
+                label="15"
+                font={font}
+                S={1} // Встановлюємо базу для внутрішньої логіки TileSkin
+                snap={(v) => Math.round(v)} // Найпростіший snap для стенду
+                baseColor={[0.83, 0.96, 1.0, 1.0]} // Світло-блакитний тестовий колір
+              />
+            )}
+          </Group>
+        </Canvas>
+      </View>
 
-        {/* 2. Малюємо внутрішню тінь (через Group clip) */}
-        <Group clip={rrect(rect(10, 10, width, height), r, r)}>
-          {/* Малюємо той самий прямокутник, але тепер тільки з внутрішньою тінню */}
-          <RoundedRect
-            x={10}
-            y={10}
-            width={width}
-            height={height}
-            r={r}
-            color="#D5F7FF"
-          >
-            <Shadow dx={0} dy={0} blur={10} color="rgba(0, 0, 0, 0.5)" inner />
-          </RoundedRect>
-        </Group>
-
-        {/* 3. Бордер (Stroke) поверх усього */}
-        <RoundedRect
-          x={10}
-          y={10}
-          width={width}
-          height={height}
-          r={r}
-          color="#D5F7FF"
-          style="stroke"
-          strokeWidth={3}
-        />
-      </Canvas>
-      <View style={{ marginTop: 20 }}>
+      {/* 3. Нижня панель: Навігація */}
+      <View style={localStyles.footer}>
         <Button title="Назад" onPress={() => navigation.goBack()} />
       </View>
     </View>
   );
 };
+
+const localStyles = StyleSheet.create({
+  container: {
+    flexDirection: "column",
+    backgroundColor: "#0d676b",
+  },
+  controls: {
+    paddingTop: 60,
+    paddingBottom: 20,
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.2)",
+  },
+  scaleText: {
+    color: "white",
+    fontSize: 18,
+    marginBottom: 15,
+    fontWeight: "bold",
+  },
+  row: {
+    flexDirection: "row",
+  },
+  testArea: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  footer: {
+    padding: 30,
+    paddingBottom: 50,
+    alignItems: "center",
+  },
+});
+
 export default AboutScreen;
