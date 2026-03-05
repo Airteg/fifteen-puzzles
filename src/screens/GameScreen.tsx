@@ -3,7 +3,7 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { useLayoutMetrics } from "@/context/LayoutMetricsProvider";
-import { RootStackParamList } from "@/types/types"; // ✅ Виправлено шлях до типів
+import { RootStackParamList } from "@/types/types";
 
 import { useSkiaFonts } from "@/context/FontProvider";
 import { GameBoardView } from "@/ui/game/GameBoardView";
@@ -77,7 +77,6 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   );
 };
 
-// ✅ Виправлено на експорт за замовчуванням
 export default GameScreen;
 
 // Тимчасові стилі для візуалізації структури (потім замінимо на Skia)
