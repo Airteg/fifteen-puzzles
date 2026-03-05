@@ -77,8 +77,8 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   ├── ui
 │   │   ├── animation
 │   │   │   ├── placeholders
-│   │   │   │   ├── HomeAnimationPlaceholder.tsx
-│   │   │   │   ├── NewGameAnimationPlaceholder.tsx
+│   │   │   │   ├── HomeAnimation.tsx
+│   │   │   │   ├── NewGameAnimation.tsx
 │   │   │   │   └── SettingsAnimationPlaceholder.tsx
 │   │   │   └── animation.ts
 │   │   ├── game
@@ -95,7 +95,8 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   │   ├── debug
 │   │   │   │   └── DebugBounds.tsx
 │   │   │   ├── shaders
-│   │   │   │   └── button.sksl
+│   │   │   │   ├── button.sksl
+│   │   │   │   └── tile.sksl
 │   │   │   ├── AppHeaderSurface.tsx
 │   │   │   ├── BoardSkin.tsx
 │   │   │   ├── LogoFrameSkin.tsx
@@ -103,6 +104,7 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   │   ├── PanelSurface.tsx
 │   │   │   ├── SkiaButtonSkin.tsx
 │   │   │   ├── SkiaIconButtonSkin.tsx
+│   │   │   ├── SmileySkin.tsx
 │   │   │   └── TileSkin.tsx
 │   │   ├── PanelZone.tsx
 │   │   ├── pixel.ts
@@ -112,6 +114,8 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 ├── tools
 │   └── skslTransformer.js
 ├── .gitignore
+├── AI_INDEX.md
+├── AI_RULES.md
 ├── app.json
 ├── App.tsx
 ├── ARCHITECTURE.md

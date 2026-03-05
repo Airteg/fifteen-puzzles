@@ -22,16 +22,20 @@
 - **Візуальна частина фону дошки:** `src/ui/skia/BoardSkin.tsx`
 - **Кастомні кнопки Skia:** `src/ui/skia/SkiaButtonSkin.tsx`
 - **Графіка хедера:** `src/ui/skia/LogoSurface.tsx` / `src/ui/skia/AppHeaderSurface.tsx`
+- **Векторна графіка (Смайлики):** `src/ui/skia/SmileySkin.tsx`
 
 ## 🌈 Shader System (Система шейдерів)
 
-- **Шейдери освітлення та ефектів плиток:** знаходяться у папці `src/ui/skia/shaders/` (або `src/shaders/`)
+- **Шейдери освітлення та ефектів плиток:** `src/ui/skia/shaders/tile.sksl`
 - **Компілюються через нативні інструменти:** `metro.config.js` та `tools/skslTransformer.js`
+- **Ініціалізація шейдерів:** виконується глобально через `Skia.RuntimeEffect.Make()` для максимальної продуктивності.
 
 ## 🖐 Gestures (Жести та анімації)
 
 - **Розпізнавання свайпів (Pan/Swipe) та блокування осі:** `src/ui/game/BoardGestureOverlay.tsx`
 - **Виконання анімацій (Reanimated):** `src/ui/game/GameBoardView.tsx`
+- **Сюжетні анімації меню (Хореографія):** `src/ui/animation/HomeAnimation.tsx`, `src/ui/animation/NewGameAnimation.tsx`
+-
 
 ## 📐 Layout (Система верстки)
 
@@ -44,6 +48,7 @@
 - **Головний екран (Home Screen):** `src/screens/HomeScreen.tsx`
 - **Ігровий екран (Game Screen):** `src/screens/GameScreen.tsx`
 - **Екран налаштувань (Settings Screen):** `src/screens/SettingsScreen.tsx`
+- **Тестовий стенд (UI Sandbox):** `src/screens/AboutScreen.tsx`
 
 ## 🏗 Infrastructure (Інфраструктура)
 
