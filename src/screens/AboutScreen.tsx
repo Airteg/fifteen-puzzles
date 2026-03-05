@@ -5,7 +5,7 @@ import { styles as globalStyles } from "../styles/globalStyles";
 import { Props } from "../types/types";
 
 // Імпортуємо наш новий компонент
-import { SkiaIconButtonSkin } from "@/ui/skia/SkiaIconButtonSkin";
+import { SmileySkin } from "@/ui/skia/SmileySkin";
 
 const BASE_SIZE = 88;
 // Квадратний розмір для кнопки "Назад" (зазвичай дорівнює buttonH, наприклад 58)
@@ -13,7 +13,7 @@ const BUTTON_SIZE = 58;
 // Відступи, щоб тінь (яка має розмиття 11px) не обрізалася краями Canvas
 const PADDING = 20;
 // Загальний базовий розмір канвасу
-const CANVAS_SIZE = BUTTON_SIZE + PADDING * 2;
+const CANVAS_SIZE = BASE_SIZE + PADDING * 2;
 const testRect = {
   x: PADDING,
   y: PADDING,
@@ -22,7 +22,6 @@ const testRect = {
 };
 const AboutScreen = ({ navigation }: Props<"About">) => {
   const [scale, setScale] = useState(1);
-  const BASE_TILE_SIZE = 100;
 
   // Завантажуємо шрифт для перевірки тексту на плитці
   // Використовуємо Krona One згідно з твоєю структурою файлів
@@ -53,16 +52,22 @@ const AboutScreen = ({ navigation }: Props<"About">) => {
       <View style={localStyles.testArea}>
         <Canvas
           style={{
-            width: BASE_TILE_SIZE * scale,
-            height: BASE_TILE_SIZE * scale,
+            width: CANVAS_SIZE * scale,
+            height: CANVAS_SIZE * scale,
           }}
         >
-          <Group transform={[{ scale: scale }]}>
-            <SkiaIconButtonSkin
+          <Group
+            transform={[
+              { translateX: PADDING * scale },
+              { translateY: PADDING * scale },
+              { scale: scale },
+            ]}
+          >
+            {/* <SkiaIconButtonSkin
               rect={testRect}
-              pressed={false} // Зміни на true, якщо хочеш побачити стан натискання
-            />
-            {/* <SmileySkin size={BASE_SIZE} /> */}
+              pressed={false} 
+            /> */}
+            <SmileySkin />
           </Group>
         </Canvas>
       </View>
@@ -81,7 +86,7 @@ const localStyles = StyleSheet.create({
     backgroundColor: "#0d676b",
   },
   controls: {
-    paddingTop: 60,
+    paddingTop: 20,
     paddingBottom: 20,
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.2)",
@@ -99,6 +104,8 @@ const localStyles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    // borderColor: "yellow",
+    // borderWidth: 1,
   },
   footer: {
     padding: 30,
