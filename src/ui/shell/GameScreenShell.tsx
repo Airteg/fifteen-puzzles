@@ -1,7 +1,7 @@
 import { useLayoutMetrics } from "@/context/LayoutMetricsProvider";
-import { AppHeader } from "@/ui/header/AppHeader";
 import React from "react";
 import { View } from "react-native";
+import { AppGameHeader } from "../header/AppGameHeader";
 
 type Props = {
   // якщо null/undefined — таймера нема (Classic)
@@ -33,7 +33,7 @@ export function GameScreenShell({ timer, board, buttons, cta }: Props) {
   return (
     <View style={{ flex: 1, backgroundColor: "#D5F7FF" }}>
       {/* Header: не чіпаємо, він сам знає свою ширину 350*S і top offset */}
-      <AppHeader />
+      <AppGameHeader />
 
       {/* Header -> next */}
       <View style={{ height: gapHeaderToNext }} />

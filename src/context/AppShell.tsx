@@ -1,5 +1,4 @@
 import { StatusBar } from "expo-status-bar";
-
 import { RootNavigator } from "@/navigation/RootNavigator";
 import { ensureSplashPrevented, hideSplash } from "@/utils/splash";
 import { NavigationContainer } from "@react-navigation/native";

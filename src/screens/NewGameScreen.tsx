@@ -26,7 +26,8 @@ const NewGame = ({ navigation }: Props<"NewGame">) => {
           if (id === "classic")
             // Виправляємо "GameScreen" на "Game", щоб збігалося з RootNavigator
             navigation.navigate("Game", { mode: "classic" });
-          if (id === "limitTime") navigation.navigate("About");
+          if (id === "limitTime")
+            navigation.navigate("Game", { mode: "limitTime" });
           if (id === "back") navigation.goBack();
         }}
       />
