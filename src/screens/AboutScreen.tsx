@@ -1,14 +1,25 @@
-import React, { useState } from "react";
-import { View, Button, Text, StyleSheet } from "react-native";
 import { Canvas, Group, useFont } from "@shopify/react-native-skia";
+import React, { useState } from "react";
+import { Button, StyleSheet, Text, View } from "react-native";
 import { styles as globalStyles } from "../styles/globalStyles";
 import { Props } from "../types/types";
 
 // Імпортуємо наш новий компонент
-import { TileSkin } from "../ui/skia/TileSkin";
-import { SmileySkin } from "@/ui/skia/SmileySkin";
+import { SkiaIconButtonSkin } from "@/ui/skia/SkiaIconButtonSkin";
 
 const BASE_SIZE = 88;
+// Квадратний розмір для кнопки "Назад" (зазвичай дорівнює buttonH, наприклад 58)
+const BUTTON_SIZE = 58;
+// Відступи, щоб тінь (яка має розмиття 11px) не обрізалася краями Canvas
+const PADDING = 20;
+// Загальний базовий розмір канвасу
+const CANVAS_SIZE = BUTTON_SIZE + PADDING * 2;
+const testRect = {
+  x: PADDING,
+  y: PADDING,
+  width: BUTTON_SIZE,
+  height: BUTTON_SIZE,
+};
 const AboutScreen = ({ navigation }: Props<"About">) => {
   const [scale, setScale] = useState(1);
   const BASE_TILE_SIZE = 100;
@@ -47,24 +58,11 @@ const AboutScreen = ({ navigation }: Props<"About">) => {
           }}
         >
           <Group transform={[{ scale: scale }]}>
-            {/* Використовуємо справжній TileSkin */}
-            {/* {font && (
-              <TileSkin
-                rect={{
-                  x: 0,
-                  y: 0,
-                  width: BASE_TILE_SIZE,
-                  height: BASE_TILE_SIZE,
-                }}
-                label="15"
-                font={font}
-                S={1} // Встановлюємо базу для внутрішньої логіки TileSkin
-                snap={(v) => Math.round(v)} // Найпростіший snap для стенду
-                baseColor={[0.83, 0.96, 1.0, 1.0]} // Світло-блакитний тестовий колір
-              />
-            )} */}
-            {/* Рендеримо смайлик */}
-            <SmileySkin size={BASE_SIZE} />
+            <SkiaIconButtonSkin
+              rect={testRect}
+              pressed={false} // Зміни на true, якщо хочеш побачити стан натискання
+            />
+            {/* <SmileySkin size={BASE_SIZE} /> */}
           </Group>
         </Canvas>
       </View>

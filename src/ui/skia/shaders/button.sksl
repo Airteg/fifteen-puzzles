@@ -53,7 +53,7 @@ vec4 main(vec2 coord) {
     float innerD = -(d + borderWidth);
 
     // Маска внутрішньої тіні (м'який градієнт, що розтягується на 10 пікселів вглиб)
-    float insetMask = clamp(1.0 - smoothstep(0.0, 10.0, innerD), 0.0, 1.0);
+    float insetMask = clamp(1.0 - smoothstep(0.0, 13.0, innerD), 0.0, 1.0);
     // Маска зовнішньої тіні (розмиття та прозорість динамічно залежать від натискання)
     // float shadowStrength = mix(0.18, 0.12, isPressed);
     float shadowStrength = 0.14;
@@ -79,7 +79,7 @@ vec4 main(vec2 coord) {
     // КРОК 2: Накладаємо внутрішню чорну тінь (vec3(0.0)).
     // ГЕНІАЛЬНИЙ ТРЮК: Множимо маску тіні на innerMask, щоб брудна тінь ніколи не вилізла на чистий світлий бордер!
     // float insetAlpha = mix(0.5, 0.5, isPressed);
-    float insetAlpha = 0.5;
+    float insetAlpha = 0.3;
     surfaceColor = mix(surfaceColor, vec3(0.0), insetMask * insetAlpha * innerMask);
 
     // ==========================================
