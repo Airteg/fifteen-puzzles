@@ -6,7 +6,9 @@ import { Props } from "../types/types";
 
 // Імпортуємо наш новий компонент
 import { TileSkin } from "../ui/skia/TileSkin";
+import { SmileySkin } from "@/ui/skia/SmileySkin";
 
+const BASE_SIZE = 88;
 const AboutScreen = ({ navigation }: Props<"About">) => {
   const [scale, setScale] = useState(1);
   const BASE_TILE_SIZE = 100;
@@ -46,7 +48,7 @@ const AboutScreen = ({ navigation }: Props<"About">) => {
         >
           <Group transform={[{ scale: scale }]}>
             {/* Використовуємо справжній TileSkin */}
-            {font && (
+            {/* {font && (
               <TileSkin
                 rect={{
                   x: 0,
@@ -60,7 +62,9 @@ const AboutScreen = ({ navigation }: Props<"About">) => {
                 snap={(v) => Math.round(v)} // Найпростіший snap для стенду
                 baseColor={[0.83, 0.96, 1.0, 1.0]} // Світло-блакитний тестовий колір
               />
-            )}
+            )} */}
+            {/* Рендеримо смайлик */}
+            <SmileySkin size={BASE_SIZE} />
           </Group>
         </Canvas>
       </View>

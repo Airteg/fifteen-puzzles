@@ -1,5 +1,5 @@
 import { PanelZone } from "@/ui/PanelZone";
-import HomeAnimationPlaceholder from "@/ui/animation/placeholders/HomeAnimationPlaceholder";
+import HomeAnimation from "@/ui/animation/placeholders/HomeAnimation";
 import { ScreenShell } from "@/ui/shell/ScreenShell";
 import { Props } from "../types/types";
 import { HomeFooterLinks } from "./components/HomeFooterLinks";
@@ -12,7 +12,7 @@ const HomeScreen = ({ navigation }: Props<"Home">) => {
       headerToAnimationGapDesign={24} // приклад
       animationToTitleGapDesign={16} // приклад
       titleToContentGapDesign={24} // приклад
-      animation={<HomeAnimationPlaceholder />}
+      animation={<HomeAnimation />}
       footer={<HomeFooterLinks />}
       footerBottomGapDesign={24}
     >

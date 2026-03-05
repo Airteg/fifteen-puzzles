@@ -11,8 +11,7 @@
     "android:start": "expo start --dev-client --android",
     "ios:start": "expo start --dev-client --ios",
     "web": "expo start --web",
-    "lint": "expo lint",
-    "reset-project": "node ./scripts/reset-project.js"
+    "lint": "expo lint"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
