@@ -7,7 +7,7 @@ import { Props } from "../types/types";
 // Імпортуємо наш новий компонент
 import { SmileySkin } from "@/ui/skia/SmileySkin";
 
-const BASE_SIZE = 88;
+const BASE_SIZE = 300;
 // Квадратний розмір для кнопки "Назад" (зазвичай дорівнює buttonH, наприклад 58)
 const BUTTON_SIZE = 58;
 // Відступи, щоб тінь (яка має розмиття 11px) не обрізалася краями Canvas
@@ -67,7 +67,7 @@ const AboutScreen = ({ navigation }: Props<"About">) => {
               rect={testRect}
               pressed={false} 
             /> */}
-            <SmileySkin />
+            <SmileySkin size={BASE_SIZE} />
           </Group>
         </Canvas>
       </View>

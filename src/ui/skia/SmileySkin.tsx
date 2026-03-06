@@ -1,167 +1,111 @@
-import {
-  Circle,
-  Group,
-  Path,
-  Shadow,
-  size,
-  Skia,
-} from "@shopify/react-native-skia";
+import { Circle, Group, Path, Shadow, Skia } from "@shopify/react-native-skia";
 import React, { useMemo } from "react";
 
 type Props = {
+  // size - це вже розрахований розмір ззовні (наприклад, snap(88 * S))
   size?: number;
 };
 
-export function SmileySkin({ size = 88 }: Props) {
-  // Допоміжна функція для конвертації відсотків із CSS у пікселі відносно поточного розміру
-  const pct = (val: number) => (size * val) / 100;
+// Константа, на якій базувався твій дизайн
+const BASE_DESIGN_SIZE = 88;
 
-  // Центр та радіус жовтого обличчя
-  const faceR = size / 2;
+export function SmileySkin({ size = BASE_DESIGN_SIZE }: Props) {
+  // Вираховуємо, у скільки разів треба збільшити/зменшити смайлик
+  const scale = size / BASE_DESIGN_SIZE;
+
+  const faceR = BASE_DESIGN_SIZE / 2;
   const cx = faceR;
   const cy = faceR;
 
-  // Радіус та координати очей (з урахуванням зсувів із CSS)
-  const eyeW = 16.67;
-  const eyeR = pct(eyeW / 2);
+  // Парсимо шляхи лише один раз
+  const featuresFacePath = useMemo(() => {
+    return Skia.Path.MakeFromSVGString(
+      "M20.4 20.9C23.3 15.7 33.1 11.5 39.8 15.9 M66.3 29.6C73.1 31.1 77.5 38.4 76.3 45.1",
+    );
+  }, []);
 
-  const lEyeCx = pct(27.01 + eyeW / 2);
-  const lEyeCy = pct(25.14 + eyeW / 2);
+  const mouthPath = useMemo(() => {
+    return Skia.Path.MakeFromSVGString(
+      "M49.7 69.5C41.7 72.3 24.9 73.1 21.8 54.1",
+    );
+  }, []);
 
-  const rEyeCx = pct(59.2 + eyeW / 2);
-  const rEyeCy = pct(40.31 + eyeW / 2);
-
-  // Координати зіниць
-  const pupilW = 7.78;
-  const pupilR = pct(pupilW / 2);
-
-  const lPupilCx = pct(33.53 + pupilW / 2);
-  const lPupilCy = pct(30.15 + pupilW / 2);
-
-  const rPupilCx = pct(65.56 + pupilW / 2);
-  const rPupilCy = pct(45.62 + pupilW / 2);
-
-  // Створюємо векторні шляхи для рота та брів
-  const paths = useMemo(() => {
-    // Рот
-    const mouth = Skia.Path.Make();
-    mouth.moveTo(pct(25), pct(55));
-    // Використовуємо квадратичну криву Безьє (quadTo) для плавної посмішки
-    mouth.quadTo(pct(40), pct(80), pct(55), pct(65));
-
-    // Ліва брова
-    const leftBrow = Skia.Path.Make();
-    leftBrow.moveTo(pct(23), pct(20));
-    leftBrow.quadTo(pct(35), pct(10), pct(43), pct(15));
-
-    // Права брова
-    const rightBrow = Skia.Path.Make();
-    rightBrow.moveTo(pct(65), pct(30));
-    rightBrow.quadTo(pct(80), pct(28), pct(85), pct(40));
-
-    return { mouth, leftBrow, rightBrow };
-  }, [size]);
+  // Якщо парсинг чомусь не вдався (наприклад, помилка в рядку), Skia поверне null
+  if (!featuresFacePath || !mouthPath) return null;
 
   return (
-    <Group>
-      {/* Основне обличчя (Ellipse 2) */}
+    // Масштабуємо всю групу. Точка масштабування за замовчуванням (0,0) - лівий верхній кут
+    <Group transform={[{ scale: scale }]}>
       <Circle cx={cx} cy={cy} r={faceR} color="#FAFF3F">
         <Circle cx={cx} cy={cy} r={faceR - 3} color="#FAFF3F">
-          <Shadow dx={0} dy={0} blur={10} color="#a6ac2e" inner />
+          <Shadow dx={0} dy={0} blur={7} color="#a6ac2e" inner />
         </Circle>
         <Shadow dx={0} dy={4} blur={4} color="rgba(0, 0, 0, 0.25)" />
       </Circle>
 
-      {/* Праве око (Ellipse 6) */}
-      {/* <Circle cx={rEyeCx} cy={rEyeCy} r={eyeR} color="#FFFFFF">
-        <Shadow dx={4} dy={4} blur={4} color="#71D4EB" inner />
-      </Circle> */}
-      {/* Обведення правого ока */}
-      {/* <Circle
-        cx={rEyeCx}
-        cy={rEyeCy}
-        r={eyeR}
+      <LeftEye />
+      <RightEye />
+
+      {/* Передаємо вже готові об'єкти шляхів */}
+      <Path
+        path={featuresFacePath}
         color="#000000"
         style="stroke"
-        strokeWidth={1}
-      /> */}
-      {/* Права зіниця (Ellipse 9) */}
-      {/* <Circle cx={rPupilCx} cy={rPupilCy} r={pupilR} color="#000000" /> */}
+        strokeWidth={2}
+        strokeCap="round"
+      />
 
-      {/* Рот та брови (Vectors 24, 25, 26) */}
-      <LeftEye />
-      <Mouth />
-      <LeftBrow />
-      <RightBrow />
+      <Path
+        path={mouthPath}
+        color="#000000"
+        style="stroke"
+        strokeWidth={2}
+        strokeCap="round"
+      />
     </Group>
   );
 }
 
 const LeftEye = () => {
-  const lEyeCx = 14.68;
-  const lEyeCy = 25.14;
+  const lEyeCx = 33;
+  const lEyeCy = 31;
+  const eyeR = 6.5;
   return (
     <Group>
-      {/* Ліве око (Ellipse 7) */}
-      <Circle cx={lEyeCx} cy={lEyeCy} r={size / 10} color="#FFFFFF">
+      <Circle cx={lEyeCx} cy={lEyeCy} r={eyeR} color="#FFFFFF">
         <Shadow dx={4} dy={4} blur={4} color="#71D4EB" inner />
       </Circle>
-      {/* Обведення лівого ока */}
       <Circle
         cx={lEyeCx}
         cy={lEyeCy}
-        r={7.34}
+        r={eyeR}
         color="#000000"
         style="stroke"
         strokeWidth={1}
       />
-      {/* Ліва зіниця (Ellipse 8) */}
-      <Circle cx={0} cy={0} r={3.42} color="#000000" />
+      <Circle cx={lEyeCx + 0.5} cy={lEyeCy - 0.7} r={3.3} color="#000000" />
     </Group>
   );
 };
 
-const leftBrowPaths = "m 1 7.9 c 3 -5.3 12.8 -9.5 19.5 -5";
-const LeftBrow = () => {
+const RightEye = () => {
+  const rEyeCx = 63;
+  const rEyeCy = 45;
+  const eyer = 6.5;
   return (
-    <Group transform={[{ translateX: 18 }, { translateY: 16 }, { scale: 1 }]}>
-      <Path
-        path={leftBrowPaths}
+    <Group>
+      <Circle cx={rEyeCx} cy={rEyeCy} r={eyer} color="#FFFFFF">
+        <Shadow dx={4} dy={4} blur={4} color="#71D4EB" inner />
+      </Circle>
+      <Circle
+        cx={rEyeCx}
+        cy={rEyeCy}
+        r={eyer}
         color="#000000"
         style="stroke"
-        strokeWidth={2}
-        strokeCap="round"
+        strokeWidth={1}
       />
-    </Group>
-  );
-};
-
-const rightBrowPaths = "m 1 1 c 6.8 1.5 11.2 8.8 10 15.5";
-const RightBrow = () => {
-  return (
-    <Group transform={[{ translateX: 65 }, { translateY: 30 }, { scale: 1 }]}>
-      <Path
-        path={rightBrowPaths}
-        color="#000000"
-        style="stroke"
-        strokeWidth={2}
-        strokeCap="round"
-      />
-    </Group>
-  );
-};
-
-const mouthPaths = "m28.9 16.5C20.9 19.2 4.1 20 1 1";
-const Mouth = () => {
-  return (
-    <Group transform={[{ translateX: 20 }, { translateY: 55 }, { scale: 1 }]}>
-      <Path
-        path={mouthPaths}
-        color="#000000"
-        style="stroke"
-        strokeWidth={2}
-        strokeCap="round"
-      />
+      <Circle cx={rEyeCx + 0.5} cy={rEyeCy - 0.7} r={3.3} color="#000000" />
     </Group>
   );
 };
