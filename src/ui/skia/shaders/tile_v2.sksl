@@ -1,0 +1,34 @@
+// kind=shader
+// Менше uniforms = швидший рендер!
+uniform float2 canvasSize; 
+uniform float2 tileSize;   
+uniform half4 baseColor;
+
+// sdRoundedBox залишається без змін
+float sdRoundedBox(vec2 p, vec2 b, float r) {
+    // b - Половина розміру габариту фігури.
+    vec2 q = abs(p) - (b - r);
+    // Якщо q.x і q.y додатні — ми зовні кута (справа і зверху).
+    // Якщо вони від'ємні — ми десь збоку (біля рівної стінки) або глибоко всередині.
+    // length — це sqrt(x^2 + y^2)
+    return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r;
+}
+
+half4 main(float2 pos) {
+    vec2 center = canvasSize * 0.5;
+    vec2 p = pos - center;
+    vec2 halfSize = tileSize * 0.5;
+
+    // === МАГІЯ ПРОПОРЦІЙ ===
+    // tileSize.x вже містить правильний розмір для поточного екрану.
+    // 0.0666666666666667 — це наша "зашита" в дизайн константа 4 / 60.
+    float radius = tileSize.x * 0.0666666666666667; 
+
+    // Рахуємо SDF з нашим локальним радіусом
+    float d = sdRoundedBox(p, halfSize, radius);
+    
+    // smoothstep створює плавний перехід (антиаліасинг)
+    float mask = smoothstep(0.0, 1.0, -d);
+
+    return baseColor * mask;
+}

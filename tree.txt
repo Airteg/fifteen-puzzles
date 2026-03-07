@@ -87,6 +87,7 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   │   ├── GameBoardView.tsx
 │   │   │   └── gameMetrics.ts
 │   │   ├── header
+│   │   │   ├── AppGameHeader.tsx
 │   │   │   └── AppHeader.tsx
 │   │   ├── shell
 │   │   │   ├── GameScreenShell.tsx
@@ -97,6 +98,9 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   │   ├── shaders
 │   │   │   │   ├── button.sksl
 │   │   │   │   └── tile.sksl
+│   │   │   ├── svg
+│   │   │   │   ├── sm.svg
+│   │   │   │   └── sms.svg
 │   │   │   ├── AppHeaderSurface.tsx
 │   │   │   ├── BoardSkin.tsx
 │   │   │   ├── LogoFrameSkin.tsx
@@ -105,7 +109,8 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   │   ├── SkiaButtonSkin.tsx
 │   │   │   ├── SkiaIconButtonSkin.tsx
 │   │   │   ├── SmileySkin.tsx
-│   │   │   └── TileSkin.tsx
+│   │   │   ├── TileSkin.tsx
+│   │   │   └── TileSkin1.tsx
 │   │   ├── PanelZone.tsx
 │   │   ├── pixel.ts
 │   │   └── T.tsx

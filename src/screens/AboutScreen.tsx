@@ -4,27 +4,16 @@ import { Button, StyleSheet, Text, View } from "react-native";
 import { styles as globalStyles } from "../styles/globalStyles";
 import { Props } from "../types/types";
 
-// Імпортуємо наш новий компонент
-import { SmileySkin } from "@/ui/skia/SmileySkin";
+// Імпортуємо компоненти
+import { TileSkin1 } from "@/ui/skia/TileSkin1";
 
-const BASE_SIZE = 300;
-// Квадратний розмір для кнопки "Назад" (зазвичай дорівнює buttonH, наприклад 58)
-const BUTTON_SIZE = 58;
-// Відступи, щоб тінь (яка має розмиття 11px) не обрізалася краями Canvas
-const PADDING = 20;
-// Загальний базовий розмір канвасу
-const CANVAS_SIZE = BASE_SIZE + PADDING * 2;
-const testRect = {
-  x: PADDING,
-  y: PADDING,
-  width: BUTTON_SIZE,
-  height: BUTTON_SIZE,
-};
+const TEST_OBJ_SIZE = 100;
+const PADDING = 40; // Безпечний відступ з усіх боків, щоб не обрізалися тіні
+
 const AboutScreen = ({ navigation }: Props<"About">) => {
   const [scale, setScale] = useState(1);
 
-  // Завантажуємо шрифт для перевірки тексту на плитці
-  // Використовуємо Krona One згідно з твоєю структурою файлів
+  // Повернув правильний розмір шрифту - 40!
   const font = useFont(
     require("../../assets/fonts/Krona_One/KronaOne-Regular.ttf"),
     40,
@@ -34,45 +23,71 @@ const AboutScreen = ({ navigation }: Props<"About">) => {
   const handleZoomOut = () => setScale((s) => Math.max(0.5, s - 0.5));
   const handleReset = () => setScale(1);
 
+  // Канвас завжди має розмір об'єкта + відступи з обох боків
+  const baseCanvasSize = TEST_OBJ_SIZE + PADDING * 2;
+
   return (
     <View style={[globalStyles.container, localStyles.container]}>
-      {/* 1. Верхня панель: Движок масштабування */}
+      {/* 1. Верхня панель */}
       <View style={localStyles.controls}>
         <Text style={localStyles.scaleText}>Масштаб: {scale.toFixed(1)}x</Text>
-        <View style={localStyles.row}>
+        <View style={{ flexDirection: "row", gap: 10 }}>
           <Button title="  -  " onPress={handleZoomOut} />
-          <View style={{ width: 15 }} />
           <Button title=" 1x " onPress={handleReset} />
-          <View style={{ width: 15 }} />
           <Button title="  +  " onPress={handleZoomIn} />
         </View>
       </View>
 
-      {/* 2. Центральна зона: Тестовий стенд */}
+      {/* 2. Центральна зона: Повернув твоє ідеальне центрування */}
       <View style={localStyles.testArea}>
         <Canvas
           style={{
-            width: CANVAS_SIZE * scale,
-            height: CANVAS_SIZE * scale,
+            // Масштабуємо сам канвас
+            width: baseCanvasSize * scale,
+            height: baseCanvasSize * scale,
           }}
         >
-          <Group
-            transform={[
-              { translateX: PADDING * scale },
-              { translateY: PADDING * scale },
-              { scale: scale },
-            ]}
-          >
-            {/* <SkiaIconButtonSkin
-              rect={testRect}
-              pressed={false} 
+          <Group transform={[{ scale: scale }]}>
+            {/* Розміщуємо об'єкт рівно на PADDING.
+              Так він завжди знаходиться по центру канвасу, а тіні не обрізаються.
+            */}
+            {/* <TileSkin
+              rect={{
+                x: PADDING,
+                y: PADDING,
+                width: TEST_OBJ_SIZE,
+                height: TEST_OBJ_SIZE,
+              }}
+              label="15"
+              font={font}
+              S={1}
+              snap={(v) => Math.round(v)}
+              baseColor={[0.83, 0.96, 1.0, 1.0]}
             /> */}
-            <SmileySkin size={BASE_SIZE} />
+            <TileSkin1
+              rect={{
+                x: PADDING,
+                y: PADDING,
+                width: TEST_OBJ_SIZE,
+                height: TEST_OBJ_SIZE,
+              }}
+              label="15"
+              font={font}
+              S={1}
+              snap={(v) => Math.round(v)}
+              baseColor={[0.83, 0.96, 1.0, 1.0]}
+            />
+            {/* Коли захочеш подивитися SmileySkin, просто закоментуй TileSkin і розкоментуй це: */}
+            {/* <Group
+              transform={[{ translateX: PADDING }, { translateY: PADDING }]}
+            >
+              <SmileySkin size={TEST_OBJ_SIZE} />
+            </Group> */}
           </Group>
         </Canvas>
       </View>
 
-      {/* 3. Нижня панель: Навігація */}
+      {/* 3. Нижня панель */}
       <View style={localStyles.footer}>
         <Button title="Назад" onPress={() => navigation.goBack()} />
       </View>
@@ -81,12 +96,9 @@ const AboutScreen = ({ navigation }: Props<"About">) => {
 };
 
 const localStyles = StyleSheet.create({
-  container: {
-    flexDirection: "column",
-    backgroundColor: "#0d676b",
-  },
+  container: { flex: 1, backgroundColor: "#0d676b" },
   controls: {
-    paddingTop: 20,
+    paddingTop: 60,
     paddingBottom: 20,
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.2)",
@@ -97,15 +109,10 @@ const localStyles = StyleSheet.create({
     marginBottom: 15,
     fontWeight: "bold",
   },
-  row: {
-    flexDirection: "row",
-  },
   testArea: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    // borderColor: "yellow",
-    // borderWidth: 1,
   },
   footer: {
     padding: 30,
