@@ -1,7 +1,7 @@
-import type { Rect } from "@/ui/pixel";
+import type { Rect as UIRect } from "@/ui/pixel";
 import {
   Group,
-  RoundedRect,
+  Rect,
   Shader,
   Skia,
   Text,
@@ -9,24 +9,23 @@ import {
 } from "@shopify/react-native-skia";
 import React, { useMemo } from "react";
 
-// Імпортуємо наш шейдер (через ваш metro.config.js / skslTransformer)
-import tileShaderSource from "./shaders/tile.sksl";
+// Імпортуємо наш новий шейдер
+import tileShaderSource from "./shaders/tile_v2.sksl";
 
-// 1. Компілюємо ефект один раз при завантаженні файлу (максимальна продуктивність)
+// Компілюємо ОДИН раз для максимального FPS
 const tileEffect = Skia.RuntimeEffect.Make(tileShaderSource);
 
 if (!tileEffect) {
-  console.error("Помилка компіляції шейдера tile.sksl");
+  console.error("Помилка компіляції шейдера tile_v2.sksl");
 }
 
+// ЄДИНИЙ тип для параметрів компонента
 type Props = {
-  rect: Rect;
+  rect: UIRect;
   label?: string;
   font?: SkFont | null;
+  baseColor?: [number, number, number, number]; // RGBA масив для GPU
   textColor?: string;
-  // Колір передаємо у форматі [R, G, B, A] від 0 до 1
-  baseColor?: [number, number, number, number];
-
   S: number;
   snap: (v: number) => number;
 };
@@ -35,62 +34,67 @@ export function TileSkin({
   rect,
   label,
   font,
-  textColor = "#000000",
-  baseColor = [0.93, 0.95, 0.95, 1.0], // Світло-сірий за замовчуванням
+  baseColor = [0.93, 0.95, 0.95, 1.0],
+  textColor = "#216169",
   S,
   snap,
 }: Props) {
-  // Радіус заокруглення
-  const r = snap(8 * S);
+  // 1. Безпечна зона для майбутніх тіней (зараз просто збільшує полотно)
+  const SHADOW_MARGIN = snap(8 * S);
 
-  // Передаємо параметри у шейдер
+  const canvasW = rect.width + SHADOW_MARGIN * 2;
+  const canvasH = rect.height + SHADOW_MARGIN * 2;
+
+  // 2. Uniforms для GPU (перераховуються тільки при зміні розмірів/кольору)
   const uniforms = useMemo(() => {
     return {
-      size: [rect.width, rect.height],
+      canvasSize: [canvasW, canvasH],
+      tileSize: [rect.width, rect.height],
       baseColor: baseColor,
     };
-  }, [rect.width, rect.height, baseColor]);
+  }, [canvasW, canvasH, rect.width, rect.height, baseColor]);
 
-  // Розрахунок позиції тексту
+  // 3. Центрування тексту відносно чистого розміру плитки (rect)
   const textLayout = useMemo(() => {
     if (!label || !font) return null;
+    const m = font.measureText(label);
 
-    const maxW = rect.width * 0.72;
-    const maxH = rect.height * 0.55;
-    const metrics = font.measureText(label);
-    const w = metrics.width;
-    const m = font.getMetrics();
-    const h = m.descent - m.ascent;
-    const scale = Math.min(1, maxW / Math.max(1, w), maxH / Math.max(1, h));
+    // Рахуємо X та Y так, щоб текст був рівно по центру плитки
+    const x = rect.width / 2 - m.width / 2;
+    // Skia Text 'y' — це базова лінія шрифту (baseline)
+    const y =
+      rect.height / 2 + m.height / 2 - (m.height - font.getSize()) * 0.15;
 
-    const cx = rect.width / 2;
-    const cy = rect.height / 2;
-    const x = cx - (w * scale) / 2;
-    const y = cy - (m.ascent * scale) / 2;
+    return { x, y };
+  }, [label, font, rect.width, rect.height]);
 
-    return { x, y, scale };
-  }, [label, font, rect]);
+  if (!tileEffect) return null;
 
   return (
-    // Зсуваємо всю групу на координати rect.x / rect.y
+    // Ставимо всю плитку на її місце в просторі
     <Group transform={[{ translateX: rect.x }, { translateY: rect.y }]}>
-      {/* Підложка: використовуємо скомпільований ефект через <Shader> */}
-      <RoundedRect x={0} y={0} width={rect.width} height={rect.height} r={r}>
-        {tileEffect && <Shader source={tileEffect} uniforms={uniforms} />}
-      </RoundedRect>
+      {/* Відводимо полотно шейдера назад на розмір SHADOW_MARGIN */}
+      <Group
+        transform={[
+          { translateX: -SHADOW_MARGIN },
+          { translateY: -SHADOW_MARGIN },
+        ]}
+      >
+        <Rect x={0} y={0} width={canvasW} height={canvasH}>
+          <Shader source={tileEffect} uniforms={uniforms} />
+        </Rect>
+      </Group>
 
-      {/* Текст / Контент поверх шейдера */}
-      {label && font && textLayout ? (
-        <Group transform={[{ scale: textLayout.scale }]}>
-          <Text
-            x={textLayout.x / textLayout.scale}
-            y={textLayout.y / textLayout.scale}
-            text={label}
-            font={font}
-            color={textColor}
-          />
-        </Group>
-      ) : null}
+      {/* Текст малюється в нормальних координатах плитки */}
+      {label && font && textLayout && (
+        <Text
+          x={textLayout.x}
+          y={textLayout.y}
+          text={label}
+          font={font}
+          color={textColor}
+        />
+      )}
     </Group>
   );
 }

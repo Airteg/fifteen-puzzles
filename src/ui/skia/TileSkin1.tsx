@@ -86,7 +86,7 @@ export function TileSkin1({
       </Group>
 
       {/* Текст малюється в нормальних координатах плитки */}
-      {/* {label && font && textLayout && (
+      {label && font && textLayout && (
         <Text
           x={textLayout.x}
           y={textLayout.y}
@@ -94,7 +94,7 @@ export function TileSkin1({
           font={font}
           color={textColor}
         />
-      )} */}
+      )}
     </Group>
   );
 }
