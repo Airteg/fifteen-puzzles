@@ -8,6 +8,14 @@ import {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import {
+  BoardAxis,
+  commitShift,
+  findEmpty,
+  makeDefaultGrid,
+  TileModel,
+  tilesFromGrid,
+} from "./gameBoardModel";
 
 import { useLayoutMetrics } from "@/context/LayoutMetricsProvider";
 import type { BoardMetrics } from "@/ui/game/boardGeometry";
@@ -21,93 +29,7 @@ type Props = {
   tileFont: SkFont | null;
 };
 
-type Tile = { id: number; label: string; row: number; col: number };
-
-function makeDefaultGrid(): number[] {
-  const g: number[] = [];
-  for (let i = 1; i <= 15; i++) g.push(i);
-  g.push(0);
-  return g;
-}
-
-function idx(row: number, col: number) {
-  return row * 4 + col;
-}
-
-function findEmpty(grid: number[]) {
-  const i = grid.indexOf(0);
-  return { row: Math.floor(i / 4), col: i % 4 };
-}
-
-function tilesFromGrid(grid: number[]): Tile[] {
-  const out: Tile[] = [];
-  for (let i = 0; i < 16; i++) {
-    const v = grid[i];
-    if (v === 0) continue;
-    out.push({
-      id: v,
-      label: String(v),
-      row: Math.floor(i / 4),
-      col: i % 4,
-    });
-  }
-  return out;
-}
-
-// ------------------------------------------------------------------
-// Логіка зсуву працює як з 1 плиткою, так і з групою (до 3 плиток)
-// ------------------------------------------------------------------
-function commitShift(
-  grid: number[],
-  empty: { row: number; col: number },
-  axis: "x" | "y",
-  steps: number,
-): { nextGrid: number[]; movedIds: number[]; dir: 1 | -1 } | null {
-  if (steps === 0) return null;
-
-  const next = grid.slice();
-  const movedIds: number[] = [];
-
-  let er = empty.row;
-  let ec = empty.col;
-
-  const dir: 1 | -1 = steps > 0 ? 1 : -1;
-  const count = Math.abs(steps);
-
-  for (let k = 0; k < count; k++) {
-    if (axis === "x") {
-      const srcC = dir > 0 ? ec - 1 : ec + 1;
-      if (srcC < 0 || srcC > 3) return null;
-
-      const srcI = idx(er, srcC);
-      const dstI = idx(er, ec);
-      const tileId = next[srcI];
-      if (tileId === 0) return null;
-
-      next[dstI] = tileId;
-      next[srcI] = 0;
-      movedIds.push(tileId);
-
-      ec = srcC;
-    } else {
-      const srcR = dir > 0 ? er - 1 : er + 1;
-      if (srcR < 0 || srcR > 3) return null;
-
-      const srcI = idx(srcR, ec);
-      const dstI = idx(er, ec);
-      const tileId = next[srcI];
-      if (tileId === 0) return null;
-
-      next[dstI] = tileId;
-      next[srcI] = 0;
-      movedIds.push(tileId);
-
-      er = srcR;
-    }
-  }
-
-  return { nextGrid: next, movedIds, dir };
-}
+type Tile = TileModel;
 
 type TileNodeProps = {
   m: BoardMetrics;
@@ -260,7 +182,7 @@ export function GameBoardView({ tileFont }: Props) {
       // 2. Не реагуємо на клік по самій пустій клітинці
       if (row === empty.row && col === empty.col) return;
 
-      let axis: "x" | "y";
+      let axis: BoardAxis;
       let steps: number;
 
       // 3. Рахуємо точну кількість плиток (steps), яку треба зсунути (від 1 до 3)
@@ -287,7 +209,7 @@ export function GameBoardView({ tileFont }: Props) {
   );
 
   const onCommitShift = useCallback(
-    (axis: "x" | "y", steps: number) => {
+    (axis: BoardAxis, steps: number) => {
       const res = commitShift(grid, empty, axis, steps);
       if (!res) return;
 
