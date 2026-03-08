@@ -1,25 +1,14 @@
-import type { SkFont } from "@shopify/react-native-skia";
-import { Canvas, Group } from "@shopify/react-native-skia";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { View } from "react-native";
-
-import { useSharedValue, withTiming } from "react-native-reanimated";
-import {
-  BoardAxis,
-  commitShift,
-  findEmpty,
-  makeDefaultGrid,
-  tilesFromGrid,
-} from "./gameBoardModel";
-
 import { useLayoutMetrics } from "@/context/LayoutMetricsProvider";
-
 import { makeBoardMetrics } from "@/ui/game/boardGeometry";
 import { GameMetrics } from "@/ui/game/gameMetrics";
 import { BoardSkin } from "@/ui/skia/BoardSkin";
-
+import type { SkFont } from "@shopify/react-native-skia";
+import { Canvas, Group } from "@shopify/react-native-skia";
+import React, { useMemo } from "react";
+import { View } from "react-native";
 import { BoardGestureOverlay } from "./BoardGestureOverlay";
 import { BoardTileNode } from "./BoardTileNode";
+import { useGameBoardController } from "./useGameBoardController";
 
 type Props = {
   tileFont: SkFont | null;
@@ -47,78 +36,21 @@ export function GameBoardView({ tileFont }: Props) {
 
   const pad = snap(14 * S);
   const canvasSize = m.boardSize + pad * 2;
-
-  const [grid, setGrid] = useState<number[]>(() => makeDefaultGrid());
-  const empty = useMemo(() => findEmpty(grid), [grid]);
-  const tiles = useMemo(() => tilesFromGrid(grid), [grid]);
-
-  const emptyRow = useSharedValue(empty.row);
-  const emptyCol = useSharedValue(empty.col);
-
-  const dragActive = useSharedValue(0);
-  const dragAxis = useSharedValue(0);
-  const dragSteps = useSharedValue(0);
-  const dragLine = useSharedValue(-1);
-
-  useEffect(() => {
-    emptyRow.value = empty.row;
-    emptyCol.value = empty.col;
-  }, [empty.row, empty.col, emptyRow, emptyCol]);
-
-  const animT = useSharedValue(1);
-  const [animMovedIds, setAnimMovedIds] = useState<number[]>([]);
-  const [animAxis, setAnimAxis] = useState<"x" | "y">("x");
-  const [animDir, setAnimDir] = useState<1 | -1>(1);
-
-  const onTapCell = useCallback(
-    (row: number, col: number) => {
-      // 1. Перевіряємо, чи знаходиться тапнута плитка в тому ж рядку або стовпці, що й пуста
-      if (row !== empty.row && col !== empty.col) return;
-
-      // 2. Не реагуємо на клік по самій пустій клітинці
-      if (row === empty.row && col === empty.col) return;
-
-      let axis: BoardAxis;
-      let steps: number;
-
-      // 3. Рахуємо точну кількість плиток (steps), яку треба зсунути (від 1 до 3)
-      if (row === empty.row) {
-        axis = "x";
-        steps = empty.col - col;
-      } else {
-        axis = "y";
-        steps = empty.row - row;
-      }
-
-      const res = commitShift(grid, empty, axis, steps);
-      if (!res) return;
-
-      setAnimMovedIds(res.movedIds);
-      setAnimAxis(axis);
-      setAnimDir(res.dir);
-
-      animT.value = 0;
-      setGrid(res.nextGrid);
-      animT.value = withTiming(1, { duration: 140 });
-    },
-    [animT, empty, grid],
-  );
-
-  const onCommitShift = useCallback(
-    (axis: BoardAxis, steps: number) => {
-      const res = commitShift(grid, empty, axis, steps);
-      if (!res) return;
-
-      setAnimMovedIds(res.movedIds);
-      setAnimAxis(axis);
-      setAnimDir(res.dir);
-
-      animT.value = 0;
-      setGrid(res.nextGrid);
-      animT.value = withTiming(1, { duration: 160 });
-    },
-    [animT, empty, grid],
-  );
+  const {
+    tiles,
+    emptyRow,
+    emptyCol,
+    dragActive,
+    dragAxis,
+    dragSteps,
+    dragLine,
+    animT,
+    animMovedIds,
+    animAxis,
+    animDir,
+    onTapCell,
+    onCommitShift,
+  } = useGameBoardController();
 
   return (
     <View
