@@ -8,14 +8,17 @@ import type { BoardMetrics } from "@/ui/game/boardGeometry";
 import { cellRect } from "@/ui/game/boardGeometry";
 import { TileSkin } from "@/ui/skia/TileSkin";
 
-import type { BoardAxis, TileModel } from "./gameBoardModel";
+import type { BoardAxis } from "./gameBoardModel";
 
 export type BoardTileNodeProps = {
   m: BoardMetrics;
   S: number;
   snap: (v: number) => number;
 
-  tile: TileModel;
+  tileId: number;
+  label: string;
+  row: number;
+  col: number;
   font: SkFont;
 
   emptyRow: SharedValue<number>;
@@ -38,7 +41,10 @@ export const BoardTileNode = memo(function BoardTileNode(
     m,
     S,
     snap,
-    tile,
+    tileId,
+    label,
+    row,
+    col,
     font,
     emptyRow,
     emptyCol,
@@ -63,23 +69,23 @@ export const BoardTileNode = memo(function BoardTileNode(
 
       if (steps !== 0) {
         if (dragAxis.value === 1) {
-          if (tile.row === dragLine.value && tile.row === emptyRow.value) {
+          if (row === dragLine.value && row === emptyRow.value) {
             const eC = emptyCol.value;
             if (steps > 0) {
-              if (tile.col >= eC - steps && tile.col <= eC - 1) dx += step;
+              if (col >= eC - steps && col <= eC - 1) dx += step;
             } else {
               const k = -steps;
-              if (tile.col >= eC + 1 && tile.col <= eC + k) dx -= step;
+              if (col >= eC + 1 && col <= eC + k) dx -= step;
             }
           }
         } else if (dragAxis.value === 2) {
-          if (tile.col === dragLine.value && tile.col === emptyCol.value) {
+          if (col === dragLine.value && col === emptyCol.value) {
             const eR = emptyRow.value;
             if (steps > 0) {
-              if (tile.row >= eR - steps && tile.row <= eR - 1) dy += step;
+              if (row >= eR - steps && row <= eR - 1) dy += step;
             } else {
               const k = -steps;
-              if (tile.row >= eR + 1 && tile.row <= eR + k) dy -= step;
+              if (row >= eR + 1 && row <= eR + k) dy -= step;
             }
           }
         }
@@ -98,8 +104,8 @@ export const BoardTileNode = memo(function BoardTileNode(
   return (
     <Group transform={transform}>
       <TileSkin
-        rect={cellRect(m, tile.row, tile.col)}
-        label={tile.label}
+        rect={cellRect(m, row, col)}
+        label={label}
         font={font}
         S={S}
         snap={snap}

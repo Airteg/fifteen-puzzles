@@ -65,6 +65,10 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   ├── StatisticScreen.tsx
 │   │   ├── SupportScreen.tsx
 │   │   └── WinScreen.tsx
+│   ├── storage
+│   │   ├── appStorage.ts
+│   │   ├── appStorage.types.ts
+│   │   └── storageKeys.ts
 │   ├── styles
 │   │   └── globalStyles.ts
 │   ├── test
@@ -84,8 +88,11 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   ├── game
 │   │   │   ├── boardGeometry.ts
 │   │   │   ├── BoardGestureOverlay.tsx
+│   │   │   ├── BoardTileNode.tsx
+│   │   │   ├── gameBoardModel.ts
 │   │   │   ├── GameBoardView.tsx
-│   │   │   └── gameMetrics.ts
+│   │   │   ├── gameMetrics.ts
+│   │   │   └── useGameBoardController.ts
 │   │   ├── header
 │   │   │   ├── AppGameHeader.tsx
 │   │   │   └── AppHeader.tsx

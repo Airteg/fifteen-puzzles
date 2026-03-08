@@ -78,7 +78,10 @@ export function GameBoardView({ tileFont }: Props) {
               m={m}
               S={S}
               snap={snap}
-              tile={t}
+              tileId={t.id}
+              label={t.label}
+              row={t.row}
+              col={t.col}
               font={tileFont}
               emptyRow={emptyRow}
               emptyCol={emptyCol}

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useSharedValue, withTiming } from "react-native-reanimated";
 
 import type { BoardAxis, TileModel } from "./gameBoardModel";
@@ -36,6 +36,7 @@ export function useGameBoardController(): UseGameBoardControllerResult {
   const empty = useMemo(() => findEmpty(grid), [grid]);
   const tiles = useMemo(() => tilesFromGrid(grid), [grid]);
 
+  // Ініціалізація Shared Values для Reanimated
   const emptyRow = useSharedValue(empty.row);
   const emptyCol = useSharedValue(empty.col);
 
@@ -43,11 +44,6 @@ export function useGameBoardController(): UseGameBoardControllerResult {
   const dragAxis = useSharedValue(0);
   const dragSteps = useSharedValue(0);
   const dragLine = useSharedValue(-1);
-
-  useEffect(() => {
-    emptyRow.value = empty.row;
-    emptyCol.value = empty.col;
-  }, [empty.row, empty.col, emptyRow, emptyCol]);
 
   const animT = useSharedValue(1);
   const [animMovedIds, setAnimMovedIds] = useState<number[]>([]);
@@ -73,15 +69,22 @@ export function useGameBoardController(): UseGameBoardControllerResult {
       const res = commitShift(grid, empty, axis, steps);
       if (!res) return;
 
+      // 1. Оновлюємо стан React
       setAnimMovedIds(res.movedIds);
       setAnimAxis(axis);
       setAnimDir(res.dir);
-
-      animT.value = 0;
       setGrid(res.nextGrid);
+
+      // 2. СИНХРОННО оновлюємо Reanimated Shared Values
+      const newEmpty = findEmpty(res.nextGrid);
+      emptyRow.value = newEmpty.row;
+      emptyCol.value = newEmpty.col;
+
+      // 3. Запускаємо анімацію
+      animT.value = 0;
       animT.value = withTiming(1, { duration: 140 });
     },
-    [animT, empty, grid],
+    [animT, empty, grid, emptyRow, emptyCol],
   );
 
   const onCommitShift = useCallback(
@@ -89,15 +92,22 @@ export function useGameBoardController(): UseGameBoardControllerResult {
       const res = commitShift(grid, empty, axis, steps);
       if (!res) return;
 
+      // 1. Оновлюємо стан React
       setAnimMovedIds(res.movedIds);
       setAnimAxis(axis);
       setAnimDir(res.dir);
-
-      animT.value = 0;
       setGrid(res.nextGrid);
+
+      // 2. СИНХРОННО оновлюємо Reanimated Shared Values
+      const newEmpty = findEmpty(res.nextGrid);
+      emptyRow.value = newEmpty.row;
+      emptyCol.value = newEmpty.col;
+
+      // 3. Запускаємо анімацію
+      animT.value = 0;
       animT.value = withTiming(1, { duration: 160 });
     },
-    [animT, empty, grid],
+    [animT, empty, grid, emptyRow, emptyCol],
   );
 
   return {
