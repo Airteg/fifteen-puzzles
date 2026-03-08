@@ -21,6 +21,7 @@ export type UseGameBoardControllerResult = {
   dragAxis: ReturnType<typeof useSharedValue<number>>;
   dragSteps: ReturnType<typeof useSharedValue<number>>;
   dragLine: ReturnType<typeof useSharedValue<number>>;
+  dragOffsetPx: ReturnType<typeof useSharedValue<number>>;
 
   animT: ReturnType<typeof useSharedValue<number>>;
   animMovedIds: number[];
@@ -44,6 +45,7 @@ export function useGameBoardController(): UseGameBoardControllerResult {
   const dragAxis = useSharedValue(0);
   const dragSteps = useSharedValue(0);
   const dragLine = useSharedValue(-1);
+  const dragOffsetPx = useSharedValue(0);
 
   const animT = useSharedValue(1);
   const [animMovedIds, setAnimMovedIds] = useState<number[]>([]);
@@ -122,6 +124,7 @@ export function useGameBoardController(): UseGameBoardControllerResult {
     dragAxis,
     dragSteps,
     dragLine,
+    dragOffsetPx,
 
     animT,
     animMovedIds,

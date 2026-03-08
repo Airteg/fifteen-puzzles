@@ -44,6 +44,7 @@ export function GameBoardView({ tileFont }: Props) {
     dragAxis,
     dragSteps,
     dragLine,
+    dragOffsetPx,
     animT,
     animMovedIds,
     animAxis,
@@ -110,6 +111,7 @@ export function GameBoardView({ tileFont }: Props) {
         dragAxis={dragAxis}
         dragSteps={dragSteps}
         dragLine={dragLine}
+        dragOffsetPx={dragOffsetPx}
         onTapCell={onTapCell}
         onCommitShift={onCommitShift}
       />

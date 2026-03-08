@@ -31,6 +31,7 @@ type Props = {
   dragAxis?: SharedValue<number>; // 0 none, 1 x, 2 y
   dragSteps?: SharedValue<number>; // integer steps (clamped)
   dragLine?: SharedValue<number>; // row for x, col for y
+  dragOffsetPx: SharedValue<number>; // піксельне зміщення для перетягнутих плиток (для плавнішої анімації, а не лише snapSteps * step)
 
   // optional JS callbacks (тільки onEnd / tap)
   onCommitShift?: (axis: "x" | "y", steps: number) => void;
@@ -50,6 +51,7 @@ export function BoardGestureOverlay(props: Props) {
     onCommitShift,
     onTapCell,
     onDrag,
+    dragOffsetPx,
   } = props;
 
   // ---- provide internal shared values if not passed ----
