@@ -97,6 +97,7 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   │   │   └── DebugBounds.tsx
 │   │   │   ├── shaders
 │   │   │   │   ├── button.sksl
+│   │   │   │   ├── tile_v2.sksl
 │   │   │   │   └── tile.sksl
 │   │   │   ├── svg
 │   │   │   │   ├── sm.svg
@@ -115,6 +116,7 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   ├── pixel.ts
 │   │   └── T.tsx
 │   └── utils
+│       ├── color.ts
 │       └── splash.ts
 ├── tools
 │   └── skslTransformer.js
@@ -134,5 +136,6 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 ├── pnpm-lock.yaml
 ├── pnpm-workspace.yaml
 ├── README.md
+├── RefactoringGameScreen.md
 ├── tree.txt
 └── tsconfig.json
