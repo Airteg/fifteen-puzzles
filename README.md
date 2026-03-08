@@ -1,632 +1,611 @@
-Нижче — **engine-архітектура рендеру** для Fifteen Puzzles (RN + Skia), з фокусом на: **точність Figma**, контрольований animation lifecycle, відсутність “хаотичних hooks”, мінімум перерендерів та коректне звільнення GPU-ресурсів. Я спираюсь на те, що в проєкті вже є **@shopify/react-native-skia** і **react-native-reanimated**, а навігація — **native-stack** без накопичення push-екранів.
+# Архітектура GameScreen
+
+`GameScreen.tsx` збирає екран, `GameScreenShell.tsx` відповідає за layout, а `GameBoardView.tsx` містить основний Canvas + стан дошки + анімацію + інтеграцію з gesture overlay.
+
+На цей момент картина така:
+
+`GameScreen.tsx` — це вхідна точка екрана.
+`GameScreenShell.tsx` — layout-рівень: збирає header, board-зону, нижні кнопки/панелі.
+`GameBoardView.tsx` — найважчий вузол: тут, імовірно, одночасно живуть render, gesture-логіка, drag-preview, tile mapping, game state glue.
+`BoardGestureOverlay.tsx` — окремий input-шар поверх Canvas: він не малює, а тільки інтерпретує pan/tap та віддає commit/tap назовні.
+`boardGeometry.ts` — чистий math/geometry-модуль: метрики дошки, cell rect/origin/center, axis lock, snapSteps. Це хороший знак: геометрія не змішана з UI.
+`gameMetrics.ts` — канонічні design-константи для дошки.
+`LayoutMetricsProvider.tsx` — глобальний adaptive scaling layer: дає `S`, `snap()`, ширини панелей і кнопок. Тобто вся сцена повинна масштабуватись через нього.
+`GameStateProvider.tsx` — persistence/state-рівень через AsyncStorage, але поки це виглядає як окремий application state, а не rendering state для drag/render loop.
+
+### Що вже можна сказати про архітектуру
+
+Тут проглядається нормальний поділ на 4 рівні:
+
+1. **Screen composition**
+   - `GameScreen.tsx`
+   - `GameScreenShell.tsx`
+
+2. **Adaptive layout system**
+   - `LayoutMetricsProvider.tsx`
+   - `gameMetrics.ts`
+
+3. **Board rendering + board interaction**
+   - `GameBoardView.tsx`
+   - `BoardGestureOverlay.tsx`
+   - `boardGeometry.ts`
+
+4. **Persistent app/game state**
+   - `GameStateProvider.tsx`
+
+Це вже достатньо хороша база. Найважливіше: `BoardGestureOverlay` і `boardGeometry` винесені окремо, а значить файл `GameBoardView.tsx` потенційно можна ще далі “сушити”, а не тримати в ньому все підряд.
+
+### Але де поки що головна невидимість
+
+Щоб реально розібрати **архітектуру GameScreen**, а не лише її оболонку, мені ще бракує тих частин, через які проходить **render pipeline** і **scene composition**.
+
+Найважливіше додати далі:
+
+- `BoardSkin.tsx`
+- `TileSkin.tsx`
+- `FontProvider.tsx`
+
+Бо саме вони покажуть:
+
+- як Canvas-сцена реально збирається,
+- чи є розділення між background / tiles / preview / overlays,
+- чи не сидять зайві обчислення прямо в render,
+- як передаються розміри в skia-компоненти,
+- чи дотримується канонічна система масштабування.
+
+### Що ще дуже бажано
+
+- `AppGameHeader.tsx`
+- файл з типами маршруту / screen params, якщо є
+- якщо існує окремий модуль логіки на кшталт:
+  - `gameLogic.ts`
+  - `boardState.ts`
+  - `shuffle.ts`
+  - `moves.ts`
+  - `solved.ts`
+
+Бо зараз я бачу persistence-state, але ще не бачу чітко, **де живе доменна логіка гри**:
+
+- перевірка допустимого ходу,
+- multi-shift,
+- shuffle,
+- solved-state,
+- move counter,
+- timer orchestration.
+
+### Попередній висновок по якості архітектури
+
+Архітектура **не хаотична**, а вже має добрий напрямок:
+
+- **layout** відділений,
+- **geometry** відділена,
+- **gesture layer** відділений,
+- **persistent state** відділений.
+
+Найімовірніше, головний ризик зараз не в `GameScreen.tsx`, а саме в тому, що **`GameBoardView.tsx` може бути “god-file”**, якщо в ньому сидять одночасно:
+
+- mapping tiles,
+- Skia scene,
+- animation state,
+- gesture integration,
+- move commit logic,
+- tap logic,
+- solved detection.
+
+Саме його нам далі треба буде розкласти по шарах.
 
 ---
 
-## 0) Основна позиція (рішення “як engine-архітектор”)
+### Як зараз виглядає архітектура
 
-### Рекомендований базовий підхід
+**1. Screen-рівень**
 
-- **Один Canvas на Scene** (екран) для всього “графічного ядра” цього екрану.
-- **RN Views = layout + інтеракції + доступність + тексти**, Skia = **візуальний рендер** (фон, “карточки”, тіні, board, плитки, win/lose fullscreen FX).
-- Для Game-board (16 плиток): **не робити 16 Canvas**, а рендерити всі плитки **в одному Canvas**.
+- `GameScreen.tsx` — точка входу екрана.
+- `GameScreenShell.tsx` — композиція великих зон екрана: header, board area, нижні control-блоки.
 
-Це дає:
+Це правильний рівень: shell має знати **що стоїть на екрані**, але не повинен знати деталі drag/render/game math.
 
-- контрольований **render loop** (одне місце, один timeline),
-- мінімум surfaces / GPU контекстів,
-- простіший lifecycle (mount/unmount одного Canvas),
-- легше робити “детермінізм” анімацій.
+**2. Система масштабування**
 
----
+- `LayoutMetricsProvider.tsx` — головне джерело адаптивних метрик: `S`, `snap`, ширини, висоти, safe layout-рішення.
+- `gameMetrics.ts` — канонічні дизайн-розміри/константи гри.
+- `FontProvider.tsx` — окремий шар для шрифтів, який спирається на `LayoutMetricsProvider` і будує Skia fonts уже через `S` та `snap`. Це дуже хороший знак: шрифти входять у ту саму scaling-систему, а не живуть окремо.
 
-## 1) Модель шарів: Layout / Render / Animation / State
+**3. Board interaction + geometry**
 
-Уяви архітектуру як 4 шари:
+- `BoardGestureOverlay.tsx` — input-only шар поверх канваса.
+- `boardGeometry.ts` — чиста математика дошки, координат, cell/grid logic.
 
-### A) Layout layer (RN)
+Це один із найкращих моментів усієї архітектури: геометрія і жести не змішані з малюванням.
 
-**Завдання:** геометрія екрана, safe-area, хедер/кнопки, touch-зони, модалки, текст (де треба системний текст), адаптивність.
+**4. Render-шар Skia**
 
-- RN керує: `measurements`, `insets`, `boardRect`, “де лежить board”, кнопки, топ-бар.
-- RN **не керує** кадр-в-кадр позиціями плиток.
+- `BoardSkin.tsx` — окремий візуальний skin для самої дошки. Він отримує вже готовий `rect`, `radius`, blur-и, `S`, `snap` і просто малює. Тобто це **presentation-компонент без логіки гри**. Саме так і треба.
+- `TileSkin.tsx` — окремий візуальний skin плитки. Тут уже є shader, текст, uniforms і GPU-рендер. Важливо, що `RuntimeEffect` компілюється один раз на модульному рівні, а uniforms мемоізуються. Це дуже правильний підхід для FPS.
 
-**Вихід Layout layer:** стабільний “layout snapshot” (числа), який передається вниз у Render/Animation (як конфіг).
+**5. App/UI shell elements**
 
----
+- `AppGameHeader.tsx` — окремий header-компонент, але він зараз більш “самостійний”, ніж хотілося б: сам вантажить png, сам вантажить skia-font, сам тримає `isMuted`, сам малює canvas. Тобто він уже не чисто dumb/presentational, а маленький self-contained widget.
 
-### B) State layer (Game / UI state machine)
+**6. Persistence / app state**
 
-**Завдання:** єдине джерело істини: логіка гри + UI стани.
-
-Розділи стани на:
-
-- **GameState** (матриця, emptyIndex, movesCount, timer, winDetected, etc.)
-- **SceneStateMachine** (екранні фази та переходи)
-
-Приклад фаз для GameScene:
-
-- `entering` → `idle`
-- `dragging(tileId)` (або `gesture_active`)
-- `settling` (анімація “докочування” в клітинку)
-- `win_fx` / `lose_fx`
-- `exiting`
-
-Події:
-
-- `SCREEN_FOCUS / SCREEN_BLUR`
-- `START_GESTURE / UPDATE_GESTURE / END_GESTURE`
-- `REQUEST_MOVE(tileId)`
-- `MOVE_COMMITTED`
-- `WIN_DETECTED`
-- `RESTART / EXIT`
-
-**Ключ:** жодна анімація не стартує “бо useEffect так вирішив”. Тільки через **event → state machine transition**.
+- `GameStateProvider.tsx` — окремий application-state/persistence-рівень.
 
 ---
 
-### C) Animation layer (deterministic timeline + channels)
+## Головна ідея поточної архітектури
 
-**Завдання:** перевести State → набір “каналів” (values) для рендеру.
+**Shell → Metrics → Geometry/Input → Skia Presentation → Persistent State**
 
-Підхід production-grade:
-
-- **один master timeline** на сцену (умовно “clock”),
-- для кожної сутності (плитка, оверлей, тінь) — набір **анім-каналів**:
-  - `pos(x,y)`, `scale`, `opacity`, `shadowStrength`, `blurRadius`, `highlight`, etc.
-
-**Правило:** GameState змінюється дискретно (commit move), а Animation layer робить плавний перехід між дискретними станами.
+Це не хаос. Це вже схоже на систему.
 
 ---
 
-### D) Render layer (Skia)
+## Де зараз, найімовірніше, вузьке місце
 
-**Завдання:** чистий детермінований рендер з “draw model”.
+Найризикованіший файл у цій архітектурі майже напевно — **`GameBoardView.tsx`**.
 
-Вхід:
+Бо всі інші частини вже більш-менш розкладені:
 
-- `layoutSnapshot` (boardRect, tileSize, padding…)
-- `drawModel` (плитки: targetPos + currentAnimPos, стилі, ефекти)
-- `resources` (images/fonts/shaders)
+- layout винесений,
+- scaling винесений,
+- geometry винесена,
+- gesture overlay винесений,
+- skins винесені,
+- fonts винесені.
 
-Вихід: кадр.
+Отже, якщо десь і накопичується “god-object”, то саме в `GameBoardView.tsx`, бо там, скоріш за все, сходяться:
 
----
+- render tree,
+- tile mapping,
+- drag state,
+- active tile / preview tile,
+- зв’язок з overlay,
+- move commit,
+- solved check,
+- animation orchestration,
+- можливо, derived layout for board.
 
-## 2) Scene lifecycle: коли створювати/вбивати Canvas і ресурси
-
-Оскільки у тебе **немає push-нагромадження** і екран по суті “один активний”, lifecycle можна зробити жорстким і чистим.
-
-### Рекомендований lifecycle (для кожної Scene)
-
-**На SCREEN_FOCUS:**
-
-- “Warm-up” GPU-ресурсів сцени (декодування зображень, ініт шейдерів/градієнтів, підготовка precomputed shadows якщо треба).
-- Скидання/ініт state machine в `entering`.
-- Запуск `enter animation` через state machine (не через hook).
-
-**На SCREEN_BLUR:**
-
-- Зупинити всі running animations (або перевести в `paused`).
-- Відв’язати gesture listeners (якщо вони в окремому модулі).
-- Вивільнити heavy ресурси (див. розділ “resources”).
-
-**На UNMOUNT:**
-
-- Гарантовано dispose/clear references (щоб не тримати GPU).
-
-> Важливий принцип: **фокус екрана — це твій “power switch”**. Canvas може бути замаунчений, але рендер/анімації мають бути “gated” фокусом (щоб на blur не було зайвої роботи).
+Тобто архітектурно екран уже хороший, але **центр тяжіння системи, ймовірно, занадто сконцентрований в одному файлі**.
 
 ---
 
-## 3) Scene Canvas vs Per-tile Canvas (порівняння стратегій)
+## Що в архітектурі вже добре
 
-### Стратегія 1: **Single Scene Canvas (рекомендовано)**
+### 1. Масштабування проведене послідовно
 
-**Плюси**
+`FontProvider`, `BoardSkin`, `TileSkin`, `AppGameHeader` працюють через `S` і `snap`. Це означає, що формується єдина система координат і розмірів, а не набір випадкових пікселів.
 
-- 1 surface → простіше GPU, менше накладних витрат.
-- 1 timeline → простіше deterministic анімації.
-- Можна агресивно кешувати: board background, статичні тіні, рамки.
-- Менше шансів “витоків” (одна точка управління).
+### 2. Skin-компоненти не перевантажені логікою
 
-**Мінуси**
+`BoardSkin` і `TileSkin` не вирішують, **яка плитка куди рухається**. Вони тільки малюють. Це правильна межа відповідальності.
 
-- Треба трохи дисципліни: RN layout лише задає рамки, а Skia малює все.
+### 3. Шейдерна частина оформлена грамотно
 
-**Коли ідеально:** твій кейс (board + складні тіні + win/lose fullscreen FX).
+У `TileSkin` добре, що:
 
----
+- runtime effect компілюється один раз,
+- uniforms обгорнуті в `useMemo`,
+- текст відокремлений від shader canvas,
+- geometry плитки передається через props.
 
-### Стратегія 2: **Per-tile Canvas (НЕ рекомендую)**
+### 4. Font system уже схожа на сервіс
 
-**Плюси**
-
-- Локалізація: кожна плитка “сама по собі”.
-- Простий mental model “компонент = Canvas”.
-
-**Мінуси (критичні)**
-
-- 16 Canvas = 16 surfaces/рендер-контекстів/композицій → часто гірше для GPU, ніж один великий.
-- Важко синхронізувати timeline між плитками (детермінізм іде гірше).
-- Більше шансів на leaked resources (кожен tile тримає свої paint/shadow/images).
-- Складні “спільні” ефекти (спільний drop shadow під усім board) стають незручними.
-
-**Коли може мати сенс:** майже ніколи для 4×4, хіба що плитки — це відео/камери/суперважкі незалежні сцени (не твій випадок).
+`FontProvider` — це хороший сервісний шар: UI і Canvas не повинні кожного разу самі знати, як саме піднімати шрифти.
 
 ---
 
-### Стратегія 3: **Hybrid: Scene Canvas + RN overlay**
+## Що я б вважав слабшими місцями
 
-**Плюси**
+### 1. `AppGameHeader.tsx` поки що стоїть трохи осторонь системи
 
-- Кнопки/текст/доступність — RN.
-- Візуальні “піксельно точні” речі — Skia.
-- Win/Lose fullscreen FX — Skia під RN кнопками (“Play again”).
+Він не використовує `FontProvider`, а сам викликає `useFont`.
+Тобто для board-сцени в тебе вже є централізований font layer, а header живе окремо.
 
-**Мінуси**
+Це не критична помилка, але це вже **архітектурний розсинхрон**:
 
-- Потрібна чітка межа відповідальності (див. наступний розділ).
+- або всі skia-шрифти проходять через provider,
+- або дозволяємо локальні isolated fonts тільки для truly local widget.
 
-**Це — production-grade компроміс для мобільних UI-ігор.**
+На практиці краще або:
 
----
+- винести header-font у `FontProvider`,
+- або чітко прийняти правило: `FontProvider` тільки для game canvas, а header автономний.
 
-## 4) Де межа між Layout (RN) і Render (Skia)
+Зараз це посередині.
 
-### RN робить:
+### 2. `AppGameHeader.tsx` змішує presentation і local feature state
 
-- Safe area, розмітка екрану.
-- Розташування “board контейнера” (rect), top HUD, bottom buttons.
-- Gesture capture (якщо тобі простіше через RN gesture system).
-- Accessibility, системні шрифти/локалізація, інпути.
+`isMuted` живе прямо в header.
 
-### Skia робить:
+Це ок, якщо це чисто демо-перемикач UI.
+Але якщо звук у грі реальний, то mute-state не повинен жити в header-компоненті. Його місце:
 
-- Board background (градієнти/текстури), рамки, світло/тіні.
-- Плитки, їх “матеріальність” (inner shadow, bevel, specular).
-- Плавні переміщення плиток (анім-канали).
-- Fullscreen FX (win/lose) — bloom/blur/particles (в межах потреб).
+- або в audio/store layer,
+- або в game UI controller/state.
 
-**Правило межі:**
-RN дає **геометрію** та **події**, Skia дає **пікселі**.
+Інакше header стає джерелом доменної поведінки.
 
----
+### 3. `TileSkin.tsx` уже хороший, але це компонент “дорогого рендера”
 
-## 5) Як мінімізувати GPU-навантаження, не втративши Figma-точність
+Архітектурно він чистий, але саме він потенційно буде найчутливішим до:
 
-Твоя ціль — точність, але “без дурної вартості”.
+- зайвих нових `rect` об’єктів на кожному render,
+- зайвих `baseColor` масивів,
+- нестабільних `label/font` props,
+- повторного remount при drag.
 
-### 5.1. Кешування статичних шарів
-
-У GameScene є багато “майже статичного”:
-
-- фон екрана,
-- board рамка,
-- статична тінь board,
-- декоративні елементи.
-
-Зроби їх **immutable** і рендерь як **один cached layer** (умовно “Picture/Snapshot”), а зверху — тільки плитки (які рухаються).
-
-Ефект: під час руху плитки GPU перераховує **мінімум**.
-
-### 5.2. Обережно з blur/filters
-
-Blur (особливо великий) — дорогий.
-
-- Якщо тіні “в стилі Figma” — часто можна замінити на:
-  - precomputed shadow bitmap (для плитки),
-  - градієнт-маску,
-  - або кешований шар тіні, який тільки трансформується.
-
-### 5.3. Не плодити шрифти/зображення
-
-- Один “resource registry” на сцену.
-- Завантаження на focus, очищення на blur/unmount.
-
-### 5.4. Рендер тільки коли треба
-
-У тебе немає фонової анімації — це супер.
-
-- У `idle` кадр може бути статичним (жодних “tick”).
-- Рендер активується тільки коли:
-  - `entering/exiting`
-  - `dragging/settling`
-  - `win_fx/lose_fx`
+Тобто проблема тут не в самому файлі, а в тому, **як `GameBoardView` його годує даними**.
 
 ---
 
-## 6) Deterministic animation: як забезпечити “однаково завжди”
+**Моя поточна карта відповідальностей**
 
-Тут 3 принципи:
+Я б сформулював так:
 
-### Принцип 1: JS не задає час кадру
+- **`GameScreen.tsx`** — вхідна точка екрану/маршруту (route/screen entry)
+- **`GameScreenShell.tsx`** — композиція макету (layout composition)
+- **`LayoutMetricsProvider.tsx`** — сервіс адаптивних метрик (adaptive metrics service)
+- **`FontProvider.tsx`** — сервіс шрифтів для рендерингу Skia/тексту (font service for skia/text rendering)
+- **`boardGeometry.ts`** — чиста математика (pure math)
+- **`BoardGestureOverlay.tsx`** — інтерпретація сенсорних жестів (touch interpretation)
+- **`BoardSkin.tsx`** — візуальне представлення дошки (board presentation)
+- **`TileSkin.tsx`** — візуальне представлення плитки/клітинки (tile presentation)
+- **`AppGameHeader.tsx`** — віджет заголовка (header widget)
+- **`GameStateProvider.tsx`** — провайдер збереженого (персистентного) стану застосунку/гри (persisted app/game state)
+- **`GameBoardView.tsx`** — оркестраційний шар між математикою, обробкою вводу, рендерингом і станом гри (orchestration layer між math, input, render і game state)
 
-Будь-яка анімація, де “час” іде від JS timers, буде плавати.
-
-**Твоя ціль:** timeline на UI thread (або Skia clock), а JS лише штовхає дискретні події.
-
-### Принцип 2: Discrete state → continuous motion
-
-- GameState: “плитка має бути в клітинці (i,j)”
-- Animation: “плавно перейди з A → B за N ms з easing X”
-
-Це знімає проблему “різні FPS = різна логіка”.
-
-### Принцип 3: Один master clock на сцену
-
-- Всі плитки читають один час.
-- Всі easing/тривалості нормалізовані.
-
-**Результат:** навіть якщо FPS просів, траєкторія і кінцевий стан однакові, лише менше кадрів.
+І саме останній пункт зараз найважливіший для подальшого розкладання.
 
 ---
 
-## 7) Як уникнути зайвих RN-перерендерів
+## Який ідеальний стан архітектури я бачу далі
 
-Ти хочеш, щоб Scene не “тремтіла” від state-оновлень.
+`GameBoardView.tsx` варто довести до ролі **scene orchestrator**, а не “файлу, де живе все”.
 
-### Практика engine-рівня:
+Тобто в ідеалі він має:
 
-- RN tree екрана має бути **максимально стабільним**.
-- GameState оновлюється часто? → не зберігай “current animated positions” у React state.
-- React state: тільки **дискретні події/переходи** (move committed, win).
-- Анім-канали живуть на UI/render рівні, не в React reconciliation.
+- взяти layout metrics,
+- взяти board geometry,
+- взяти current board state,
+- взяти gestures,
+- зібрати scene з `BoardSkin`, `TileLayer`, `DragPreviewLayer`, `EffectsLayer`,
+- передати commit callbacks назовні.
 
----
+А ось це краще тримати **не в ньому**:
 
-## 8) Управління ресурсами (GPU leak-proof)
+- низькорівневу геометрію,
+- shader-specific details,
+- font loading,
+- persistent storage,
+- mute/audio logic,
+- константи дизайну.
 
-Зроби просту дисципліну:
-
-### Resource Registry (per Scene)
-
-- `images` (decoded textures)
-- `fonts`
-- `shaders/gradients`
-- `cachedPictures/snapshots`
-
-**Правила:**
-
-1. Створив ресурс — зареєструй.
-2. На blur/unmount — registry “disposeAll()”.
-3. Ніяких “ресурсів у плитці, які живуть довше плитки”.
-
-### Окремо: “спільні ресурси”
-
-Якщо є ресурси, спільні для багатьох екранів (наприклад фон/шрифт):
-
-- тримай їх у глобальному кеші з ref-count,
-- але heavy screen-specific snapshots — тільки per scene.
+Частина цього вже винесена. Це добре.
 
 ---
 
-## 9) Як організувати Scene як керований “двигун”, а не набір хуків
+**Архітектура в цілому правильна, але `GameBoardView.tsx` справді є центральним orchestration-файлом, у якому зійшлося забагато відповідальностей**.
 
-Умовний концепт (без коду):
+## Що саме робить `GameBoardView.tsx`
 
-- **SceneController**
-  - приймає: events (focus/blur/gesture), game commands
-  - має: state machine + animation scheduler
-  - видає: drawModel (immutable snapshot для рендера)
+У цьому файлі зараз одночасно живуть 6 ролей:
 
-- **SceneView (RN)**
-  - layout контейнерів
-  - gesture capture
-  - Canvas як “render target”
-  - RN overlays (buttons, text)
+1. **Локальний state дошки**
+   - `grid`
+   - `empty`
+   - `tiles`
 
-- **Renderer (Skia)**
-  - чиста функція `render(drawModel, resources)`
+2. **Доменна логіка переміщення**
+   - `makeDefaultGrid`
+   - `findEmpty`
+   - `tilesFromGrid`
+   - `commitShift`
 
-Це і є “engine модель”: контроль в одному місці, а не розмазано по hooks.
+3. **Анімаційний orchestration**
+   - `animT`
+   - `animMovedIds`
+   - `animAxis`
+   - `animDir`
 
----
+4. **Drag-preview state через shared values**
+   - `dragActive`
+   - `dragAxis`
+   - `dragSteps`
+   - `dragLine`
+   - `emptyRow`
+   - `emptyCol`
 
-## 10) Що робити конкретно для Fifteen Puzzles (твої 3 типи анімації)
+5. **Scene composition**
+   - `Canvas`
+   - `BoardSkin`
+   - map по `TileNode`
+   - `BoardGestureOverlay`
 
-### (1) One-shot enter animation
+6. **Input → state transition**
+   - `onTapCell`
+   - `onCommitShift`
 
-- Це **SceneStateMachine: entering → idle**
-- Під час entering рендер може включати:
-  - fade/scale board,
-  - “light sweep” по рамці,
-  - м’яка поява тіні.
-
-### (2) Плавне переміщення плиток
-
-- Event: `REQUEST_MOVE(tileId)`
-- Transition: `idle → settling`
-- Animation scheduler:
-  - lock input
-  - animate tile from cellA→cellB
-  - onComplete: commit GameState (swap), `settling → idle`, unlock input
-
-**Ключ:** commit логіки — в кінці, а не “паралельно з анімацією”.
-
-### (3) Fullscreen Win/Lose
-
-- Event: `WIN_DETECTED`
-- Transition: `idle/settling → win_fx`
-- Рендер: fullscreen FX в Canvas (під кнопками RN), або Canvas займає весь екран.
-- На exit: `win_fx → exiting` → навігація (replace/reset) після “animation complete”.
+Усе це прямо видно в одному файлі.
 
 ---
 
-## Підсумок рішень (коротко, але по-інженерному)
+# Мій головний висновок
 
-- **Canvas на Scene** (особливо для Game/Win/Lose).
-- **Не робити per-tile Canvas**: це майже завжди дорожче і складніше синхронізувати.
-- **RN = layout + input + accessibility**, **Skia = pixels**.
-- **State machine керує всім**: входи/виходи/рухи/ефекти.
-- **Deterministic**: один timeline, дискретна логіка, анімація на UI/render рівні.
-- **GPU hygiene**: per-scene registry, dispose на blur/unmount, кешувати статичні шари.
+**`GameBoardView.tsx` не є хаотичним файлом, але він уже став “вузлом усього”.**
+Тобто він ще не зламаний архітектурно, але вже стоїть на межі, після якої будь-яке нове ускладнення почне його “протухати”.
 
----
+Інакше кажучи:
 
-Як наступний крок (без уточнюючих питань):
-надсилай **перший Figma скрін** (Game board + одна плитка крупно) і/або CSS export — і я розкладу його на **конкретні render layers**: що кешувати, що малювати вектором, що як bitmap/shadow-mask, і де тобі вигідніше зробити hybrid RN overlay.
-
-Добре. Фіксуємо **ScreenLayoutPolicy v1 + Tokens Table** як канон для всієї серії екранів.
-
-Це не “побажання”, а **система**, яку ти зможеш застосувати до 7+ екранів без переробки архітектури.
+- зараз файл ще читається,
+- логіка ще не розповзлася повністю,
+- але наступні фічі типу shuffle / timer / solved / move counter / persistence / sound / win animation дуже швидко зроблять його перевантаженим.
 
 ---
 
-# 🧱 1️⃣ БАЗА
+# Що тут добре
 
-Design base: **390×844**
+## 1. Є хороший поділ між input, geometry і skin
 
-```
-S = min(sw / 390, sh / 844)
-```
+`BoardGestureOverlay` не малює, а лише інтерпретує жести.
+`BoardSkin` і `TileSkin` лише малюють.
+`boardGeometry` винесена окремо.
+Це правильний фундамент. `GameBoardView` використовує ці шари як orchestrator.
 
-Усі дизайн-розміри множаться на `S`,
-але нижче діють **clamp-правила**, щоб не зламати візуал.
+## 2. `TileNode` — правильна локальна ізоляція
 
----
+Те, що окремий `TileNode` винесений через `memo`, — добре.
+Особливо добре, що transform рахується через `useDerivedValue`, а не через React-state на кожен drag tick.
 
-# 🎛 2️⃣ ГЛОБАЛЬНІ ТОКЕНИ (канон)
+## 3. Анімація зроблена просто і зрозуміло
 
-## 2.1 Горизонтальні
+Після `commitShift`:
 
-| Token             | Значення (дизайн) | Правило               |
-| ----------------- | ----------------- | --------------------- |
-| sideMarginMin     | 16                | не масштабується вниз |
-| panelWidthDesign  | 340               | множимо на S          |
-| buttonWidthDesign | 276               | множимо на S          |
+- визначаються `movedIds`,
+- одразу оновлюється `grid`,
+- анімація доганяє це через `animT`.
 
----
-
-## 2.2 Вертикальні
-
-| Token        | L0  | L1  | L2  | L3  |
-| ------------ | --- | --- | --- | --- |
-| panelPadding | 40  | 32  | 24  | 20  |
-| panelGap     | 24  | 16  | 12  | 10  |
-| spacerMin    | 24  | 16  | 8   | 0   |
-
-> Ці значення множаться на `S`, але не падають нижче мінімуму читабельності.
+Це хороший підхід для sliding puzzle, бо візуально він працює як “state already committed, animation visually catches up”.
 
 ---
 
-## 2.3 Радіуси / бордери / тіні
+# Де головні архітектурні проблеми
 
-| Token                   | Значення |
-| ----------------------- | -------- |
-| radiusBase              | 8        |
-| borderWidth             | 3        |
-| buttonShadowOuterBlur   | 10       |
-| buttonShadowInsetBlur   | 10       |
-| panelInsetShadowOffsetY | 4        |
-| panelInsetShadowBlur    | 4        |
+## 1. Доменна логіка гри сидить прямо в view-файлі
 
-### Правило масштабування:
+Ось це найважливіше.
 
-- radius → `8 * S`, але clamp 6–12
-- borderWidth → clamp 2–4
-- blur → не множити агресивно; clamp максимум ~12
-- inset shadow offset → `4 * S`
+У `GameBoardView.tsx` зараз живуть:
 
----
+- `makeDefaultGrid`
+- `idx`
+- `findEmpty`
+- `tilesFromGrid`
+- `commitShift`
 
-# 📐 3️⃣ ЗОНИ ЕКРАНУ (жорстка структура)
+Це вже не view-рівень. Це **board domain logic**.
 
-```
-SafeArea
- ├── HeaderZone
- ├── SpacerA (elastic)
- ├── HeroZone (decorative)
- ├── SpacerB (elastic)
- ├── TitleZone
- ├── PanelZone
- ├── SpacerC (elastic)
- └── FooterZone (only Home)
-```
+Тобто файл, який має бути scene-orchestrator, зараз одночасно є ще й частиною game engine.
 
----
+Це не страшно для демо-версії. Але для реального екрану гри це треба виносити.
 
-# 📊 4️⃣ РІВНІ ДЕГРАДАЦІЇ (L0–L4)
+Я б виніс у щось на кшталт:
 
-Вибір рівня робиться по висоті після розрахунку S.
+- `gameBoardModel.ts`
+  або
+- `boardState.ts`
+  або
+- `gameEngine.ts`
 
----
+Туди:
 
-## L0 — Normal
+- `makeDefaultGrid`
+- `findEmpty`
+- `tilesFromGrid`
+- `commitShift`
+- пізніше `isSolved`
+- `shuffleGrid`
+- `canMove`
+- `serializeGrid` / `deserializeGrid`
 
-- Hero = FULL
-- Footer = FULL
-- panelPadding = 40
-- panelGap = 24
-- спейсери розподіляють надлишкову висоту
+Тоді `GameBoardView` не вирішуватиме, **як рухаються плитки**, а лише використовуватиме готові правила.
 
 ---
 
-## L1 — Tight
+## 2. `GameBoardView` змішує state model і scene composition
 
-- Hero = FULL
-- Footer = COMPACT (менше відступів)
-- panelPadding = 32
-- panelGap = 16
-- спейсери мінімізуються
+Файл одночасно:
 
----
+- зберігає grid-state,
+- керує анімацією,
+- збирає Canvas tree.
 
-## L2 — Low Height
+Це означає, що він є і model-controller, і render-controller одразу.
 
-- Hero = COMPACT (зменшена версія)
-- Footer = COMPACT
-- panelPadding = 24
-- panelGap = 12
-- SpacerA/B = мінімум
+Краще мати таку межу:
 
----
+- **hook/model layer**
+  - `useGameBoardState()`
 
-## L3 — Critical Height
+- **scene layer**
+  - `GameBoardView`
 
-- Hero = OFF
-- Footer = OFF (Home only)
-- panelPadding = 20
-- panelGap = 10
-- Spacer = 0
+Тоді hook повертає:
 
----
+- `tiles`
+- `boardMetrics`
+- `empty`
+- `gesture shared values`
+- `handlers`
+- `animation state`
 
-## L4 — Emergency
-
-- Hero = OFF
-- Footer = OFF
-- PanelContent → SCROLL
-- нічого більше не масштабується
+А `GameBoardView` просто збирає сцену.
 
 ---
 
-# 🎨 5️⃣ PANEL SURFACE СПЕЦИФІКАЦІЯ
+## 3. `animMovedIds.includes(t.id)` — маленьке, але показове місце
 
-```
-PanelSurface:
-  width = min(sw - 2*sideMarginMin, 340*S)
-  height = measured content height
-  fill = #71D4EB
-  radius = radiusBase
-  inset shadow:
-      offsetY = 4
-      blur = 4
-      color = rgba(0,0,0,0.25)
-```
+У render map кожної плитки є:
 
-Кешується по `(width, height, theme)`.
+`animMoved={animMovedIds.includes(t.id)}`
 
----
+Для 15 плиток це дрібниця. Але архітектурно це маркер, що анімаційний state подається трохи “на льоту”, а не у вже підготовленому вигляді.
 
-# 🔘 6️⃣ BUTTON SURFACE СПЕЦИФІКАЦІЯ
+Краще:
 
-### Default
+- або `Set<number>` через `useMemo`,
+- або derived map.
 
-```
-fill = #D5F7FF
-border = 3px #D5F7FF
-outer shadow: 0 0 10 rgba(0,0,0,0.25)
-inset shadow: 0 0 10 rgba(0,0,0,0.5)
-radius = 8
-```
-
-### Pressed
-
-```
-fill = #FAFF3F
-інші параметри незмінні
-```
-
-> Pressed — тимчасовий interaction state.
-> Не викликає re-layout.
-> Лише зміна render-token.
+Не тому що зараз повільно, а тому що це робить намір яснішим.
 
 ---
 
-# 🧠 7️⃣ ЩО МАСШТАБУЄМО, А ЩО НІ
+## 4. Подвійність між React state і Shared Values вже починає ускладнювати картину
 
-| Елемент     | Scale S  | Clamp     | Не масштабуємо |
-| ----------- | -------- | --------- | -------------- |
-| Геометрія   | ✔        | —         | —              |
-| Радіуси     | ✔        | 6–12      | —              |
-| Бордер      | частково | 2–4       | —              |
-| Blur        | частково | max ~12   | —              |
-| Типографіка | ✔        | мін 14–16 | —              |
+У тебе є:
 
----
+- React `grid`
+- React `animMovedIds`, `animAxis`, `animDir`
+- Reanimated `emptyRow`, `emptyCol`, `dragActive`, `dragAxis`, `dragSteps`, `dragLine`, `animT`
 
-# 📱 8️⃣ ЧОМУ ЦЕ РІШЕННЯ ПРАЦЮЄ НА ВСІХ ГАДЖЕТАХ
+Це нормально для такого типу сцени, але вже вимагає дисципліни.
 
-✔ не ламає пропорції
-✔ не розтягує UI
-✔ не залежить від дивних Motorola
-✔ дозволяє “високим” екранам виглядати повітряно
-✔ не дає “мікроінтерфейсу” на низьких
-✔ передбачає scroll тільки як крайній варіант
+Проблема не в самому факті подвійності, а в тому, що файл починає бути місцем синхронізації всіх цих шарів одразу.
+
+Тобто `GameBoardView` уже не просто “view”, а “sync hub”.
 
 ---
 
-# 🔩 9️⃣ ЯК ЦЕ ЛЯГАЄ НА SKIA АРХІТЕКТУРУ
+# Що я вважаю дуже важливим спостереженням
 
-- RN робить layout snapshot (rect-и зон)
-- Skia рендерить PanelSurface + ButtonSurfaces
-- pressed → лише token change
-- hero → окрема сцена (пізніше)
+## `TileNode` логічно хороший, але його краще винести в окремий файл
+
+Зараз `TileNode` — внутрішній memo-компонент усередині `GameBoardView.tsx`.
+Технічно це нормально. Але архітектурно це вже самостійний scene-node.
+
+Він має:
+
+- власні пропси,
+- власну animation logic,
+- власний derived transform,
+- окрему роль у render tree.
+
+Я б виніс його в:
+
+- `GameBoardTileNode.tsx`
+  або
+- `BoardTileNode.tsx`
+
+Причина не в “модності”, а в тому, що це вже окремий елемент сцени.
+
+---
+
+# Як я бачу правильний поділ після рефакторингу
+
+## Варіант цільової структури
+
+### 1. `gameBoardModel.ts`
+
+Чиста логіка:
+
+- `makeDefaultGrid`
+- `findEmpty`
+- `tilesFromGrid`
+- `commitShift`
+- `isSolved`
+- `shuffleGrid`
+
+### 2. `useGameBoardController.ts`
+
+Hook orchestration:
+
+- `grid`
+- `tiles`
+- `empty`
+- `anim state`
+- shared values
+- `onTapCell`
+- `onCommitShift`
+
+### 3. `GameBoardView.tsx`
+
+Тільки scene composition:
+
+- outer container
+- canvas
+- board skin
+- tile nodes
+- overlay
+
+### 4. `BoardTileNode.tsx`
+
+Окрема плитка:
+
+- `useDerivedValue`
+- `TileSkin`
+- visual transform logic
 
 ---
 
-Добре. Ось твій **ultra-короткий чек-лист (10 рядків)** для роботи з кількома Android-пристроями + емулятором.
+# Який зараз реальний статус файлу
+
+Я б оцінив так:
+
+### Архітектурно:
+
+**7.5/10**
+
+Чому не нижче:
+
+- логіка не хаотична,
+- ролі в цілому читаються,
+- розділення зі skin/gesture/geometry уже є.
+
+Чому не вище:
+
+- view-файл уже містить domain logic,
+- state orchestration і rendering сидять разом,
+- він стане вузьким місцем при наступному рості.
 
 ---
 
-# 🧩 Fifteen Puzzles — Android Dev Checklist
+# Що б я зробив першим?
 
-1️⃣ Запусти Metro
+Ось порядок, який дасть найбільшу користь.
 
-```
-pnpm dev
-```
+## Крок 1
 
-2️⃣ Перевір, що Metro на 8081
+Винести з `GameBoardView.tsx` у окремий файл:
 
-```
-netstat -ano | findstr :8081
-```
+- `makeDefaultGrid`
+- `idx`
+- `findEmpty`
+- `tilesFromGrid`
+- `commitShift`
 
-3️⃣ Емулятор — нічого не налаштовувати, просто відкрий app.
+Це найважливіше.
 
-4️⃣ Підключив новий USB-девайс → перевір:
+## Крок 2
 
-```
-adb devices
-```
+Винести `TileNode` в окремий файл.
 
-5️⃣ Для КОЖНОГО фізичного девайса зроби:
+## Крок 3
 
-```
-adb -s DEVICE_ID reverse tcp:8081 tcp:8081
-```
+Створити hook типу `useGameBoardController`.
 
-6️⃣ Перевір reverse:
+Тільки після цього вже думати про:
 
-```
-adb reverse --list
-```
-
-7️⃣ У Dev Menu телефону:
-
-```
-Debug server host & port → localhost:8081
-```
-
-8️⃣ Якщо “Unable to load script” → знову зробити reverse.
-
-9️⃣ Якщо змінював native/gradle/hermes →
-
-```
-pnpm android
-```
-
-🔟 Якщо просто код → нічого не білдити, hot reload працює.
+- solved-state
+- shuffle
+- persistence bridge
+- move counter
+- sound
+- win animation
 
 ---
+
+# Підсумок одним реченням
+
+**`GameBoardView.tsx` зараз виконує роль хорошого scene orchestrator, але вже несе на собі зайву доменну логіку гри, і саме її треба винести першою, щоб файл не перетворився на god-file.**
+
+Наступним кроком я б уже не просто аналізував, а дав тобі **конкретну цільову схему файлів і готовий план рефакторингу для `GameBoardView` без зміни поведінки**.
