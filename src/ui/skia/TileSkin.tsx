@@ -10,7 +10,7 @@ import {
 import React, { useMemo } from "react";
 
 // Імпортуємо наш новий шейдер
-import tileShaderSource from "./shaders/tile_v2.sksl";
+import tileShaderSource from "./shaders/tile.sksl";
 
 // Компілюємо ОДИН раз для максимального FPS
 const tileEffect = Skia.RuntimeEffect.Make(tileShaderSource);

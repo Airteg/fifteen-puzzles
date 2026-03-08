@@ -1,10 +1,15 @@
 // kind=shader
-uniform float2 canvasSize; 
-uniform float2 tileSize;   
+uniform float2 u_canvasSize; 
+uniform float2 u_tileSize;   
+uniform half4 u_tint; 
 
-// Наша Branchless функція переходів
 float lstep(float a, float b, float x) {
     return clamp((x - a) / (b - a), 0.0, 1.0);
+}
+
+// Branchless функція для правильної фізики прозорості
+half4 premultiply(half3 rgb, half a) {
+    return half4(rgb * a, a);
 }
 
 float sdRoundedBox(vec2 p, vec2 b, float r) {
@@ -13,83 +18,74 @@ float sdRoundedBox(vec2 p, vec2 b, float r) {
 }
 
 half4 main(float2 pos) {
-    vec2 center = canvasSize * 0.5;
+    vec2 center = u_canvasSize * 0.5;
     vec2 p = pos - center;
-    vec2 halfSize = tileSize * 0.5;
-    float radius = tileSize.x * 0.0666666666666667; 
-    float scale = tileSize.x / 60.0;
+    vec2 halfSize = u_tileSize * 0.5;
+    float radius = u_tileSize.x * 0.0666666666666667; 
+    float scale = u_tileSize.x / 60.0;
     
-    // --- ТІНІ ---
+//     1. НАПРЯМОК ТІНЕЙ (Offset)
+    // vec2(X, Y). 
+    // X: додатне = вправо, від'ємне = вліво.
+    // Y: додатне = вниз, від'ємне = вгору.
     vec2 lightOffset = vec2(2.0, -2.0) * scale;
     vec2 darkOffset  = vec2(-2.0, 2.0) * scale;
-    float blur = 4.0 * scale;
+    // 2. РОЗМИТТЯ (Blur)
+    // 4.0 — це радіус розмиття в пікселях. Більше число = більш "пухка" тінь.
+    float blur = 3.0 * scale;
 
     float dDark = sdRoundedBox(p - darkOffset, halfSize, radius);
     float maskDark = smoothstep(blur, -blur, dDark);
-    half4 colorDark = half4(0.0, 0.0, 0.0, 0.5); 
+    // 3. КОЛІР ТА ПРОЗОРІСТЬ (Opacity)
+    // Формат: half4(R, G, B, Alpha). Значення від 0.0 до 1.0.
+    // Чорна тінь (0,0,0) з прозорістю 50% (0.5)
+    half4 colorDark = premultiply(half3(0.0, 0.0, 0.0), 0.4); 
 
     float dLight = sdRoundedBox(p - lightOffset, halfSize, radius);
     float maskLight = smoothstep(blur, -blur, dLight);
-    half4 colorLight = half4(1.0, 1.0, 1.0, 0.5); 
+    // Біла тінь-блік (1,1,1) з прозорістю 50% (0.5)
+    half4 colorLight = premultiply(half3(1.0, 1.0, 1.0), 0.3);
 
-    // --- БАЗОВЕ ПОЛЕ ВІДСТАНЕЙ (60x60) ---
+    // --- 2. МАСКИ ---
     float dMain = sdRoundedBox(p, halfSize, radius);
     float maskMain = smoothstep(0.5, -0.5, dMain);
 
-    // --- СПІЛЬНИЙ ПРОСТІР ГРАДІЄНТІВ (25 градусів) ---
+    float innerOffset = 0.75 * scale;
+    float maskInner = smoothstep(0.5, -0.5, dMain + innerOffset);
+
+    // --- 3. ГРАДІЄНТИ ---
     vec2 gradDir = vec2(0.4226, -0.9063);
     float proj = dot(p, gradDir);
     float maxProj = halfSize.x * abs(gradDir.x) + halfSize.y * abs(gradDir.y);
     float t = (proj + maxProj) / (2.0 * maxProj);
 
-    // ==========================================
-    // ШАР 2: ГРАДІЄНТ РАМКИ (Зовнішній)
-    // ==========================================
-    half4 c1 = half4(164.0/255.0, 179.0/255.0, 189.0/255.0, 1.0); // #A4B3BD
-    half4 c2 = half4(238.0/255.0, 241.0/255.0, 243.0/255.0, 1.0); // #EEF1F3
-    half4 c3 = half4(1.0, 1.0, 1.0, 1.0);                         // #FFFFFF
-
+    half4 c1 = half4(164.0/255.0, 179.0/255.0, 189.0/255.0, 1.0); 
+    half4 c2 = half4(238.0/255.0, 241.0/255.0, 243.0/255.0, 1.0); 
+    half4 c3 = half4(1.0, 1.0, 1.0, 1.0);                         
     half4 gradOuter = c1; 
     gradOuter = mix(gradOuter, c2, lstep(0.181, 0.7223, t));
     gradOuter = mix(gradOuter, c3, lstep(0.7223, 0.8383, t));
 
-    // ==========================================
-    // ШАР 3: ГРАДІЄНТ ЦЕНТРУ (Внутрішній 58.5x58.5)
-    // ==========================================
-    // SDF Ерозія: зменшуємо фігуру на 0.75px з кожного боку (з урахуванням масштабу)
-    float innerOffset = 0.75 * scale;
-    float dInner = dMain + innerOffset; 
-    
-    // Нова маска для внутрішньої частини
-    float maskInner = smoothstep(0.5, -0.5, dInner);
-
-    // Кольори внутрішнього градієнта
-    half4 ic1 = half4(253.0/255.0, 253.0/255.0, 253.0/255.0, 1.0); // #FDFDFD
-    half4 ic2 = half4(244.0/255.0, 244.0/255.0, 244.0/255.0, 1.0); // #F4F4F4
-    half4 ic3 = half4(220.0/255.0, 220.0/255.0, 220.0/255.0, 1.0); // #DCDCDC
-    half4 ic4 = half4(208.0/255.0, 208.0/255.0, 208.0/255.0, 1.0); // #D0D0D0
-
-    // Каскадне змішування внутрішнього градієнта (світле -> темне)
+    half4 ic1 = half4(253.0/255.0, 253.0/255.0, 253.0/255.0, 1.0); 
+    half4 ic2 = half4(244.0/255.0, 244.0/255.0, 244.0/255.0, 1.0); 
+    half4 ic3 = half4(220.0/255.0, 220.0/255.0, 220.0/255.0, 1.0); 
+    half4 ic4 = half4(208.0/255.0, 208.0/255.0, 208.0/255.0, 1.0); 
     half4 gradInner = ic1;
     gradInner = mix(gradInner, ic2, lstep(0.017, 0.3068, t));
     gradInner = mix(gradInner, ic3, lstep(0.3068, 0.7801, t));
     gradInner = mix(gradInner, ic4, lstep(0.7801, 0.9829, t));
 
-    // ==========================================
-    // КОМПОЗИТИНГ (Сендвіч)
-    // ==========================================
-    half4 finalColor = half4(0.0); 
+    // --- 4. КОМПОЗИТИНГ ---
+    half4 baseTile = mix(gradOuter, gradInner, maskInner);
     
-    // 1. Тіні на тло
-    finalColor = mix(finalColor, colorDark, maskDark);
-    finalColor = mix(finalColor, colorLight, maskLight);
-    
-    // 2. Рамка (60x60). Заповнює всю фігуру своїм градієнтом.
-    finalColor = mix(finalColor, gradOuter, maskMain);
-    
-    // 3. Внутрішня лицьова частина (58.5x58.5).
-    // Вона лягає ЗВЕРХУ на рамку, перекриваючи її центр, і залишає видимим лише тонкий край 0.75px!
-    finalColor = mix(finalColor, gradInner, maskInner);
+    // Множимо на наш u_tint
+    half4 multipliedTile = half4(baseTile.rgb * u_tint.rgb, baseTile.a);
+    half4 finalTile = mix(baseTile, multipliedTile, u_tint.a);
 
-    return finalColor;
+    half4 finalScene = half4(0.0); 
+    finalScene = mix(finalScene, colorDark, maskDark);
+    finalScene = mix(finalScene, colorLight, maskLight);
+    finalScene = mix(finalScene, finalTile, maskMain);
+
+    return finalScene;
 }

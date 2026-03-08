@@ -6,6 +6,8 @@ import { Props } from "../types/types";
 
 // Імпортуємо компоненти
 import { TileSkin1 } from "@/ui/skia/TileSkin1";
+import { SmileySkin } from "@/ui/skia/SmileySkin";
+import { hexToShader } from "@/utils/color";
 
 const TEST_OBJ_SIZE = 100;
 const PADDING = 40; // Безпечний відступ з усіх боків, щоб не обрізалися тіні
@@ -75,7 +77,7 @@ const AboutScreen = ({ navigation }: Props<"About">) => {
               font={font}
               S={1}
               snap={(v) => Math.round(v)}
-              baseColor={[0.83, 0.96, 1.0, 1.0]}
+              tintColor={hexToShader("#00D1FF", 0.5)}
             />
             {/* Коли захочеш подивитися SmileySkin, просто закоментуй TileSkin і розкоментуй це: */}
             {/* <Group
