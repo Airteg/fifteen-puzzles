@@ -11,33 +11,29 @@ export type DragEvent = {
   phase: "start" | "end";
   axis: "x" | "y" | null;
   steps: number;
-  x: number; // finger x inside board (без pad)
-  y: number; // finger y inside board (без pad)
+  x: number;
+  y: number;
 };
 
 type Props = {
   m: BoardMetrics;
-  pad: number; // translate(pad,pad) у Canvas
+  pad: number;
   canvasSize: number;
 
   lockAbs: number;
   lockRatio?: number;
 
-  // optional external shared state (для Skia preview шару)
   emptyRow?: SharedValue<number>;
   emptyCol?: SharedValue<number>;
 
-  dragActive?: SharedValue<number>; // 0|1
-  dragAxis?: SharedValue<number>; // 0 none, 1 x, 2 y
-  dragSteps?: SharedValue<number>; // integer steps (clamped)
-  dragLine?: SharedValue<number>; // row for x, col for y
-  dragOffsetPx: SharedValue<number>; // піксельне зміщення для перетягнутих плиток (для плавнішої анімації, а не лише snapSteps * step)
+  dragActive?: SharedValue<number>;
+  dragAxis?: SharedValue<number>;
+  dragStartRow?: SharedValue<number>;
+  dragStartCol?: SharedValue<number>;
+  dragOffsetPx: SharedValue<number>;
 
-  // optional JS callbacks (тільки onEnd / tap)
   onCommitShift?: (axis: "x" | "y", steps: number) => void;
   onTapCell?: (row: number, col: number) => void;
-
-  // optional debug hook (start/end only)
   onDrag?: (e: DragEvent) => void;
 };
 
@@ -54,29 +50,31 @@ export function BoardGestureOverlay(props: Props) {
     dragOffsetPx,
   } = props;
 
-  // ---- provide internal shared values if not passed ----
   const emptyRowSV = props.emptyRow ?? useSharedValue(3);
   const emptyColSV = props.emptyCol ?? useSharedValue(3);
 
   const dragActiveSV = props.dragActive ?? useSharedValue(0);
   const dragAxisSV = props.dragAxis ?? useSharedValue(0);
-  const dragStepsSV = props.dragSteps ?? useSharedValue(0);
-  const dragLineSV = props.dragLine ?? useSharedValue(-1);
+  const dragStartRowSV = props.dragStartRow ?? useSharedValue(-1);
+  const dragStartColSV = props.dragStartCol ?? useSharedValue(-1);
+
+  // Локальний стан для відслідковування кроків всередині жесту
+  const dragStepsSV = useSharedValue(0);
 
   const commit = onCommitShift ?? (() => {});
   const tapCell = onTapCell ?? (() => {});
 
   const gesture = useMemo(() => {
-    // JS-local state (бо runOnJS(true))
     let startRow = -1;
     let startCol = -1;
 
     const resetDrag = () => {
       dragActiveSV.value = 0;
       dragAxisSV.value = 0;
-      dragStepsSV.value = 0;
-      dragLineSV.value = -1;
+      dragStartRowSV.value = -1;
+      dragStartColSV.value = -1;
       dragOffsetPx.value = 0;
+      dragStepsSV.value = 0;
       startRow = -1;
       startCol = -1;
     };
@@ -87,37 +85,32 @@ export function BoardGestureOverlay(props: Props) {
     const pointToCell = (x: number, y: number) => {
       const localX = x - m.inset;
       const localY = y - m.inset;
-
       let col = Math.floor(localX / m.step);
       let row = Math.floor(localY / m.step);
-
       if (col < 0) col = 0;
       if (col > 3) col = 3;
       if (row < 0) row = 0;
       if (row > 3) row = 3;
-
       return { row, col };
     };
 
     const clampSteps = (rawSteps: number, distToEmpty: number) => {
       if (distToEmpty === 0) return 0;
-
       if (distToEmpty > 0) {
         if (rawSteps < 0) return 0;
         return rawSteps > distToEmpty ? distToEmpty : rawSteps;
       }
-
       if (rawSteps > 0) return 0;
       return rawSteps < distToEmpty ? distToEmpty : rawSteps;
     };
-    const clampOffsetPx = (offsetPx: number, distToEmpty: number) => {
-      const minPx = Math.min(0, distToEmpty * m.step);
-      const maxPx = Math.max(0, distToEmpty * m.step);
 
-      if (offsetPx < minPx) return minPx;
-      if (offsetPx > maxPx) return maxPx;
-      return offsetPx;
+    const clampOffsetPx = (offsetPx: number, distToEmpty: number) => {
+      const maxAllowed = distToEmpty * m.step;
+      if (distToEmpty > 0) return Math.max(0, Math.min(offsetPx, maxAllowed));
+      if (distToEmpty < 0) return Math.min(0, Math.max(offsetPx, maxAllowed));
+      return 0;
     };
+
     const pan = Gesture.Pan()
       .runOnJS(true)
       .minDistance(lockAbs)
@@ -136,9 +129,10 @@ export function BoardGestureOverlay(props: Props) {
 
         dragActiveSV.value = 1;
         dragAxisSV.value = 0;
-        dragStepsSV.value = 0;
-        dragLineSV.value = -1;
+        dragStartRowSV.value = startRow;
+        dragStartColSV.value = startCol;
         dragOffsetPx.value = 0;
+        dragStepsSV.value = 0;
 
         onDrag?.({ phase: "start", axis: null, steps: 0, x, y });
       })
@@ -161,13 +155,10 @@ export function BoardGestureOverlay(props: Props) {
 
         if (dragAxisSV.value === 0) {
           dragAxisSV.value = axis === "x" ? 1 : 2;
-          dragLineSV.value = axis === "x" ? startRow : startCol;
         }
 
-        // allow drag only if empty is on the same line as the start cell
         if (axis === "x") {
           if (startRow !== emptyRowSV.value) {
-            dragStepsSV.value = 0;
             dragOffsetPx.value = 0;
             return;
           }
@@ -177,7 +168,6 @@ export function BoardGestureOverlay(props: Props) {
           dragOffsetPx.value = clampOffsetPx(tx, dist);
         } else {
           if (startCol !== emptyColSV.value) {
-            dragStepsSV.value = 0;
             dragOffsetPx.value = 0;
             return;
           }
@@ -235,8 +225,8 @@ export function BoardGestureOverlay(props: Props) {
     emptyColSV,
     dragActiveSV,
     dragAxisSV,
-    dragStepsSV,
-    dragLineSV,
+    dragStartRowSV,
+    dragStartColSV,
     dragOffsetPx,
   ]);
 

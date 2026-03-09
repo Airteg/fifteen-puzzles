@@ -42,8 +42,8 @@ export function GameBoardView({ tileFont }: Props) {
     emptyCol,
     dragActive,
     dragAxis,
-    dragSteps,
-    dragLine,
+    dragStartRow,
+    dragStartCol,
     dragOffsetPx,
     animT,
     animMovedIds,
@@ -90,8 +90,8 @@ export function GameBoardView({ tileFont }: Props) {
               emptyCol={emptyCol}
               dragActive={dragActive}
               dragAxis={dragAxis}
-              dragSteps={dragSteps}
-              dragLine={dragLine}
+              dragStartRow={dragStartRow}
+              dragStartCol={dragStartCol}
               dragOffsetPx={dragOffsetPx}
               animT={animT}
               animAxis={animAxis}
@@ -112,8 +112,8 @@ export function GameBoardView({ tileFont }: Props) {
         emptyCol={emptyCol}
         dragActive={dragActive}
         dragAxis={dragAxis}
-        dragSteps={dragSteps}
-        dragLine={dragLine}
+        dragStartRow={dragStartRow}
+        dragStartCol={dragStartCol}
         dragOffsetPx={dragOffsetPx}
         onTapCell={onTapCell}
         onCommitShift={onCommitShift}

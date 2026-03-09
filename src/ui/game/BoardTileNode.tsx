@@ -25,8 +25,8 @@ export type BoardTileNodeProps = {
   emptyCol: SharedValue<number>;
   dragActive: SharedValue<number>;
   dragAxis: SharedValue<number>;
-  dragSteps: SharedValue<number>;
-  dragLine: SharedValue<number>;
+  dragStartRow: SharedValue<number>;
+  dragStartCol: SharedValue<number>;
   dragOffsetPx: SharedValue<number>;
 
   animT: SharedValue<number>;
@@ -52,8 +52,8 @@ export const BoardTileNode = memo(function BoardTileNode(
     dragActive,
     dragOffsetPx,
     dragAxis,
-    dragSteps,
-    dragLine,
+    dragStartRow,
+    dragStartCol,
     animT,
     animAxis,
     animDir,
@@ -71,35 +71,29 @@ export const BoardTileNode = memo(function BoardTileNode(
 
       if (offsetPx !== 0) {
         if (dragAxis.value === 1) {
-          if (row === dragLine.value && row === emptyRow.value) {
+          // Рух по осі X
+          if (row === dragStartRow.value && row === emptyRow.value) {
+            const sC = dragStartCol.value;
             const eC = emptyCol.value;
-
-            if (offsetPx > 0) {
-              const tilesToLeft = Math.ceil(offsetPx / step);
-              if (col >= eC - tilesToLeft && col <= eC - 1) {
-                dx = offsetPx;
-              }
-            } else {
-              const tilesToRight = Math.ceil(Math.abs(offsetPx) / step);
-              if (col >= eC + 1 && col <= eC + tilesToRight) {
-                dx = offsetPx;
-              }
+            if (sC < eC) {
+              // Блок рухається вправо (до empty)
+              if (col >= sC && col <= eC - 1) dx = offsetPx;
+            } else if (sC > eC) {
+              // Блок рухається вліво (до empty)
+              if (col >= eC + 1 && col <= sC) dx = offsetPx;
             }
           }
         } else if (dragAxis.value === 2) {
-          if (col === dragLine.value && col === emptyCol.value) {
+          // Рух по осі Y
+          if (col === dragStartCol.value && col === emptyCol.value) {
+            const sR = dragStartRow.value;
             const eR = emptyRow.value;
-
-            if (offsetPx > 0) {
-              const tilesAbove = Math.ceil(offsetPx / step);
-              if (row >= eR - tilesAbove && row <= eR - 1) {
-                dy = offsetPx;
-              }
-            } else {
-              const tilesBelow = Math.ceil(Math.abs(offsetPx) / step);
-              if (row >= eR + 1 && row <= eR + tilesBelow) {
-                dy = offsetPx;
-              }
+            if (sR < eR) {
+              // Блок рухається вниз
+              if (row >= sR && row <= eR - 1) dy = offsetPx;
+            } else if (sR > eR) {
+              // Блок рухається вгору
+              if (row >= eR + 1 && row <= sR) dy = offsetPx;
             }
           }
         }
@@ -113,7 +107,7 @@ export const BoardTileNode = memo(function BoardTileNode(
     }
 
     return [{ translateX: dx }, { translateY: dy }];
-  }, [animMoved, animAxis, animDir, step, dragOffsetPx]);
+  }, [animMoved, animAxis, animDir, step]);
 
   return (
     <Group transform={transform}>
