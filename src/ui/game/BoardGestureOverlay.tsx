@@ -197,14 +197,16 @@ export function BoardGestureOverlay(props: Props) {
 
         onDrag?.({ phase: "end", axis, steps, x, y });
 
-        resetDrag();
-
-        if (axis && steps !== 0) {
+        if (axis) {
           commit(axis, steps);
+        } else {
+          resetDrag();
         }
       })
       .onFinalize(() => {
-        if (dragActiveSV.value === 1) resetDrag();
+        if (dragActiveSV.value === 1 && dragAxisSV.value === 0) {
+          resetDrag();
+        }
       });
 
     const tap = Gesture.Tap()

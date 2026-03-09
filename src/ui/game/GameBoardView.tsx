@@ -51,7 +51,9 @@ export function GameBoardView({ tileFont }: Props) {
     animDir,
     onTapCell,
     onCommitShift,
-  } = useGameBoardController();
+  } = useGameBoardController({
+    stepPx: m.step,
+  });
 
   return (
     <View

@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { useSharedValue, withTiming } from "react-native-reanimated";
+import { scheduleOnRN } from "react-native-worklets";
 
 import type { BoardAxis, TileModel } from "./gameBoardModel";
 import {
@@ -31,11 +32,17 @@ export type UseGameBoardControllerResult = {
   onTapCell: (row: number, col: number) => void;
   onCommitShift: (axis: BoardAxis, steps: number) => void;
 };
+type UseGameBoardControllerParams = {
+  stepPx: number;
+};
 
-export function useGameBoardController(): UseGameBoardControllerResult {
+export function useGameBoardController({
+  stepPx,
+}: UseGameBoardControllerParams): UseGameBoardControllerResult {
   const [grid, setGrid] = useState<number[]>(() => makeDefaultGrid());
   const empty = useMemo(() => findEmpty(grid), [grid]);
   const tiles = useMemo(() => tilesFromGrid(grid), [grid]);
+  void stepPx;
 
   // Ініціалізація Shared Values для Reanimated
   const emptyRow = useSharedValue(empty.row);
@@ -51,6 +58,28 @@ export function useGameBoardController(): UseGameBoardControllerResult {
   const [animMovedIds, setAnimMovedIds] = useState<number[]>([]);
   const [animAxis, setAnimAxis] = useState<BoardAxis>("x");
   const [animDir, setAnimDir] = useState<1 | -1>(1);
+
+  const resetDragPreview = useCallback(() => {
+    dragActive.value = 0;
+    dragAxis.value = 0;
+    dragSteps.value = 0;
+    dragLine.value = -1;
+    dragOffsetPx.value = 0;
+  }, [dragActive, dragAxis, dragSteps, dragLine, dragOffsetPx]);
+
+  const applyDragCommit = useCallback(
+    (nextGrid: number[], newEmpty: { row: number; col: number }) => {
+      // Для drag-коміту вимикаємо старий catch-up
+      setAnimMovedIds([]);
+
+      setGrid(nextGrid);
+      emptyRow.value = newEmpty.row;
+      emptyCol.value = newEmpty.col;
+
+      resetDragPreview();
+    },
+    [emptyRow, emptyCol, resetDragPreview],
+  );
 
   const onTapCell = useCallback(
     (row: number, col: number) => {
@@ -71,45 +100,52 @@ export function useGameBoardController(): UseGameBoardControllerResult {
       const res = commitShift(grid, empty, axis, steps);
       if (!res) return;
 
-      // 1. Оновлюємо стан React
-      setAnimMovedIds(res.movedIds);
-      setAnimAxis(axis);
-      setAnimDir(res.dir);
+      setAnimMovedIds([]);
       setGrid(res.nextGrid);
 
-      // 2. СИНХРОННО оновлюємо Reanimated Shared Values
       const newEmpty = findEmpty(res.nextGrid);
       emptyRow.value = newEmpty.row;
       emptyCol.value = newEmpty.col;
-
-      // 3. Запускаємо анімацію
-      animT.value = 0;
-      animT.value = withTiming(1, { duration: 140 });
     },
     [animT, empty, grid, emptyRow, emptyCol],
   );
 
   const onCommitShift = useCallback(
     (axis: BoardAxis, steps: number) => {
+      if (steps === 0) {
+        dragOffsetPx.value = withTiming(0, { duration: 120 }, (finished) => {
+          if (finished) {
+            scheduleOnRN(resetDragPreview);
+          }
+        });
+        return;
+      }
+
       const res = commitShift(grid, empty, axis, steps);
-      if (!res) return;
+      if (!res) {
+        dragOffsetPx.value = withTiming(0, { duration: 120 }, (finished) => {
+          if (finished) {
+            scheduleOnRN(resetDragPreview);
+          }
+        });
+        return;
+      }
 
-      // 1. Оновлюємо стан React
-      setAnimMovedIds(res.movedIds);
-      setAnimAxis(axis);
-      setAnimDir(res.dir);
-      setGrid(res.nextGrid);
+      const targetPx = steps * stepPx;
+      const nextGrid = res.nextGrid;
+      const newEmpty = findEmpty(nextGrid);
 
-      // 2. СИНХРОННО оновлюємо Reanimated Shared Values
-      const newEmpty = findEmpty(res.nextGrid);
-      emptyRow.value = newEmpty.row;
-      emptyCol.value = newEmpty.col;
-
-      // 3. Запускаємо анімацію
-      animT.value = 0;
-      animT.value = withTiming(1, { duration: 160 });
+      dragOffsetPx.value = withTiming(
+        targetPx,
+        { duration: 100 },
+        (finished) => {
+          if (finished) {
+            scheduleOnRN(applyDragCommit, nextGrid, newEmpty);
+          }
+        },
+      );
     },
-    [animT, empty, grid, emptyRow, emptyCol],
+    [applyDragCommit, dragOffsetPx, empty, grid, resetDragPreview, stepPx],
   );
 
   return {
