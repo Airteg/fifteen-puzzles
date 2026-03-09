@@ -38,6 +38,7 @@ export function GameBoardView({ tileFont }: Props) {
   const canvasSize = m.boardSize + pad * 2;
   const {
     tiles,
+    gridSV,
     emptyRow,
     emptyCol,
     dragActive,
@@ -46,9 +47,9 @@ export function GameBoardView({ tileFont }: Props) {
     dragStartCol,
     dragOffsetPx,
     animT,
-    animMovedIds,
-    animAxis,
-    animDir,
+    animMovedIdsSV,
+    animAxisSV,
+    animDirSV,
     onTapCell,
     onCommitShift,
   } = useGameBoardController({
@@ -83,9 +84,8 @@ export function GameBoardView({ tileFont }: Props) {
               snap={snap}
               tileId={t.id}
               label={t.label}
-              row={t.row}
-              col={t.col}
               font={tileFont}
+              gridSV={gridSV}
               emptyRow={emptyRow}
               emptyCol={emptyCol}
               dragActive={dragActive}
@@ -94,9 +94,9 @@ export function GameBoardView({ tileFont }: Props) {
               dragStartCol={dragStartCol}
               dragOffsetPx={dragOffsetPx}
               animT={animT}
-              animAxis={animAxis}
-              animDir={animDir}
-              animMoved={animMovedIds.includes(t.id)}
+              animAxisSV={animAxisSV}
+              animDirSV={animDirSV}
+              animMovedIdsSV={animMovedIdsSV}
             />
           ))}
         </Group>

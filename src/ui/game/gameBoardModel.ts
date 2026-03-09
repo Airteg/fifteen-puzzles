@@ -103,3 +103,29 @@ export function commitShift(
 
   return { nextGrid: next, movedIds, dir };
 }
+
+export type MoveKind = "tap" | "drag";
+
+export type MoveId = number;
+
+export type ActiveMove = {
+  moveId: MoveId;
+  kind: MoveKind;
+
+  axis: BoardAxis;
+  lineIndex: number; // row для x, col для y
+
+  // Межі рухомого блоку в цій лінії.
+  // Для axis === "x" це start..end по col.
+  // Для axis === "y" це start..end по row.
+  rangeStart: number;
+  rangeEnd: number;
+
+  steps: number;
+  offsetPx: number;
+};
+
+export type PendingCommit = {
+  moveId: MoveId;
+  nextGrid: number[];
+};

@@ -5,9 +5,7 @@ import type { SharedValue } from "react-native-reanimated";
 import { useDerivedValue } from "react-native-reanimated";
 
 import type { BoardMetrics } from "@/ui/game/boardGeometry";
-import { cellRect } from "@/ui/game/boardGeometry";
 import { TileSkin } from "@/ui/skia/TileSkin";
-
 import type { BoardAxis } from "./gameBoardModel";
 
 export type BoardTileNodeProps = {
@@ -17,10 +15,9 @@ export type BoardTileNodeProps = {
 
   tileId: number;
   label: string;
-  row: number;
-  col: number;
   font: SkFont;
 
+  gridSV: SharedValue<number[]>;
   emptyRow: SharedValue<number>;
   emptyCol: SharedValue<number>;
   dragActive: SharedValue<number>;
@@ -30,9 +27,9 @@ export type BoardTileNodeProps = {
   dragOffsetPx: SharedValue<number>;
 
   animT: SharedValue<number>;
-  animAxis: BoardAxis;
-  animDir: 1 | -1;
-  animMoved: boolean;
+  animAxisSV: SharedValue<BoardAxis>;
+  animDirSV: SharedValue<1 | -1>;
+  animMovedIdsSV: SharedValue<number[]>;
 };
 
 export const BoardTileNode = memo(function BoardTileNode(
@@ -44,75 +41,73 @@ export const BoardTileNode = memo(function BoardTileNode(
     snap,
     tileId,
     label,
-    row,
-    col,
     font,
+    gridSV,
     emptyRow,
     emptyCol,
     dragActive,
-    dragOffsetPx,
     dragAxis,
     dragStartRow,
     dragStartCol,
+    dragOffsetPx,
     animT,
-    animAxis,
-    animDir,
-    animMoved,
+    animAxisSV,
+    animDirSV,
+    animMovedIdsSV,
   } = props;
 
   const step = m.step;
+  const inset = m.inset;
 
   const transform = useDerivedValue(() => {
-    let dx = 0;
-    let dy = 0;
+    // 1. Отримуємо АКТУАЛЬНУ позицію безпосередньо в UI-потоці
+    const idx = gridSV.value.indexOf(tileId);
+    if (idx === -1) return [{ translateX: 0 }, { translateY: 0 }];
 
+    const row = Math.floor(idx / 4);
+    const col = idx % 4;
+
+    // 2. Базові абсолютні координати на дошці
+    let dx = inset + col * step;
+    let dy = inset + row * step;
+
+    // 3. Додаємо зсув від пальця під час драгу
     if (dragActive.value === 1) {
       const offsetPx = dragOffsetPx.value;
-
       if (offsetPx !== 0) {
         if (dragAxis.value === 1) {
-          // Рух по осі X
           if (row === dragStartRow.value && row === emptyRow.value) {
             const sC = dragStartCol.value;
             const eC = emptyCol.value;
-            if (sC < eC) {
-              // Блок рухається вправо (до empty)
-              if (col >= sC && col <= eC - 1) dx = offsetPx;
-            } else if (sC > eC) {
-              // Блок рухається вліво (до empty)
-              if (col >= eC + 1 && col <= sC) dx = offsetPx;
-            }
+            if (sC < eC && col >= sC && col <= eC - 1) dx += offsetPx;
+            else if (sC > eC && col >= eC + 1 && col <= sC) dx += offsetPx;
           }
         } else if (dragAxis.value === 2) {
-          // Рух по осі Y
           if (col === dragStartCol.value && col === emptyCol.value) {
             const sR = dragStartRow.value;
             const eR = emptyRow.value;
-            if (sR < eR) {
-              // Блок рухається вниз
-              if (row >= sR && row <= eR - 1) dy = offsetPx;
-            } else if (sR > eR) {
-              // Блок рухається вгору
-              if (row >= eR + 1 && row <= sR) dy = offsetPx;
-            }
+            if (sR < eR && row >= sR && row <= eR - 1) dy += offsetPx;
+            else if (sR > eR && row >= eR + 1 && row <= sR) dy += offsetPx;
           }
         }
       }
     }
 
-    if (animMoved) {
+    // 4. Додаємо зсув для дотягування анімацією
+    if (animMovedIdsSV.value.includes(tileId)) {
       const back = (1 - animT.value) * step;
-      if (animAxis === "x") dx += -animDir * back;
-      else dy += -animDir * back;
+      if (animAxisSV.value === "x") dx += -animDirSV.value * back;
+      else dy += -animDirSV.value * back;
     }
 
     return [{ translateX: dx }, { translateY: dy }];
-  }, [animMoved, animAxis, animDir, step]);
+  }, [step, inset, tileId]);
 
   return (
     <Group transform={transform}>
       <TileSkin
-        rect={cellRect(m, row, col)}
+        // Передаємо нульові координати, оскільки transform бере на себе абсолютне позиціонування
+        rect={{ x: 0, y: 0, width: m.tile, height: m.tile }}
         label={label}
         font={font}
         S={S}
