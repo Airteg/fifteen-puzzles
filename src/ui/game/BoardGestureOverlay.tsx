@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import type { SharedValue } from "react-native-reanimated";
-import { useSharedValue } from "react-native-reanimated";
+import { runOnJS, useSharedValue } from "react-native-reanimated";
 
 import type { BoardMetrics } from "@/ui/game/boardGeometry";
 import { axisLock, snapSteps } from "@/ui/game/boardGeometry";
@@ -58,31 +58,27 @@ export function BoardGestureOverlay(props: Props) {
   const dragStartRowSV = props.dragStartRow ?? useSharedValue(-1);
   const dragStartColSV = props.dragStartCol ?? useSharedValue(-1);
 
-  // Локальний стан для відслідковування кроків всередині жесту
   const dragStepsSV = useSharedValue(0);
 
-  const commit = onCommitShift ?? (() => {});
-  const tapCell = onTapCell ?? (() => {});
-
   const gesture = useMemo(() => {
-    let startRow = -1;
-    let startCol = -1;
-
+    // Ворклет для скидання стану драгу в UI потоці
     const resetDrag = () => {
+      "worklet";
       dragActiveSV.value = 0;
       dragAxisSV.value = 0;
       dragStartRowSV.value = -1;
       dragStartColSV.value = -1;
       dragOffsetPx.value = 0;
       dragStepsSV.value = 0;
-      startRow = -1;
-      startCol = -1;
     };
 
-    const inBoard = (x: number, y: number) =>
-      x >= 0 && y >= 0 && x <= m.boardSize && y <= m.boardSize;
+    const inBoard = (x: number, y: number) => {
+      "worklet";
+      return x >= 0 && y >= 0 && x <= m.boardSize && y <= m.boardSize;
+    };
 
     const pointToCell = (x: number, y: number) => {
+      "worklet";
       const localX = x - m.inset;
       const localY = y - m.inset;
       let col = Math.floor(localX / m.step);
@@ -95,6 +91,7 @@ export function BoardGestureOverlay(props: Props) {
     };
 
     const clampSteps = (rawSteps: number, distToEmpty: number) => {
+      "worklet";
       if (distToEmpty === 0) return 0;
       if (distToEmpty > 0) {
         if (rawSteps < 0) return 0;
@@ -105,6 +102,7 @@ export function BoardGestureOverlay(props: Props) {
     };
 
     const clampOffsetPx = (offsetPx: number, distToEmpty: number) => {
+      "worklet";
       const maxAllowed = distToEmpty * m.step;
       if (distToEmpty > 0) return Math.max(0, Math.min(offsetPx, maxAllowed));
       if (distToEmpty < 0) return Math.min(0, Math.max(offsetPx, maxAllowed));
@@ -112,9 +110,9 @@ export function BoardGestureOverlay(props: Props) {
     };
 
     const pan = Gesture.Pan()
-      .runOnJS(true)
       .minDistance(lockAbs)
       .onBegin((ev) => {
+        "worklet";
         const x = ev.x - pad;
         const y = ev.y - pad;
 
@@ -124,19 +122,19 @@ export function BoardGestureOverlay(props: Props) {
         }
 
         const cell = pointToCell(x, y);
-        startRow = cell.row;
-        startCol = cell.col;
-
         dragActiveSV.value = 1;
         dragAxisSV.value = 0;
-        dragStartRowSV.value = startRow;
-        dragStartColSV.value = startCol;
+        dragStartRowSV.value = cell.row;
+        dragStartColSV.value = cell.col;
         dragOffsetPx.value = 0;
         dragStepsSV.value = 0;
 
-        onDrag?.({ phase: "start", axis: null, steps: 0, x, y });
+        if (onDrag) {
+          runOnJS(onDrag)({ phase: "start", axis: null, steps: 0, x, y });
+        }
       })
       .onUpdate((ev) => {
+        "worklet";
         if (dragActiveSV.value !== 1) return;
 
         const x = ev.x - pad;
@@ -157,70 +155,77 @@ export function BoardGestureOverlay(props: Props) {
           dragAxisSV.value = axis === "x" ? 1 : 2;
         }
 
+        const sR = dragStartRowSV.value;
+        const sC = dragStartColSV.value;
+
         if (axis === "x") {
-          if (startRow !== emptyRowSV.value) {
+          if (sR !== emptyRowSV.value) {
             dragOffsetPx.value = 0;
             return;
           }
-          const dist = emptyColSV.value - startCol;
-          const raw = snapSteps(tx, m.step);
-          dragStepsSV.value = clampSteps(raw, dist);
+          const dist = emptyColSV.value - sC;
+          dragStepsSV.value = clampSteps(snapSteps(tx, m.step), dist);
           dragOffsetPx.value = clampOffsetPx(tx, dist);
         } else {
-          if (startCol !== emptyColSV.value) {
+          if (sC !== emptyColSV.value) {
             dragOffsetPx.value = 0;
             return;
           }
-          const dist = emptyRowSV.value - startRow;
-          const raw = snapSteps(ty, m.step);
-          dragStepsSV.value = clampSteps(raw, dist);
+          const dist = emptyRowSV.value - sR;
+          dragStepsSV.value = clampSteps(snapSteps(ty, m.step), dist);
           dragOffsetPx.value = clampOffsetPx(ty, dist);
         }
       })
       .onEnd((ev) => {
+        "worklet";
         const axis =
           dragAxisSV.value === 1 ? "x" : dragAxisSV.value === 2 ? "y" : null;
         const steps = dragStepsSV.value;
 
-        const x = ev.x - pad;
-        const y = ev.y - pad;
+        if (onDrag) {
+          runOnJS(onDrag)({
+            phase: "end",
+            axis,
+            steps,
+            x: ev.x - pad,
+            y: ev.y - pad,
+          });
+        }
 
-        onDrag?.({ phase: "end", axis, steps, x, y });
-
-        if (axis) {
-          commit(axis, steps);
+        if (axis && steps !== 0 && onCommitShift) {
+          runOnJS(onCommitShift)(axis, steps);
         } else {
           resetDrag();
         }
       })
       .onFinalize(() => {
+        "worklet";
         if (dragActiveSV.value === 1 && dragAxisSV.value === 0) {
           resetDrag();
         }
       });
 
-    const tap = Gesture.Tap()
-      .runOnJS(true)
-      .onEnd((ev) => {
-        const x = ev.x - pad;
-        const y = ev.y - pad;
-        if (!inBoard(x, y)) return;
+    const tap = Gesture.Tap().onEnd((ev) => {
+      "worklet";
+      const x = ev.x - pad;
+      const y = ev.y - pad;
+      if (!inBoard(x, y)) return;
 
-        const { row, col } = pointToCell(x, y);
-        tapCell(row, col);
-      });
+      const { row, col } = pointToCell(x, y);
+      if (onTapCell) {
+        runOnJS(onTapCell)(row, col);
+      }
+    });
 
     return Gesture.Simultaneous(pan, tap);
   }, [
-    m.boardSize,
-    m.inset,
-    m.step,
+    m,
     pad,
     lockAbs,
     lockRatio,
     onDrag,
-    commit,
-    tapCell,
+    onCommitShift,
+    onTapCell,
     emptyRowSV,
     emptyColSV,
     dragActiveSV,
@@ -228,6 +233,7 @@ export function BoardGestureOverlay(props: Props) {
     dragStartRowSV,
     dragStartColSV,
     dragOffsetPx,
+    dragStepsSV,
   ]);
 
   return (
