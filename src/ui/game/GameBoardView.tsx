@@ -90,6 +90,7 @@ export function GameBoardView({ tileFont }: Props) {
               dragAxis={dragAxis}
               dragSteps={dragSteps}
               dragLine={dragLine}
+              dragOffsetPx={dragOffsetPx}
               animT={animT}
               animAxis={animAxis}
               animDir={animDir}

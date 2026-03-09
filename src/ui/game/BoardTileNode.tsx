@@ -27,6 +27,7 @@ export type BoardTileNodeProps = {
   dragAxis: SharedValue<number>;
   dragSteps: SharedValue<number>;
   dragLine: SharedValue<number>;
+  dragOffsetPx: SharedValue<number>;
 
   animT: SharedValue<number>;
   animAxis: BoardAxis;
@@ -49,6 +50,7 @@ export const BoardTileNode = memo(function BoardTileNode(
     emptyRow,
     emptyCol,
     dragActive,
+    dragOffsetPx,
     dragAxis,
     dragSteps,
     dragLine,
@@ -65,27 +67,39 @@ export const BoardTileNode = memo(function BoardTileNode(
     let dy = 0;
 
     if (dragActive.value === 1) {
-      const steps = dragSteps.value;
+      const offsetPx = dragOffsetPx.value;
 
-      if (steps !== 0) {
+      if (offsetPx !== 0) {
         if (dragAxis.value === 1) {
           if (row === dragLine.value && row === emptyRow.value) {
             const eC = emptyCol.value;
-            if (steps > 0) {
-              if (col >= eC - steps && col <= eC - 1) dx += step;
+
+            if (offsetPx > 0) {
+              const tilesToLeft = Math.ceil(offsetPx / step);
+              if (col >= eC - tilesToLeft && col <= eC - 1) {
+                dx = offsetPx;
+              }
             } else {
-              const k = -steps;
-              if (col >= eC + 1 && col <= eC + k) dx -= step;
+              const tilesToRight = Math.ceil(Math.abs(offsetPx) / step);
+              if (col >= eC + 1 && col <= eC + tilesToRight) {
+                dx = offsetPx;
+              }
             }
           }
         } else if (dragAxis.value === 2) {
           if (col === dragLine.value && col === emptyCol.value) {
             const eR = emptyRow.value;
-            if (steps > 0) {
-              if (row >= eR - steps && row <= eR - 1) dy += step;
+
+            if (offsetPx > 0) {
+              const tilesAbove = Math.ceil(offsetPx / step);
+              if (row >= eR - tilesAbove && row <= eR - 1) {
+                dy = offsetPx;
+              }
             } else {
-              const k = -steps;
-              if (row >= eR + 1 && row <= eR + k) dy -= step;
+              const tilesBelow = Math.ceil(Math.abs(offsetPx) / step);
+              if (row >= eR + 1 && row <= eR + tilesBelow) {
+                dy = offsetPx;
+              }
             }
           }
         }
@@ -99,7 +113,7 @@ export const BoardTileNode = memo(function BoardTileNode(
     }
 
     return [{ translateX: dx }, { translateY: dy }];
-  }, [animMoved, animAxis, animDir, step]);
+  }, [animMoved, animAxis, animDir, step, dragOffsetPx]);
 
   return (
     <Group transform={transform}>

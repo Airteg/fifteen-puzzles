@@ -76,6 +76,7 @@ export function BoardGestureOverlay(props: Props) {
       dragAxisSV.value = 0;
       dragStepsSV.value = 0;
       dragLineSV.value = -1;
+      dragOffsetPx.value = 0;
       startRow = -1;
       startCol = -1;
     };
@@ -109,7 +110,14 @@ export function BoardGestureOverlay(props: Props) {
       if (rawSteps > 0) return 0;
       return rawSteps < distToEmpty ? distToEmpty : rawSteps;
     };
+    const clampOffsetPx = (offsetPx: number, distToEmpty: number) => {
+      const minPx = Math.min(0, distToEmpty * m.step);
+      const maxPx = Math.max(0, distToEmpty * m.step);
 
+      if (offsetPx < minPx) return minPx;
+      if (offsetPx > maxPx) return maxPx;
+      return offsetPx;
+    };
     const pan = Gesture.Pan()
       .runOnJS(true)
       .minDistance(lockAbs)
@@ -130,6 +138,7 @@ export function BoardGestureOverlay(props: Props) {
         dragAxisSV.value = 0;
         dragStepsSV.value = 0;
         dragLineSV.value = -1;
+        dragOffsetPx.value = 0;
 
         onDrag?.({ phase: "start", axis: null, steps: 0, x, y });
       })
@@ -159,19 +168,23 @@ export function BoardGestureOverlay(props: Props) {
         if (axis === "x") {
           if (startRow !== emptyRowSV.value) {
             dragStepsSV.value = 0;
+            dragOffsetPx.value = 0;
             return;
           }
           const dist = emptyColSV.value - startCol;
           const raw = snapSteps(tx, m.step);
           dragStepsSV.value = clampSteps(raw, dist);
+          dragOffsetPx.value = clampOffsetPx(tx, dist);
         } else {
           if (startCol !== emptyColSV.value) {
             dragStepsSV.value = 0;
+            dragOffsetPx.value = 0;
             return;
           }
           const dist = emptyRowSV.value - startRow;
           const raw = snapSteps(ty, m.step);
           dragStepsSV.value = clampSteps(raw, dist);
+          dragOffsetPx.value = clampOffsetPx(ty, dist);
         }
       })
       .onEnd((ev) => {
@@ -222,6 +235,7 @@ export function BoardGestureOverlay(props: Props) {
     dragAxisSV,
     dragStepsSV,
     dragLineSV,
+    dragOffsetPx,
   ]);
 
   return (
