@@ -37,18 +37,33 @@ export type UseGameBoardControllerResult = {
 
   onTapCell: (row: number, col: number) => void;
   onCommitShift: (axis: BoardAxis, steps: number) => void;
+
+  // Explicit reset-path for future RESTART / NEW GAME.
+  resetBoard: (nextGrid: number[]) => void;
 };
 
 type UseGameBoardControllerParams = {
   stepPx: number;
+  bootGrid?: number[];
+};
+
+const resolveBootGrid = (bootGrid?: number[]) => {
+  if (!bootGrid || bootGrid.length !== 16) {
+    return makeDefaultGrid();
+  }
+  return bootGrid.slice();
 };
 
 export function useGameBoardController({
   stepPx,
+  bootGrid,
 }: UseGameBoardControllerParams): UseGameBoardControllerResult {
-  const gridSV = useSharedValue<number[]>(makeDefaultGrid());
-  const emptyRow = useSharedValue(3);
-  const emptyCol = useSharedValue(3);
+  const resolvedBootGrid = resolveBootGrid(bootGrid);
+  const bootEmpty = findEmpty(resolvedBootGrid);
+
+  const gridSV = useSharedValue<number[]>(resolvedBootGrid);
+  const emptyRow = useSharedValue(bootEmpty.row);
+  const emptyCol = useSharedValue(bootEmpty.col);
 
   const dragActive = useSharedValue(0);
   const dragAxis = useSharedValue(0);
@@ -70,9 +85,41 @@ export function useGameBoardController({
     dragOffsetPx.value = 0;
   }, [dragActive, dragAxis, dragStartRow, dragStartCol, dragOffsetPx]);
 
+  const resetBoard = useCallback(
+    (nextGrid: number[]) => {
+      "worklet";
+
+      const safeGrid =
+        nextGrid.length === 16 ? nextGrid.slice() : makeDefaultGrid();
+      const nextEmpty = findEmpty(safeGrid);
+
+      resetDragPreview();
+
+      gridSV.value = safeGrid;
+      emptyRow.value = nextEmpty.row;
+      emptyCol.value = nextEmpty.col;
+
+      animMovedIdsSV.value = [];
+      animAxisSV.value = "x";
+      animDirSV.value = 1;
+      animT.value = 1;
+    },
+    [
+      resetDragPreview,
+      gridSV,
+      emptyRow,
+      emptyCol,
+      animMovedIdsSV,
+      animAxisSV,
+      animDirSV,
+      animT,
+    ],
+  );
+
   const applyShift = useCallback(
     (axis: BoardAxis, steps: number, progress: number) => {
       "worklet";
+
       if (steps === 0) {
         resetDragPreview();
         return;
@@ -84,6 +131,7 @@ export function useGameBoardController({
         axis,
         steps,
       );
+
       if (!res) {
         resetDragPreview();
         return;
@@ -119,6 +167,7 @@ export function useGameBoardController({
   const onTapCell = useCallback(
     (row: number, col: number) => {
       "worklet";
+
       if (row !== emptyRow.value && col !== emptyCol.value) return;
       if (row === emptyRow.value && col === emptyCol.value) return;
 
@@ -141,6 +190,7 @@ export function useGameBoardController({
   const onCommitShift = useCallback(
     (axis: BoardAxis, steps: number) => {
       "worklet";
+
       const currentOffset = Math.abs(dragOffsetPx.value);
       const progress = stepPx > 0 ? currentOffset / stepPx : 0;
       applyShift(axis, steps, progress);
@@ -164,5 +214,6 @@ export function useGameBoardController({
     animDirSV,
     onTapCell,
     onCommitShift,
+    resetBoard,
   };
 }

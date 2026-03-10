@@ -12,9 +12,10 @@ import { useGameBoardController } from "./useGameBoardController";
 
 type Props = {
   tileFont: SkFont | null;
+  bootGrid?: number[];
 };
 
-export function GameBoardView({ tileFont }: Props) {
+export function GameBoardView({ tileFont, bootGrid }: Props) {
   const lm = useLayoutMetrics();
   const S = lm.S;
   const snap = lm.snap;
@@ -34,6 +35,7 @@ export function GameBoardView({ tileFont }: Props) {
 
   const pad = snap(14 * S);
   const canvasSize = m.boardSize + pad * 2;
+
   const {
     tiles,
     gridSV,
@@ -52,6 +54,7 @@ export function GameBoardView({ tileFont }: Props) {
     onCommitShift,
   } = useGameBoardController({
     stepPx: m.step,
+    bootGrid,
   });
 
   if (!tileFont) return null;
