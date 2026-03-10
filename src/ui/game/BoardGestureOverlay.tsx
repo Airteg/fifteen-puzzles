@@ -5,7 +5,7 @@ import type { SharedValue } from "react-native-reanimated";
 import { useSharedValue } from "react-native-reanimated";
 
 import type { BoardMetrics } from "@/ui/game/boardGeometry";
-import { axisLock, snapSteps } from "@/ui/game/boardGeometry";
+// snapSteps більше не потрібен
 
 type Props = {
   m: BoardMetrics;
@@ -34,7 +34,6 @@ export function BoardGestureOverlay(props: Props) {
     pad,
     canvasSize,
     lockAbs,
-    lockRatio = 1.2,
     emptyRow: emptyRowSV,
     emptyCol: emptyColSV,
     dragActive: dragActiveSV,
@@ -49,7 +48,6 @@ export function BoardGestureOverlay(props: Props) {
   const dragStepsSV = useSharedValue(0);
 
   const gesture = useMemo(() => {
-    // Ворклет для скидання стану драгу в UI потоці
     const resetDrag = () => {
       "worklet";
       dragActiveSV.value = 0;
@@ -78,23 +76,25 @@ export function BoardGestureOverlay(props: Props) {
       return { row, col };
     };
 
-    const clampSteps = (rawSteps: number, distToEmpty: number) => {
-      "worklet";
-      if (distToEmpty === 0) return 0;
-      if (distToEmpty > 0) {
-        if (rawSteps < 0) return 0;
-        return rawSteps > distToEmpty ? distToEmpty : rawSteps;
-      }
-      if (rawSteps > 0) return 0;
-      return rawSteps < distToEmpty ? distToEmpty : rawSteps;
-    };
-
+    // ФІКС 1: Фізичний ліміт зсуву — завжди рівно 1 клітинка (m.step)
     const clampOffsetPx = (offsetPx: number, distToEmpty: number) => {
       "worklet";
-      const maxAllowed = distToEmpty * m.step;
+      if (distToEmpty === 0) return 0;
+
+      const sign = distToEmpty > 0 ? 1 : -1;
+      const maxAllowed = sign * m.step; // Більше жодного множення на dist!
+
       if (distToEmpty > 0) return Math.max(0, Math.min(offsetPx, maxAllowed));
       if (distToEmpty < 0) return Math.min(0, Math.max(offsetPx, maxAllowed));
       return 0;
+    };
+
+    // ФІКС 2: Чи протягнули ми достатньо, щоб зробити хід?
+    const calcCommitSteps = (offsetPx: number, distToEmpty: number) => {
+      "worklet";
+      const progress = Math.abs(offsetPx) / m.step;
+      // Якщо протягнули більше 40% від розміру однієї клітинки — комітимо ВСЮ групу (distToEmpty)
+      return progress > 0.4 ? distToEmpty : 0;
     };
 
     const pan = Gesture.Pan()
@@ -121,50 +121,45 @@ export function BoardGestureOverlay(props: Props) {
         "worklet";
         if (dragActiveSV.value !== 1) return;
 
-        const x = ev.x - pad;
-        const y = ev.y - pad;
-        if (!inBoard(x, y)) return;
-
         const tx = ev.translationX;
         const ty = ev.translationY;
-
-        let axis: "x" | "y" | null = null;
-        if (dragAxisSV.value === 1) axis = "x";
-        else if (dragAxisSV.value === 2) axis = "y";
-        else axis = axisLock(tx, ty, lockRatio, lockAbs);
-
-        if (!axis) return;
-
-        if (dragAxisSV.value === 0) {
-          dragAxisSV.value = axis === "x" ? 1 : 2;
-        }
-
         const sR = dragStartRowSV.value;
         const sC = dragStartColSV.value;
 
-        if (axis === "x") {
-          if (sR !== emptyRowSV.value) {
-            dragOffsetPx.value = 0;
-            return;
-          }
+        // РОЗУМНИЙ AXIS LOCK (як ми домовилися в Кроці 1)
+        if (dragAxisSV.value === 0) {
+          let allowedAxis: "x" | "y" | "none" = "none";
+          if (sR === emptyRowSV.value && sC !== emptyColSV.value)
+            allowedAxis = "x";
+          else if (sC === emptyColSV.value && sR !== emptyRowSV.value)
+            allowedAxis = "y";
+
+          if (allowedAxis === "none") return;
+
+          if (allowedAxis === "x" && Math.abs(tx) > lockAbs)
+            dragAxisSV.value = 1;
+          else if (allowedAxis === "y" && Math.abs(ty) > lockAbs)
+            dragAxisSV.value = 2;
+
+          if (dragAxisSV.value === 0) return;
+        }
+
+        // РУХ І ЗВ'ЯЗУВАННЯ
+        if (dragAxisSV.value === 1) {
           const dist = emptyColSV.value - sC;
-          dragStepsSV.value = clampSteps(snapSteps(tx, m.step), dist);
           dragOffsetPx.value = clampOffsetPx(tx, dist);
-        } else {
-          if (sC !== emptyColSV.value) {
-            dragOffsetPx.value = 0;
-            return;
-          }
+          dragStepsSV.value = calcCommitSteps(dragOffsetPx.value, dist);
+        } else if (dragAxisSV.value === 2) {
           const dist = emptyRowSV.value - sR;
-          dragStepsSV.value = clampSteps(snapSteps(ty, m.step), dist);
           dragOffsetPx.value = clampOffsetPx(ty, dist);
+          dragStepsSV.value = calcCommitSteps(dragOffsetPx.value, dist);
         }
       })
       .onEnd(() => {
         "worklet";
         const axis =
           dragAxisSV.value === 1 ? "x" : dragAxisSV.value === 2 ? "y" : null;
-        const steps = dragStepsSV.value;
+        const steps = dragStepsSV.value; // Тепер це або розмір всієї групи, або 0
 
         if (axis && steps !== 0) {
           onCommitShift(axis, steps);
@@ -189,12 +184,11 @@ export function BoardGestureOverlay(props: Props) {
       onTapCell(row, col);
     });
 
-    return Gesture.Simultaneous(pan, tap);
+    return Gesture.Exclusive(pan, tap);
   }, [
     m,
     pad,
     lockAbs,
-    lockRatio,
     onCommitShift,
     onTapCell,
     emptyRowSV,
