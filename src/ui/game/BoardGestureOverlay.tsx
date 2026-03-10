@@ -2,18 +2,10 @@ import React, { useMemo } from "react";
 import { View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import type { SharedValue } from "react-native-reanimated";
-import { runOnJS, useSharedValue } from "react-native-reanimated";
+import { useSharedValue } from "react-native-reanimated";
 
 import type { BoardMetrics } from "@/ui/game/boardGeometry";
 import { axisLock, snapSteps } from "@/ui/game/boardGeometry";
-
-export type DragEvent = {
-  phase: "start" | "end";
-  axis: "x" | "y" | null;
-  steps: number;
-  x: number;
-  y: number;
-};
 
 type Props = {
   m: BoardMetrics;
@@ -23,18 +15,17 @@ type Props = {
   lockAbs: number;
   lockRatio?: number;
 
-  emptyRow?: SharedValue<number>;
-  emptyCol?: SharedValue<number>;
+  emptyRow: SharedValue<number>;
+  emptyCol: SharedValue<number>;
 
-  dragActive?: SharedValue<number>;
-  dragAxis?: SharedValue<number>;
-  dragStartRow?: SharedValue<number>;
-  dragStartCol?: SharedValue<number>;
+  dragActive: SharedValue<number>;
+  dragAxis: SharedValue<number>;
+  dragStartRow: SharedValue<number>;
+  dragStartCol: SharedValue<number>;
   dragOffsetPx: SharedValue<number>;
 
-  onCommitShift?: (axis: "x" | "y", steps: number) => void;
-  onTapCell?: (row: number, col: number) => void;
-  onDrag?: (e: DragEvent) => void;
+  onCommitShift: (axis: "x" | "y", steps: number) => void;
+  onTapCell: (row: number, col: number) => void;
 };
 
 export function BoardGestureOverlay(props: Props) {
@@ -44,19 +35,16 @@ export function BoardGestureOverlay(props: Props) {
     canvasSize,
     lockAbs,
     lockRatio = 1.2,
+    emptyRow: emptyRowSV,
+    emptyCol: emptyColSV,
+    dragActive: dragActiveSV,
+    dragAxis: dragAxisSV,
+    dragStartRow: dragStartRowSV,
+    dragStartCol: dragStartColSV,
+    dragOffsetPx,
     onCommitShift,
     onTapCell,
-    onDrag,
-    dragOffsetPx,
   } = props;
-
-  const emptyRowSV = props.emptyRow ?? useSharedValue(3);
-  const emptyColSV = props.emptyCol ?? useSharedValue(3);
-
-  const dragActiveSV = props.dragActive ?? useSharedValue(0);
-  const dragAxisSV = props.dragAxis ?? useSharedValue(0);
-  const dragStartRowSV = props.dragStartRow ?? useSharedValue(-1);
-  const dragStartColSV = props.dragStartCol ?? useSharedValue(-1);
 
   const dragStepsSV = useSharedValue(0);
 
@@ -128,10 +116,6 @@ export function BoardGestureOverlay(props: Props) {
         dragStartColSV.value = cell.col;
         dragOffsetPx.value = 0;
         dragStepsSV.value = 0;
-
-        if (onDrag) {
-          runOnJS(onDrag)({ phase: "start", axis: null, steps: 0, x, y });
-        }
       })
       .onUpdate((ev) => {
         "worklet";
@@ -176,24 +160,14 @@ export function BoardGestureOverlay(props: Props) {
           dragOffsetPx.value = clampOffsetPx(ty, dist);
         }
       })
-      .onEnd((ev) => {
+      .onEnd(() => {
         "worklet";
         const axis =
           dragAxisSV.value === 1 ? "x" : dragAxisSV.value === 2 ? "y" : null;
         const steps = dragStepsSV.value;
 
-        if (onDrag) {
-          runOnJS(onDrag)({
-            phase: "end",
-            axis,
-            steps,
-            x: ev.x - pad,
-            y: ev.y - pad,
-          });
-        }
-
-        if (axis && steps !== 0 && onCommitShift) {
-          runOnJS(onCommitShift)(axis, steps);
+        if (axis && steps !== 0) {
+          onCommitShift(axis, steps);
         } else {
           resetDrag();
         }
@@ -212,9 +186,7 @@ export function BoardGestureOverlay(props: Props) {
       if (!inBoard(x, y)) return;
 
       const { row, col } = pointToCell(x, y);
-      if (onTapCell) {
-        runOnJS(onTapCell)(row, col);
-      }
+      onTapCell(row, col);
     });
 
     return Gesture.Simultaneous(pan, tap);
@@ -223,7 +195,6 @@ export function BoardGestureOverlay(props: Props) {
     pad,
     lockAbs,
     lockRatio,
-    onDrag,
     onCommitShift,
     onTapCell,
     emptyRowSV,

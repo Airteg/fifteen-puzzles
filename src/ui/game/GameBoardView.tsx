@@ -19,8 +19,6 @@ export function GameBoardView({ tileFont }: Props) {
   const S = lm.S;
   const snap = lm.snap;
 
-  if (!tileFont) return null;
-
   const m = useMemo(
     () =>
       makeBoardMetrics({
@@ -55,6 +53,8 @@ export function GameBoardView({ tileFont }: Props) {
   } = useGameBoardController({
     stepPx: m.step,
   });
+
+  if (!tileFont) return null;
 
   return (
     <View

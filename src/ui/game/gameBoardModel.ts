@@ -5,13 +5,6 @@ export type BoardCell = {
   col: number;
 };
 
-export type TileModel = {
-  id: number;
-  label: string;
-  row: number;
-  col: number;
-};
-
 export type CommitShiftResult = {
   nextGrid: number[];
   movedIds: number[];
@@ -19,6 +12,7 @@ export type CommitShiftResult = {
 };
 
 export function idx(row: number, col: number): number {
+  "worklet";
   return row * 4 + col;
 }
 
@@ -30,26 +24,9 @@ export function makeDefaultGrid(): number[] {
 }
 
 export function findEmpty(grid: number[]): BoardCell {
+  "worklet";
   const i = grid.indexOf(0);
   return { row: Math.floor(i / 4), col: i % 4 };
-}
-
-export function tilesFromGrid(grid: number[]): TileModel[] {
-  const out: TileModel[] = [];
-
-  for (let i = 0; i < 16; i++) {
-    const v = grid[i];
-    if (v === 0) continue;
-
-    out.push({
-      id: v,
-      label: String(v),
-      row: Math.floor(i / 4),
-      col: i % 4,
-    });
-  }
-
-  return out;
 }
 
 export function commitShift(
@@ -58,6 +35,7 @@ export function commitShift(
   axis: BoardAxis,
   steps: number,
 ): CommitShiftResult | null {
+  "worklet";
   if (steps === 0) return null;
 
   const next = grid.slice();

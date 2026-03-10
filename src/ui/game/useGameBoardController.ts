@@ -1,16 +1,24 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback } from "react";
 import { useSharedValue, withTiming } from "react-native-reanimated";
 
-import type { BoardAxis, TileModel } from "./gameBoardModel";
-import {
-  commitShift,
-  findEmpty,
-  makeDefaultGrid,
-  tilesFromGrid,
-} from "./gameBoardModel";
+import type { BoardAxis } from "./gameBoardModel";
+import { commitShift, findEmpty, makeDefaultGrid } from "./gameBoardModel";
+
+export type BoardTileDescriptor = {
+  id: number;
+  label: string;
+};
+
+const STATIC_TILES: readonly BoardTileDescriptor[] = Array.from(
+  { length: 15 },
+  (_, index) => {
+    const id = index + 1;
+    return { id, label: String(id) };
+  },
+);
 
 export type UseGameBoardControllerResult = {
-  tiles: TileModel[];
+  tiles: readonly BoardTileDescriptor[];
 
   gridSV: ReturnType<typeof useSharedValue<number[]>>;
   emptyRow: ReturnType<typeof useSharedValue<number>>;
@@ -38,11 +46,7 @@ type UseGameBoardControllerParams = {
 export function useGameBoardController({
   stepPx,
 }: UseGameBoardControllerParams): UseGameBoardControllerResult {
-  const [grid, setGrid] = useState<number[]>(() => makeDefaultGrid());
-  const tiles = useMemo(() => tilesFromGrid(grid), [grid]);
-
-  // Усі ці значення тепер "живуть" в UI-потоці
-  const gridSV = useSharedValue(grid);
+  const gridSV = useSharedValue<number[]>(makeDefaultGrid());
   const emptyRow = useSharedValue(3);
   const emptyCol = useSharedValue(3);
 
@@ -58,6 +62,7 @@ export function useGameBoardController({
   const animDirSV = useSharedValue<1 | -1>(1);
 
   const resetDragPreview = useCallback(() => {
+    "worklet";
     dragActive.value = 0;
     dragAxis.value = 0;
     dragStartRow.value = -1;
@@ -65,62 +70,9 @@ export function useGameBoardController({
     dragOffsetPx.value = 0;
   }, [dragActive, dragAxis, dragStartRow, dragStartCol, dragOffsetPx]);
 
-  const onTapCell = useCallback(
-    (row: number, col: number) => {
-      if (row !== emptyRow.value && col !== emptyCol.value) return;
-      if (row === emptyRow.value && col === emptyCol.value) return;
-
-      let axis: BoardAxis;
-      let steps: number;
-
-      if (row === emptyRow.value) {
-        axis = "x";
-        steps = emptyCol.value - col;
-      } else {
-        axis = "y";
-        steps = emptyRow.value - row;
-      }
-
-      const res = commitShift(
-        gridSV.value,
-        { row: emptyRow.value, col: emptyCol.value },
-        axis,
-        steps,
-      );
-      if (!res) return;
-
-      // 1. СИНХРОННО повідомляємо UI-потік про новий стан (жодних розривів з React)
-      resetDragPreview();
-      gridSV.value = res.nextGrid;
-      animMovedIdsSV.value = res.movedIds;
-      animAxisSV.value = axis;
-      animDirSV.value = res.dir;
-
-      const newEmpty = findEmpty(res.nextGrid);
-      emptyRow.value = newEmpty.row;
-      emptyCol.value = newEmpty.col;
-
-      // 2. Запускаємо анімацію "з нуля"
-      animT.value = 0;
-      animT.value = withTiming(1, { duration: 150 });
-
-      // 3. React оновлюється у фоні (ми від нього більше не залежимо візуально)
-      setGrid(res.nextGrid);
-    },
-    [
-      animT,
-      gridSV,
-      emptyRow,
-      emptyCol,
-      animMovedIdsSV,
-      animAxisSV,
-      animDirSV,
-      resetDragPreview,
-    ],
-  );
-
-  const onCommitShift = useCallback(
-    (axis: BoardAxis, steps: number) => {
+  const applyShift = useCallback(
+    (axis: BoardAxis, steps: number, progress: number) => {
+      "worklet";
       if (steps === 0) {
         resetDragPreview();
         return;
@@ -137,11 +89,8 @@ export function useGameBoardController({
         return;
       }
 
-      const currentOffset = Math.abs(dragOffsetPx.value);
-      let progress = currentOffset / stepPx;
-      progress = Math.max(0, Math.min(1, progress));
+      const clampedProgress = Math.max(0, Math.min(1, progress));
 
-      // 1. СИНХРОННО повідомляємо UI-потік про новий стан
       resetDragPreview();
       gridSV.value = res.nextGrid;
       animMovedIdsSV.value = res.movedIds;
@@ -152,16 +101,11 @@ export function useGameBoardController({
       emptyRow.value = newEmpty.row;
       emptyCol.value = newEmpty.col;
 
-      // 2. Стартуємо анімацію з точки, де юзер відпустив палець
-      animT.value = progress;
-      animT.value = withTiming(1, { duration: 150 * (1 - progress) });
-
-      // 3. React оновлюється у фоні
-      setGrid(res.nextGrid);
+      animT.value = clampedProgress;
+      animT.value = withTiming(1, { duration: 150 * (1 - clampedProgress) });
     },
     [
       animT,
-      dragOffsetPx,
       gridSV,
       emptyRow,
       emptyCol,
@@ -169,12 +113,43 @@ export function useGameBoardController({
       animAxisSV,
       animDirSV,
       resetDragPreview,
-      stepPx,
     ],
   );
 
+  const onTapCell = useCallback(
+    (row: number, col: number) => {
+      "worklet";
+      if (row !== emptyRow.value && col !== emptyCol.value) return;
+      if (row === emptyRow.value && col === emptyCol.value) return;
+
+      let axis: BoardAxis;
+      let steps: number;
+
+      if (row === emptyRow.value) {
+        axis = "x";
+        steps = emptyCol.value - col;
+      } else {
+        axis = "y";
+        steps = emptyRow.value - row;
+      }
+
+      applyShift(axis, steps, 0);
+    },
+    [applyShift, emptyRow, emptyCol],
+  );
+
+  const onCommitShift = useCallback(
+    (axis: BoardAxis, steps: number) => {
+      "worklet";
+      const currentOffset = Math.abs(dragOffsetPx.value);
+      const progress = stepPx > 0 ? currentOffset / stepPx : 0;
+      applyShift(axis, steps, progress);
+    },
+    [applyShift, dragOffsetPx, stepPx],
+  );
+
   return {
-    tiles,
+    tiles: STATIC_TILES,
     gridSV,
     emptyRow,
     emptyCol,

@@ -6,7 +6,6 @@ import { Props } from "../types/types";
 
 // Імпортуємо компоненти
 import { TileSkin1 } from "@/ui/skia/TileSkin1";
-import { SmileySkin } from "@/ui/skia/SmileySkin";
 import { hexToShader } from "@/utils/color";
 
 const TEST_OBJ_SIZE = 100;

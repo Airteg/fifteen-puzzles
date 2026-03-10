@@ -1,5 +1,5 @@
 import SettingsAnimationPlaceholder from "@/ui/animation/placeholders/SettingsAnimationPlaceholder";
-import PanelZone from "@/ui/PanelZone";
+import { PanelZone } from "@/ui/PanelZone";
 import { ScreenShell } from "@/ui/shell/ScreenShell";
 import { Props } from "../types/types";
 
