@@ -17,7 +17,6 @@ type Props = {
 };
 
 export function LogoSurface({ size = 100, S = 1, font }: Props) {
-  const scaledSize = size * S;
   const r = 10 * S;
 
   // Координати для внутрішніх елементів (плиток 1 та 5)

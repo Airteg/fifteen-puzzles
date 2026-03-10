@@ -1,5 +1,5 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import React from "react";
+import React, { useRef } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { useLayoutMetrics } from "@/context/LayoutMetricsProvider";
@@ -7,18 +7,24 @@ import { RootStackParamList } from "@/types/types";
 
 import { useSkiaFonts } from "@/context/FontProvider";
 import { GameBoardView } from "@/ui/game/GameBoardView";
+import { shuffleTiles } from "@/ui/game/gameEngine/shuffleTiles";
 import { GameScreenShell } from "@/ui/shell/GameScreenShell";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Game">;
 
 const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   const { title: tileFont } = useSkiaFonts();
-
   const { S, snap } = useLayoutMetrics();
 
   const mode = route.params?.mode || "classic";
 
-  // 1. Таймер (показуємо тільки якщо режим limit_time)
+  // Boot-only grid: читається GameBoard controller-ом лише під час першого mount.
+  const bootGridRef = useRef<number[] | null>(null);
+
+  if (!bootGridRef.current) {
+    bootGridRef.current = shuffleTiles();
+  }
+
   const timerNode =
     mode === "limitTime" ? (
       <View
@@ -31,7 +37,6 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
       </View>
     ) : undefined;
 
-  // 2. Блок кнопок HOME та RESTART (поки що заглушка)
   const buttonsNode = (
     <View style={[styles.tempButtons, { height: snap(80 * S) }]}>
       <View
@@ -53,7 +58,6 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     </View>
   );
 
-  // 3. Нижня плашка режиму
   const ctaNode = (
     <View
       style={[
@@ -70,7 +74,12 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   return (
     <GameScreenShell
       timer={timerNode}
-      board={<GameBoardView tileFont={tileFont} />}
+      board={
+        <GameBoardView
+          tileFont={tileFont}
+          bootGrid={bootGridRef.current ?? undefined}
+        />
+      }
       buttons={buttonsNode}
       cta={ctaNode}
     />
@@ -79,7 +88,6 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
 
 export default GameScreen;
 
-// Тимчасові стилі для візуалізації структури (потім замінимо на Skia)
 const styles = StyleSheet.create({
   tempTimer: {
     backgroundColor: "#E4FF00",

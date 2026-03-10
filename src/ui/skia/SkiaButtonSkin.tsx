@@ -50,11 +50,11 @@ export function SkiaButtonSkin({ rect, title, font, pressed = false }: Props) {
     };
   }, [canvasW, canvasH, rect.width, rect.height, pressed]);
 
-  if (!buttonEffect) return null;
-
   const textPath = useMemo(() => {
     return Skia.Path.MakeFromText(title, textX, textY, font)!;
   }, [title, textX, textY, font]);
+
+  if (!buttonEffect) return null;
 
   return (
     <Group>
@@ -72,7 +72,7 @@ export function SkiaButtonSkin({ rect, title, font, pressed = false }: Props) {
       {/* <Text x={textX} y={textY} text={title} font={font} color={textColor} /> */}
       <Group>
         {/* Основний текст */}
-        <Text x={textX} y={textY} text={title} font={font} color="#216169" />
+        <Text x={textX} y={textY} text={title} font={font} color={textColor} />
         {/* Внутрішня тінь */}
         <Group clip={textPath}>
           <Text
