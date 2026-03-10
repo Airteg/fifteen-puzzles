@@ -5,7 +5,6 @@ import type { SharedValue } from "react-native-reanimated";
 import { useSharedValue } from "react-native-reanimated";
 
 import type { BoardMetrics } from "@/ui/game/boardGeometry";
-// snapSteps більше не потрібен
 
 type Props = {
   m: BoardMetrics;
@@ -76,24 +75,23 @@ export function BoardGestureOverlay(props: Props) {
       return { row, col };
     };
 
-    // ФІКС 1: Фізичний ліміт зсуву — завжди рівно 1 клітинка (m.step)
+    // Фізичний ліміт зсуву — завжди рівно 1 клітинка (m.step)
     const clampOffsetPx = (offsetPx: number, distToEmpty: number) => {
       "worklet";
       if (distToEmpty === 0) return 0;
 
       const sign = distToEmpty > 0 ? 1 : -1;
-      const maxAllowed = sign * m.step; // Більше жодного множення на dist!
+      const maxAllowed = sign * m.step;
 
       if (distToEmpty > 0) return Math.max(0, Math.min(offsetPx, maxAllowed));
       if (distToEmpty < 0) return Math.min(0, Math.max(offsetPx, maxAllowed));
       return 0;
     };
 
-    // ФІКС 2: Чи протягнули ми достатньо, щоб зробити хід?
+    // Чи протягнули ми достатньо, щоб зробити хід?
     const calcCommitSteps = (offsetPx: number, distToEmpty: number) => {
       "worklet";
       const progress = Math.abs(offsetPx) / m.step;
-      // Якщо протягнули більше 40% від розміру однієї клітинки — комітимо ВСЮ групу (distToEmpty)
       return progress > 0.4 ? distToEmpty : 0;
     };
 
@@ -126,7 +124,7 @@ export function BoardGestureOverlay(props: Props) {
         const sR = dragStartRowSV.value;
         const sC = dragStartColSV.value;
 
-        // РОЗУМНИЙ AXIS LOCK (як ми домовилися в Кроці 1)
+        // РОЗУМНИЙ AXIS LOCK (Без подвійного порогу)
         if (dragAxisSV.value === 0) {
           let allowedAxis: "x" | "y" | "none" = "none";
           if (sR === emptyRowSV.value && sC !== emptyColSV.value)
@@ -136,9 +134,10 @@ export function BoardGestureOverlay(props: Props) {
 
           if (allowedAxis === "none") return;
 
-          if (allowedAxis === "x" && Math.abs(tx) > lockAbs)
+          // Pan вже активний, просто перевіряємо домінуючий вектор
+          if (allowedAxis === "x" && Math.abs(tx) >= Math.abs(ty))
             dragAxisSV.value = 1;
-          else if (allowedAxis === "y" && Math.abs(ty) > lockAbs)
+          else if (allowedAxis === "y" && Math.abs(ty) >= Math.abs(tx))
             dragAxisSV.value = 2;
 
           if (dragAxisSV.value === 0) return;
@@ -159,7 +158,7 @@ export function BoardGestureOverlay(props: Props) {
         "worklet";
         const axis =
           dragAxisSV.value === 1 ? "x" : dragAxisSV.value === 2 ? "y" : null;
-        const steps = dragStepsSV.value; // Тепер це або розмір всієї групи, або 0
+        const steps = dragStepsSV.value;
 
         if (axis && steps !== 0) {
           onCommitShift(axis, steps);
