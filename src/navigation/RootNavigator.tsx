@@ -1,6 +1,7 @@
 import AboutScreen from "@/screens/AboutScreen";
 import GameScreen from "@/screens/GameScreen";
 import HomeScreen from "@/screens/HomeScreen";
+import LoseScreen from "@/screens/LoseScreen";
 import NewGame from "@/screens/NewGameScreen";
 import SettingsScreen from "@/screens/SettingsScreen";
 import StatisticScreen from "@/screens/StatisticScreen";
@@ -26,6 +27,7 @@ export function RootNavigator() {
         <Stack.Screen name="NewGame" component={NewGame} />
         <Stack.Screen name="Game" component={GameScreen} />
         <Stack.Screen name="Win" component={WinScreen} />
+        <Stack.Screen name="Lose" component={LoseScreen} />
       </Stack.Group>
       <Stack.Group
         screenOptions={{

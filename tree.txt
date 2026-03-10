@@ -60,6 +60,7 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   ├── AboutScreen.tsx
 │   │   ├── GameScreen.tsx
 │   │   ├── HomeScreen.tsx
+│   │   ├── LoseScreen.tsx
 │   │   ├── NewGameScreen.tsx
 │   │   ├── SettingsScreen.tsx
 │   │   ├── StatisticScreen.tsx
@@ -86,6 +87,8 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   │   │   └── SettingsAnimationPlaceholder.tsx
 │   │   │   └── animation.ts
 │   │   ├── game
+│   │   │   ├── gameEngine
+│   │   │   │   └── shuffleTiles.ts
 │   │   │   ├── boardGeometry.ts
 │   │   │   ├── BoardGestureOverlay.tsx
 │   │   │   ├── BoardTileNode.tsx
@@ -144,5 +147,6 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 ├── pnpm-workspace.yaml
 ├── README.md
 ├── RefactoringGameScreen.md
+├── temp.md
 ├── tree.txt
 └── tsconfig.json
