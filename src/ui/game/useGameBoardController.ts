@@ -1,8 +1,14 @@
 import { useCallback } from "react";
 import { useSharedValue, withTiming } from "react-native-reanimated";
+import { scheduleOnRN } from "react-native-worklets"; // ДОДАНО
 
 import type { BoardAxis } from "./gameBoardModel";
-import { commitShift, findEmpty, makeDefaultGrid } from "./gameBoardModel";
+import {
+  commitShift,
+  findEmpty,
+  isWinningGrid,
+  makeDefaultGrid,
+} from "./gameBoardModel";
 
 export type BoardTileDescriptor = {
   id: number;
@@ -45,6 +51,7 @@ export type UseGameBoardControllerResult = {
 type UseGameBoardControllerParams = {
   stepPx: number;
   bootGrid?: number[];
+  onWin?: () => void; // ДОДАНО
 };
 
 const resolveBootGrid = (bootGrid?: number[]) => {
@@ -57,6 +64,7 @@ const resolveBootGrid = (bootGrid?: number[]) => {
 export function useGameBoardController({
   stepPx,
   bootGrid,
+  onWin, // ДОДАНО
 }: UseGameBoardControllerParams): UseGameBoardControllerResult {
   const resolvedBootGrid = resolveBootGrid(bootGrid);
   const bootEmpty = findEmpty(resolvedBootGrid);
@@ -138,6 +146,7 @@ export function useGameBoardController({
       }
 
       const clampedProgress = Math.max(0, Math.min(1, progress));
+      const isWin = isWinningGrid(res.nextGrid); // ДОДАНО
 
       resetDragPreview();
       gridSV.value = res.nextGrid;
@@ -150,7 +159,16 @@ export function useGameBoardController({
       emptyCol.value = newEmpty.col;
 
       animT.value = clampedProgress;
-      animT.value = withTiming(1, { duration: 150 * (1 - clampedProgress) });
+      // ОНОВЛЕНО: додаємо callback для withTiming та scheduleOnRN
+      animT.value = withTiming(
+        1,
+        { duration: 150 * (1 - clampedProgress) },
+        (finished) => {
+          if (finished && isWin && onWin) {
+            scheduleOnRN(onWin);
+          }
+        },
+      );
     },
     [
       animT,
@@ -161,6 +179,7 @@ export function useGameBoardController({
       animAxisSV,
       animDirSV,
       resetDragPreview,
+      onWin, // ДОДАНО
     ],
   );
 

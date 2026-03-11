@@ -31,12 +31,15 @@ const fisherYates = (arr: number[]) => {
   return arr;
 };
 
+// export const shuffleTiles = () => {
+//   const base = Array.from({ length: 16 }, (_, i) => (i === 15 ? 0 : i + 1));
+//   let attempt = 0;
+//   while (true) {
+//     const candidate = fisherYates([...base]);
+//     if (!isSolved(candidate) && isSolvable(candidate)) return candidate;
+//     if (++attempt > 1000) return candidate; // на всяк випадок
+//   }
+// };
 export const shuffleTiles = () => {
-  const base = Array.from({ length: 16 }, (_, i) => (i === 15 ? 0 : i + 1));
-  let attempt = 0;
-  while (true) {
-    const candidate = fisherYates([...base]);
-    if (!isSolved(candidate) && isSolvable(candidate)) return candidate;
-    if (++attempt > 1000) return candidate; // на всяк випадок
-  }
+  return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 0, 15];
 };

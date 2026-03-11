@@ -78,6 +78,8 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
         <GameBoardView
           tileFont={tileFont}
           bootGrid={bootGridRef.current ?? undefined}
+          // ДОДАНО: обробник перемоги
+          onWin={() => navigation.navigate("Win", { score: 100 })}
         />
       }
       buttons={buttonsNode}

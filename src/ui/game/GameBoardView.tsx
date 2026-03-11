@@ -13,9 +13,11 @@ import { useGameBoardController } from "./useGameBoardController";
 type Props = {
   tileFont: SkFont | null;
   bootGrid?: number[];
+  onWin?: () => void; // ДОДАНО: проп для перемоги
 };
 
-export function GameBoardView({ tileFont, bootGrid }: Props) {
+export function GameBoardView({ tileFont, bootGrid, onWin }: Props) {
+  // ДОДАНО: отримуємо onWin
   const lm = useLayoutMetrics();
   const S = lm.S;
   const snap = lm.snap;
@@ -55,6 +57,7 @@ export function GameBoardView({ tileFont, bootGrid }: Props) {
   } = useGameBoardController({
     stepPx: m.step,
     bootGrid,
+    onWin, // ДОДАНО: передаємо у контролер
   });
 
   if (!tileFont) return null;
