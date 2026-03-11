@@ -8,6 +8,7 @@ import { Props } from "../types/types";
 import { BoardSkin } from "@/ui/skia/BoardSkin"; // Додано імпорт BoardSkin
 import { TileSkin1 } from "@/ui/skia/TileSkin1";
 import { hexToShader } from "@/utils/color";
+import { BoardSkin1 } from "@/ui/skia/BoardSkin1";
 
 const TEST_OBJ_SIZE = 324; // Збільшив розмір, щоб краще розгледіти дошку
 const PADDING = 40; // Безпечний відступ з усіх боків, щоб не обрізалися тіні
@@ -50,16 +51,13 @@ const AboutScreen = ({ navigation }: Props<"About">) => {
         >
           <Group transform={[{ scale: scale }]}>
             {/* Рендеримо дошку (BoardSkin) */}
-            <BoardSkin
+            <BoardSkin1
               rect={{
                 x: PADDING,
                 y: PADDING,
                 width: TEST_OBJ_SIZE,
                 height: TEST_OBJ_SIZE,
               }}
-              radius={16} // Стандартний радіус заокруглення
-              blurA={4} // Розмиття світлої тіні
-              blurB={8} // Розмиття темної тіні
               S={1}
               snap={(v) => Math.round(v)}
             />

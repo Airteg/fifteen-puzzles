@@ -1,0 +1,153 @@
+// kind=shader
+uniform vec2 u_canvasSize;
+uniform vec2 u_boardSize;
+uniform vec4 u_tint;
+uniform float u_radius;
+uniform float u_scale; // S для масштабування тіней і відступів
+
+// Функція розрахунку відстані до прямокутника з округленими кутами
+float sdRoundRect(vec2 p, vec2 b, float r) {
+    vec2 q = abs(p) - b + r;
+    return min(max(q.x, q.y), 0.0) + length(max(q, 0.0)) - r;
+}
+
+// Допоміжна функція для HEX -> vec4
+vec4 rgb(float r, float g, float b) {
+    return vec4(r/255.0, g/255.0, b/255.0, 1.0);
+}
+
+// Середній шар (Layer 2)
+// Дизайн
+// rgb(164, 179, 189) 18.1%
+// rgb(238, 241, 243) 72.23%
+// rgb(255, 255, 255) 83.83%
+vec4 getMidGradient(float t) {
+    vec4 c1 = rgb(164.0, 179.0, 189.0); // rgb(164, 179, 189) 18.1%
+    vec4 c2 = rgb(238.0, 241.0, 243.0); // rgb(238, 241, 243) 72.23%
+    vec4 c3 = rgb(255.0, 255.0, 255.0); // rgb(255, 255, 255) 83.83%
+    
+    if (t < 0.181) return c1;
+    if (t < 0.7223) return mix(c1, c2, (t - 0.181) / (0.7223 - 0.181));
+    if (t < 0.8383) return mix(c2, c3, (t - 0.7223) / (0.8383 - 0.7223));
+    return c3;
+}
+
+// Верхній шар (Layer 1)
+// Дизайн
+// rgb(253, 253, 253) 1.7%
+// rgb(244, 244, 244) 30.68%
+// rgb(220, 220, 220) 78.01%
+// rgb(208, 208, 208) 98.29%
+vec4 getTopGradient(float t) {
+    vec4 c1 = rgb(253.0, 253.0, 253.0); // rgb(253, 253, 253) 1.7%
+    vec4 c2 = rgb(244.0, 244.0, 244.0); // rgb(244, 244, 244) 30.68%
+    vec4 c3 = rgb(220.0, 220.0, 220.0); // rgb(220, 220, 220) 78.01%
+    vec4 c4 = rgb(208.0, 208.0, 208.0); // rgb(208, 208, 208) 98.29%
+    
+    if (t < 0.017) return c1;
+    if (t < 0.3068) return mix(c1, c2, (t - 0.017) / (0.3068 - 0.017));
+    if (t < 0.7801) return mix(c2, c3, (t - 0.3068) / (0.7801 - 0.3068));
+    if (t < 0.9829) return mix(c3, c4, (t - 0.7801) / (0.9829 - 0.7801));
+    return c4;
+}
+
+vec4 main(vec2 coord) {
+    vec2 center = u_canvasSize / 2.0;
+    vec2 p = coord - center; // Координати відносно центру
+    
+    vec2 halfSize = u_boardSize / 2.0;
+    
+    // 1. Відстань до базового шару
+    float dBase = sdRoundRect(p, halfSize, u_radius);
+    
+    // --- ЗОВНІШНЯ ЗОНА (ТІНІ) ---
+    if (dBase > 0.0) {
+        // Чорна тінь: зсув -4x, 4y (в Skia y йде вниз, отже -4, 4)
+        vec2 blackShadowOffset = vec2(-4.0, 4.0) * u_scale;
+        float dBlack = sdRoundRect(p - blackShadowOffset, halfSize, u_radius);
+        float blackAlpha = 0.4 * exp(-dBlack / (7.0 * u_scale)); // 14px розмиття ~ 7 у SKSL
+        
+        // Біла тінь: зсув 4x, -4y
+// ==========================================
+        // НАЛАШТУВАННЯ БІЛОЇ ТІНІ (СВІТЛОВИЙ БЛІК)
+        // ==========================================
+        
+        // 1. Зсув тіні (Offset)
+        // x: додатне = вправо, від'ємне = вліво
+        // y: додатне = вниз, від'ємне = вгору (у координатах Skia)
+        float wOffsetX = 4.0; 
+        float wOffsetY = -4.0;
+        
+        // 2. Розмиття (Blur / Spread)
+        // Чим більше число, тим ширша, м'якша і "дальша" тінь.
+        // Чим менше число, тим тінь жорсткіша (ближче до країв).
+        // Зазвичай у SKSL blur з CSS ділять десь на 2 або 3.
+        float wBlur = 3.35; 
+        
+        // 3. Інтенсивність / Прозорість (Opacity)
+        // 1.0 = чистий білий (дуже яскравий)
+        // 0.5 = напівпрозорий білий (як у CSS rgba)
+        float wOpacity = 0.4;
+
+        // --- Сама математика (її можна не чіпати) ---
+        vec2 whiteShadowOffset = vec2(wOffsetX, wOffsetY) * u_scale;
+        float dWhite = sdRoundRect(p - whiteShadowOffset, halfSize, u_radius);
+        
+        // max(dWhite, 0.0) гарантує, що яскравість не буде експоненційно 
+        // "вибухати" (перевищувати 1.0), якщо ми зайдемо глибоко в мінусову зону відстані
+        float whiteAlpha = wOpacity * exp(-max(dWhite, 0.0) / (wBlur * u_scale));
+        // ==========================================
+        
+        // Змішуємо тіні з прозорим фоном
+        vec4 bg = vec4(0.0);
+        vec4 shadowColor = vec4(0.0, 0.0, 0.0, blackAlpha);
+        vec4 highlightColor = vec4(1.0, 1.0, 1.0, whiteAlpha);
+        
+        // Спочатку кладемо білу, поверх неї чорну (або навпаки, в залежності від кута)
+        vec4 outColor = vec4(mix(bg.rgb, highlightColor.rgb, highlightColor.a), highlightColor.a);
+        outColor = vec4(mix(outColor.rgb, shadowColor.rgb, shadowColor.a), max(outColor.a, shadowColor.a));
+        
+        return outColor;
+    }
+    
+    // --- ВНУТРІШНЯ ЗОНА (ДОШКА) ---
+    
+    // Рахуємо відступи в пікселях на основі відсотків із CSS
+    float insetMid = u_boardSize.x * 0.0017;
+    float insetTop = u_boardSize.x * 0.0118;
+    
+    float dMid = sdRoundRect(p, halfSize - vec2(insetMid), max(0.0, u_radius - insetMid));
+    float dTop = sdRoundRect(p, halfSize - vec2(insetTop), max(0.0, u_radius - insetTop));
+    
+    // Розраховуємо прогрес градієнта `t` (кут 25 градусів)
+    // Кут в радіанах ~ 0.436. Напрямок вектора (sin(25), cos(25))
+    vec2 dir = vec2(0.4226, 0.9063);
+    
+    // Проектуємо координату на вектор градієнта
+    // Ділимо на розмір, щоб отримати t від 0 до 1
+    float proj = dot(p, dir);
+    float t = (proj + u_boardSize.x / 2.0) / u_boardSize.x;
+    t = clamp(t, 0.0, 1.0);
+    
+    vec4 color;
+    
+    // Малюємо шари знизу вверх (Base -> Mid -> Top)
+    if (dTop <= 0.0) {
+        color = getTopGradient(t); // Самий верхній (Layer 1)
+    } else if (dMid <= 0.0) {
+        color = getMidGradient(t); // Середній (Layer 2)
+    } else {
+        color = rgb(183.0, 183.0, 183.0); // Базовий (#B7B7B7) (Layer 3)
+    }
+    
+    // Додаємо TintColor поверх (якщо у нього є альфа-канал)
+    if (u_tint.a > 0.0) {
+        color.rgb = mix(color.rgb, u_tint.rgb, u_tint.a);
+    }
+    
+    // Згладжування країв дошки (Antialiasing)
+    float aa = clamp(-dBase, 0.0, 1.0);
+    color.a = aa;
+    
+    return color;
+}
