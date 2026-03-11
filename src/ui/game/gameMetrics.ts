@@ -1,6 +1,6 @@
 export const GameMetrics = {
   board: {
-    size: 276,
+    size: 324,
     inset: 12,
     tile: 60,
     gap: 4,

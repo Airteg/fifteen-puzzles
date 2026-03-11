@@ -5,16 +5,16 @@ import { styles as globalStyles } from "../styles/globalStyles";
 import { Props } from "../types/types";
 
 // Імпортуємо компоненти
+import { BoardSkin } from "@/ui/skia/BoardSkin"; // Додано імпорт BoardSkin
 import { TileSkin1 } from "@/ui/skia/TileSkin1";
 import { hexToShader } from "@/utils/color";
 
-const TEST_OBJ_SIZE = 100;
+const TEST_OBJ_SIZE = 324; // Збільшив розмір, щоб краще розгледіти дошку
 const PADDING = 40; // Безпечний відступ з усіх боків, щоб не обрізалися тіні
 
 const AboutScreen = ({ navigation }: Props<"About">) => {
   const [scale, setScale] = useState(1);
 
-  // Повернув правильний розмір шрифту - 40!
   const font = useFont(
     require("../../assets/fonts/Krona_One/KronaOne-Regular.ttf"),
     40,
@@ -39,7 +39,7 @@ const AboutScreen = ({ navigation }: Props<"About">) => {
         </View>
       </View>
 
-      {/* 2. Центральна зона: Повернув твоє ідеальне центрування */}
+      {/* 2. Центральна зона: Тестовий полігон Skia */}
       <View style={localStyles.testArea}>
         <Canvas
           style={{
@@ -49,41 +49,34 @@ const AboutScreen = ({ navigation }: Props<"About">) => {
           }}
         >
           <Group transform={[{ scale: scale }]}>
-            {/* Розміщуємо об'єкт рівно на PADDING.
-              Так він завжди знаходиться по центру канвасу, а тіні не обрізаються.
-            */}
-            {/* <TileSkin
+            {/* Рендеримо дошку (BoardSkin) */}
+            <BoardSkin
               rect={{
                 x: PADDING,
                 y: PADDING,
                 width: TEST_OBJ_SIZE,
                 height: TEST_OBJ_SIZE,
               }}
-              label="15"
-              font={font}
+              radius={16} // Стандартний радіус заокруглення
+              blurA={4} // Розмиття світлої тіні
+              blurB={8} // Розмиття темної тіні
               S={1}
               snap={(v) => Math.round(v)}
-              baseColor={[0.83, 0.96, 1.0, 1.0]}
-            /> */}
-            <TileSkin1
+            />
+            {/* Плитку поки закоментували */}
+            {/* <TileSkin1
               rect={{
                 x: PADDING,
                 y: PADDING,
-                width: TEST_OBJ_SIZE,
-                height: TEST_OBJ_SIZE,
+                width: 100, // Плитка зазвичай менша
+                height: 100,
               }}
               label="15"
               font={font}
               S={1}
               snap={(v) => Math.round(v)}
               tintColor={hexToShader("#00D1FF", 0.5)}
-            />
-            {/* Коли захочеш подивитися SmileySkin, просто закоментуй TileSkin і розкоментуй це: */}
-            {/* <Group
-              transform={[{ translateX: PADDING }, { translateY: PADDING }]}
-            >
-              <SmileySkin size={TEST_OBJ_SIZE} />
-            </Group> */}
+            /> */}
           </Group>
         </Canvas>
       </View>
@@ -97,10 +90,11 @@ const AboutScreen = ({ navigation }: Props<"About">) => {
 };
 
 const localStyles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0d676b" },
+  container: { flex: 1, backgroundColor: "#09979f" },
   controls: {
     paddingTop: 60,
     paddingBottom: 20,
+    paddingHorizontal: 30,
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.2)",
   },

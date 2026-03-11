@@ -34,7 +34,7 @@ export const FontProvider = ({ children }: { children: ReactNode }) => {
   // 3) Skia fonts (render in Canvas)
   // useFont loads and caches by (ttf,size)
   const buttonFont = useFont(KRONA_TTF, snap(24 * S));
-  const titleFont = useFont(KRONA_TTF, snap(32 * S));
+  const titleFont = useFont(KRONA_TTF, snap(25 * S));
   const bodyFont = useFont(KRONA_TTF, snap(16 * S));
 
   const skiaFonts = useMemo<SkiaFonts>(
