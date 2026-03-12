@@ -1,13 +1,13 @@
-## Нове архітектурне рішення
+# Канонічний план перебудови ігрового екрана
 
-### Нова ціль
+## Нова ціль
 
 `GameScreen` має стати не екраном із RN-блоків, між якими вставлено Skia, а **єдиною сценою гри**:
 
 - один full-screen `Canvas`
 - одна система scene metrics
 - один координатний простір
-- окремі overlay-шари для input
+- окремі overlay-шари для input та accessibility
 - дошка, таймер, header, logo, buttons, mode badge — усе як частини однієї сцени
 
 ---
@@ -16,11 +16,10 @@
 
 ## Поточна схема
 
-Зараз у тебе:
+Зараз екран гри побудований як RN layout stack:
 
 - `GameScreen`
 - `GameScreenShell`
-- RN layout stack
 - усередині нього вставляються:
   - `AppGameHeader`
   - timer placeholder
@@ -28,7 +27,7 @@
   - buttons placeholder
   - CTA placeholder
 
-Це вже не підходить.
+Це вже не відповідає цільовій архітектурі.
 
 ## Нова схема
 
@@ -36,18 +35,16 @@
 
 - `GameScreen` — orchestration screen
 - `GameSceneCanvas` — **єдиний full-screen Canvas**
-- `GameSceneMetrics` — **єдине джерело геометрії сцени**
+- `useGameSceneMetrics` — **єдине джерело геометрії сцени**
 - `BoardGestureOverlay` — overlay тільки над зоною дошки
-- `ScreenHitOverlay` — overlay для header/buttons/mode badge
-- `useGameSessionController` — режим гри, таймер, win/lose, restart
+- `GameSceneOverlay` — overlay для header / buttons / mode badge / a11y
+- `useGameSessionController` — режим гри, таймер, win / lose, restart
 
 ---
 
 # 2. Головний принцип: одна сцена, але не одна логіка
 
-Тут важливо не змішати все в один файл.
-
-### Має бути 3 рівні
+Не можна змішувати всю архітектуру в один файл. Має бути три окремі рівні.
 
 ## A. Session layer
 
@@ -60,19 +57,19 @@
 - `restart`
 - `win / lose transition`
 
-Тобто це не дошка, а **режим сесії гри**.
+Це не логіка дошки, а **логіка сесії гри**.
 
 ---
 
 ## B. Board core
 
-Лишаємо окремо:
+Лишається окремо:
 
 - `useGameBoardController.ts`
 - `gameBoardModel.ts`
 - `boardGeometry.ts`
 
-Це ядро дошки. Його не треба змішувати з timer/header/buttons.
+Це ядро дошки. Його не треба змішувати з timer / header / buttons.
 
 ---
 
@@ -80,9 +77,9 @@
 
 Відповідає за:
 
-- повний Canvas
-- всі Skia skin components
-- розкладку фреймів
+- full-screen `Canvas`
+- усі Skia skin-компоненти
+- розкладку scene frame-ів
 - композицію сцени
 
 Саме тут житимуть:
@@ -96,22 +93,22 @@
 
 ---
 
-# 3. Що я пропоную зробити з файлами
+# 3. Що змінюємо у файловій структурі
 
-## Видалити роль `GameScreenShell`
+## `GameScreenShell` втрачає роль канону
 
-`GameScreenShell.tsx` у нинішньому вигляді більше не потрібен.
+`GameScreenShell.tsx` у поточному вигляді більше не є канонічною основою ігрового екрана.
 
-Не обов’язково фізично одразу видаляти файл, але **архітектурно він має перестати бути канонічним**.
+Не обов’язково видаляти файл одразу, але **архітектурно він більше не фундамент**.
 
-Бо він мислить так:
+Зараз він мислить слотами:
 
 - timer slot
 - board slot
 - buttons slot
 - cta slot
 
-А треба мислити так:
+Нова система має мислити frame-ами сцени:
 
 - `headerFrame`
 - `logoFrame`
@@ -124,16 +121,18 @@
 
 ---
 
-## Створити нові канонічні файли
+## Нові канонічні файли
 
-### `src/ui/gameScene/GameSceneMetrics.ts`
+### `src/ui/gameScene/useGameSceneMetrics.ts`
 
-Один файл, який вираховує всі frame-и сцени.
+Єдине джерело truth для геометрії сцени.
 
-Наприклад:
+Має повертати:
 
 - `screenW`
 - `screenH`
+- `safeFrame`
+- `safeInsets`
 - `headerFrame`
 - `logoFrame`
 - `soundFrame`
@@ -143,49 +142,51 @@
 - `restartButtonFrame`
 - `modeBadgeFrame`
 
-Це буде **єдине джерело layout truth** для ігрового екрану.
+Цей хук **обов’язково** має бути safe-area-aware та реактивним до зміни розмірів вікна.
 
 ---
 
 ### `src/ui/gameScene/GameSceneCanvas.tsx`
 
-Full-screen canvas, який рендерить усе.
+Full-screen canvas, який рендерить всю сцену.
 
-Він не керує логікою гри. Він лише приймає:
+Він **не керує логікою гри**. Він лише приймає:
 
 - `frames`
 - `mode`
-- `timeText`
-- `board controller props`
+- `timeLeftMsSV` / `progressSV`
+- `board render props`
 - `fonts`
 - `press states`
 - `sound state`
-- інші готові дані
+- інші готові scene props
 
 ---
 
 ### `src/ui/gameScene/GameSceneOverlay.tsx`
 
-RN overlay для натискань поза дошкою:
+RN overlay для натискань поза дошкою та для accessibility.
+
+Має покривати:
 
 - sound
 - home
 - restart
 - mode badge, якщо він натискальний
 
-Це дуже важливо:
-**Skia малює, overlay приймає input.**
+Ключове правило:
+**Skia малює, overlay приймає input і несе accessibility.**
 
 ---
 
 ### `src/ui/gameScene/useGameSessionController.ts`
 
-Окремий session hook:
+Окремий session hook, який:
 
 - читає `mode`
 - створює timer logic
-- дає `timeLeftMs`
-- дає `timeText`
+- дає `timeLeftMsSV`
+- дає `progressSV`
 - дає `isGameOver`
 - дає `handleWin`
 - дає `handleRestart`
@@ -194,8 +195,6 @@ RN overlay для натискань поза дошкою:
 
 # 4. Як перебудувати дошку під одну сцену
 
-Оце найважливіший момент.
-
 Зараз `GameBoardView.tsx` — це композиційний вузол, який:
 
 - створює `Canvas`
@@ -203,7 +202,7 @@ RN overlay для натискань поза дошкою:
 - монтує `BoardTileNode`
 - монтує `BoardGestureOverlay`
 
-Для нової архітектури я б **розщепив його на дві частини**.
+Для нової архітектури його треба **розщепити на дві частини**.
 
 ## Було
 
@@ -221,7 +220,7 @@ RN overlay для натискань поза дошкою:
 - tile nodes
 - усе, що малює дошку
 
-Він рендериться всередині `GameSceneCanvas`.
+Цей layer рендериться всередині `GameSceneCanvas`.
 
 ---
 
@@ -229,16 +228,14 @@ RN overlay для натискань поза дошкою:
 
 Лишається окремим RN overlay, але вже позиціонується по `boardFrame`.
 
-Тобто overlay живе не всередині `GameBoardView`, а поверх full-screen scene.
+Overlay живе поверх full-screen scene, а не всередині окремого mini-canvas.
 
 ---
 
 ## Що це дає
 
-Ти отримуєш:
-
 - один Canvas на весь екран
-- поточну сильну архітектуру drag/tap не ламаєш
+- поточна сильна архітектура drag / tap не ламається
 - input по дошці лишається керованим окремо
 - scene стає канонічною
 
@@ -248,7 +245,7 @@ RN overlay для натискань поза дошкою:
 
 ## Вхід у гру
 
-`NewGameScreen` має передавати не лише `mode`, а вже нормальний session config.
+`NewGameScreen` має передавати не лише `mode`, а нормальний session config.
 
 Наприклад:
 
@@ -264,8 +261,9 @@ RN overlay для натискань поза дошкою:
 
 - читає route params
 - створює `sessionController`
-- створює `board controller`
-- створює `scene metrics`
+- створює `boardController`
+- створює `sceneMetrics`
+- перевіряє `fontsReady`
 - передає все в `GameSceneCanvas`
 - монтує overlays
 - обробляє `onWin`
@@ -294,45 +292,64 @@ RN overlay для натискань поза дошкою:
 
 ### `BoardGestureOverlay`
 
-Тільки над `boardFrame`.
+Працює тільки над `boardFrame`.
 
 ### `GameSceneOverlay`
 
-Тільки для screen controls.
+Працює тільки для screen controls:
+
+- sound
+- home
+- restart
+- mode badge
 
 ---
 
 # 6. Таймер: де саме він має жити
 
-Таймер **не в дошці**.
+Таймер **не належить дошці**.
 
 Він має жити в `useGameSessionController`.
 
-### Чому
+## Чому
 
 Бо таймер належить:
 
-- не board model
-- а game mode/session rules
+- не `board model`
+- а `game mode / session rules`
 
-### Таймер дає:
+## Що саме має видавати таймер
 
-- `remainingMs`
-- `remainingSeconds`
-- `timeText`
-- `progress01` — якщо потім захочеш шейдерний progress effect
+Джерело істини — **числове значення у `SharedValue<number>`**, а не React state у верхньому дереві екрана.
+
+Session layer має давати:
+
+- `timeLeftMsSV`
+- `progressSV`
+- `remainingSeconds`, якщо потрібно для побічної логіки
 - `isExpired`
+
+### Важливе правило
+
+Не можна дозволяти таймеру щосекунди викликати React re-render усього `GameScreen` або `GameSceneCanvas`.
+
+Текст таймера (`MM:SS`) має або:
+
+- виводитися з derived значення локально в timer layer,
+- або ізольовано оновлювати тільки timer subtree,
+
+але не змушувати перебудовувати всю сцену.
 
 ---
 
-## Поведінка
+## Поведінка режимів
 
-### classic
+### `classic`
 
 - timer hidden
 - countdown inactive
 
-### limitTime
+### `limitTime`
 
 - timer visible
 - countdown active from first frame of game screen
@@ -340,13 +357,70 @@ RN overlay для натискань поза дошкою:
 
 ---
 
-# 7. Правила, які треба зафіксувати в AI rules
+# 7. Accessibility
 
-Ти прямо сказав, що це треба внести в правила. Я б додав такий блок.
+Skia малює пікселі, але не створює нативні accessibility-елементи сама по собі.
 
-## Нове правило рендерингу гри
+Тому всі інтерактивні screen controls, які намальовані в Skia, повинні мати RN overlay-елементи поверх них.
 
-### Shader-first policy
+## Обов’язкові правила
+
+Для прозорих RN overlay-блоків треба додавати:
+
+- `accessible={true}`
+- `accessibilityRole="button"`
+- `accessibilityLabel="..."`
+
+А де доречно — ще й `accessibilityState`.
+
+Це стосується щонайменше:
+
+- кнопки звуку
+- кнопки Home
+- кнопки Restart
+- mode badge, якщо він натискальний
+
+---
+
+# 8. Safe Area та реактивні метрики
+
+Оскільки `GameSceneCanvas` займає весь екран, `useGameSceneMetrics` **обов’язково** має враховувати системні відступи.
+
+Потрібно використовувати:
+
+- `useSafeAreaInsets()`
+- `useSafeAreaFrame()`
+
+Усі ключові frame-и сцени мають рахуватись від safe-area-aware frame, а не від голого `Dimensions.get("window")`.
+
+Це особливо важливо для:
+
+- header
+- logo
+- timer
+- нижніх кнопок
+- mode badge
+- позиції дошки
+
+---
+
+# 9. Шрифти та текст у Skia
+
+Текст у Skia не дорівнює звичайному RN `<Text />`.
+
+`GameSceneCanvas` не повинен входити в бойовий text rendering, доки шрифти не готові.
+
+## Правила
+
+- логіка завантаження шрифтів має відпрацювати **до** рендеру scene text
+- `fontsReady` має блокувати нестабільний рендер сцени з текстом
+- не можна допускати layout shift або мигання через пізнє завантаження шрифтів
+
+Якщо в проєкті вже є `FontProvider.tsx`, він має залишатися джерелом готовності шрифтів.
+
+---
+
+# 10. Shader-first policy
 
 Для ігрового екрана декоративні ефекти глибини не будуються через:
 
@@ -358,10 +432,10 @@ RN overlay для натискань поза дошкою:
 
 - runtime shaders
 - texture-based effects
-- gradient/light shaders
+- gradient / light shaders
 - інші дешевші shader-driven прийоми
 
-### Практичне правило
+## Практичне правило
 
 У hot path ігрового екрана заборонено додавати нові декоративні ефекти через:
 
@@ -372,21 +446,15 @@ RN overlay для натискань поза дошкою:
 
 без окремого явного обґрунтування.
 
-### Додаткове правило
+## Додаткові правила
 
-`Skia.RuntimeEffect.Make()` виконується один раз на рівні модуля.
-
-### Додаткове правило
-
-Skin-компоненти не повинні містити бойову логіку гри.
-
-### Додаткове правило
-
-Canvas сцени не повинен залежати від частих React re-render там, де можна використати shared values / derived values.
+- `Skia.RuntimeEffect.Make()` виконується один раз на рівні модуля
+- skin-компоненти не повинні містити бойову логіку гри
+- canvas сцени не повинен залежати від частих React re-render там, де можна використати `SharedValue` / `DerivedValue`
 
 ---
 
-# 8. Якою має бути нова структура компонентів
+# 11. Якою має бути нова структура компонентів
 
 Орієнтовно так:
 
@@ -421,31 +489,30 @@ Canvas
 
 ---
 
-# 9. Що робити з `TimerSkin.tsx`
+# 12. Що робити з `TimerSkin.tsx`
 
-Він уже корисний, але в новій архітектурі я б змінив його статус.
+`TimerSkin.tsx` лишається корисним, але в новій архітектурі змінює статус.
 
 ## Було
 
-Окремий компонент з власною внутрішньою логікою розмірів і margin.
+Окремий компонент із власною внутрішньою логікою розмірів і margin.
 
 ## Має стати
 
-Частина scene system, яка отримує ззовні:
+Частиною scene system, яка отримує ззовні:
 
 - `frame`
-- `timeText`
+- `timeLeftMsSV` / `progressSV`
 - `font`
 - `shader params`
 
 Тобто менше “сам розраховую layout”, більше “отримую готовий frame від scene metrics”.
 
-Це саме те, що потрібно для settings у майбутньому:
-settings змінює scene tokens, а не кожен skin окремо.
+Це також готує систему до майбутніх settings: settings змінює scene tokens, а не кожен skin окремо.
 
 ---
 
-# 10. Що робити з header / logo / buttons / mode badge
+# 13. Що робити з header / logo / buttons / mode badge
 
 Їх треба проектувати **не як окремі RN-компоненти**, а як scene elements.
 
@@ -466,20 +533,19 @@ settings змінює scene tokens, а не кожен skin окремо.
 
 ---
 
-# 11. Що з швидкодією
+# 14. Що з швидкодією
 
-При твоєму новому рішенні головна умова така:
+Головна умова така:
 
 ## Безпечний сценарій
 
 - один full-screen canvas
 - shader-driven skins
-- без blur/mask/live shadow
+- без blur / mask / live shadow
 - overlay input окремо
 - board motion на shared values
 - scene structure стабільна
-
-Оце виглядає добре.
+- timer не провокує re-render усього екрана
 
 ## Поганий сценарій
 
@@ -488,18 +554,23 @@ settings змінює scene tokens, а не кожен skin окремо.
 - layout frame-и перераховуються хаотично
 - skin-компоненти самі вирішують свої розміри
 - логіка дошки змішується з логікою сцени
+- safe area та resize обробляються запізно або фрагментарно
 
 Оце треба не допустити.
 
 ---
 
-# 12. Найкращий порядок впровадження
-
-Ось порядок, який я вважаю канонічним.
+# 15. Найкращий порядок впровадження
 
 ## Крок 1
 
-Створити `GameSceneMetrics.ts` і зафіксувати всі frame-и нового екрана.
+Створити `useGameSceneMetrics()` і зафіксувати всі frame-и нового екрана.
+
+Одразу закласти:
+
+- `useSafeAreaInsets()`
+- `useSafeAreaFrame()`
+- реакцію на resize / split-screen / orientation changes
 
 Без цього далі рухатися не варто.
 
@@ -509,14 +580,14 @@ settings змінює scene tokens, а не кожен skin окремо.
 
 Створити `GameSceneCanvas.tsx` з full-screen canvas, але поки без повного переносу всіх елементів.
 
-На цьому кроці вже має бути:
+На цьому кроці вже мають існувати frame-и для:
 
 - background
-- timer frame
-- board frame
-- button frames
-- mode badge frame
-- header frame
+- header
+- timer
+- board
+- action buttons
+- mode badge
 
 ---
 
@@ -543,7 +614,7 @@ settings змінює scene tokens, а не кожен skin окремо.
 
 Перенести `TimerSkin` у сцену.
 
-Не як placeholder, а як реальний scene element.
+Не як placeholder, а як реальний scene element, який живе від `SharedValue` і не провокує загальний React re-render.
 
 ---
 
@@ -556,13 +627,15 @@ settings змінює scene tokens, а не кожен skin окремо.
 - restart
 - mode badge
 
+На цьому ж кроці додати accessibility-властивості.
+
 ---
 
 ## Крок 7
 
 Додати `useGameSessionController`:
 
-- classic / limitTime
+- `classic / limitTime`
 - countdown
 - restart reset
 - lose transition
@@ -572,25 +645,33 @@ settings змінює scene tokens, а не кожен skin окремо.
 
 ## Крок 8
 
+Переконатися, що scene text рендериться тільки після готовності шрифтів.
+
+---
+
+## Крок 9
+
 Лише після цього вмикати settings, які будуть змінювати:
 
 - timer duration
 - theme tokens
 - shader params
-- layout/look variants
+- layout / look variants
 
 ---
 
-# 13. Мій підсумок
+# 16. Підсумок
 
-Твоя нова цільова архітектура має бути такою:
+Цільова архітектура ігрового екрана має бути такою:
 
 - **канонічний `GameScreen`**
 - **один full-screen `GameSceneCanvas`**
 - **одна scene metrics system**
 - **дошка як scene layer, а не окремий mini-screen**
 - **overlay input окремо**
+- **overlay accessibility окремо**
 - **session logic окремо**
-- **shader-first policy як правило проекту**
+- **shader-first policy як правило проєкту**
+- **safe-area-aware та resize-aware метрики як обов’язкова частина сцени**
 
-І так, у цій логіці `GameScreenShell` у його нинішньому вигляді вже не фундамент, а тимчасовий етап, який треба зняти з ролі канону.
+У цій логіці `GameScreenShell` у нинішньому вигляді вже не фундамент, а тимчасовий етап, який треба зняти з ролі канону.
