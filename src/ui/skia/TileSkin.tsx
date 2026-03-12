@@ -41,7 +41,6 @@ export function TileSkin({
   const canvasW = rect.width + SHADOW_MARGIN * 2;
   const canvasH = rect.height + SHADOW_MARGIN * 2;
 
-  // ТУТ НАША БРОНЯ ВІД БАГІВ: використовуємо префікс u_
   const uniforms = useMemo(() => {
     return {
       u_canvasSize: [canvasW, canvasH],

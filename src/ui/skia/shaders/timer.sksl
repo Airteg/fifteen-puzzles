@@ -1,0 +1,52 @@
+uniform vec2 canvasSize;  // Розмір нашого полотна (включає таймер + місце для тіні)
+uniform vec2 buttonSize;  // Фізичний розмір самого таймера (без тіней)
+uniform float radius;     // Радіус закруглення кутів
+uniform float isPressed;  // 0.0 (відпущена) до 1.0 (натиснута)
+uniform vec4 u_bgColor;   // <--- ДОДАНО: Динамічний колір фону таймера
+
+// SDF: Відстань до прямокутника з округленими кутами
+float sdRoundRect(vec2 p, vec2 b, float r) {
+    vec2 d = abs(p) - b + vec2(r);
+    return min(max(d.x, d.y), 0.0) + length(max(d, vec2(0.0))) - r;
+}
+
+vec4 main(vec2 coord) {
+    vec2 p = coord - canvasSize / 2.0;
+    vec2 b = buttonSize / 2.0;
+    
+    float d = sdRoundRect(p, b, radius);
+    
+    // Дистанція для зовнішньої тіні
+    float shadowOffset = mix(5.0, 1.0, isPressed);
+    float d_shadow = sdRoundRect(p - vec2(0.0, shadowOffset), b, radius);
+
+    // Маски
+    float shapeMask = clamp(1.0 - smoothstep(-0.5, 0.5, d), 0.0, 1.0);
+    float borderWidth = 3.0;
+    float innerMask = clamp(1.0 - smoothstep(-borderWidth - 0.5, -borderWidth + 0.5, d), 0.0, 0.5);
+    float innerD = -(d + borderWidth);
+    float insetMask = clamp(1.0 - smoothstep(0.0, 13.0, innerD), 0.0, 1.0);
+
+    float shadowStrength = 0.14;
+    float shadowBlur = 11.0;
+    float shadowMask = clamp(1.0 - smoothstep(0.0, shadowBlur, d_shadow), 0.0, 1.0) * shadowStrength;
+
+    // Кольори
+    float t = clamp(isPressed, 0.0, 1.0);
+    vec3 bgNormal  = u_bgColor.rgb; // <--- Використовуємо переданий колір
+    vec3 bgPressed = vec3(1.0, 0.98, 0.13);
+    vec3 bgColor = mix(bgNormal, bgPressed, t);
+
+    vec3 rimColor = vec3(1.0);
+    vec3 surfaceColor = mix(rimColor, bgColor, innerMask);
+
+    // Внутрішня тінь
+    float insetAlpha = 0.3;
+    surfaceColor = mix(surfaceColor, vec3(0.0), insetMask * insetAlpha * innerMask);
+
+    // Композитинг
+    vec4 shapeLayer = vec4(surfaceColor * shapeMask, shapeMask);
+    vec4 shadowLayer = vec4(vec3(0.0), shadowMask);
+
+    return shapeLayer + shadowLayer * (1.0 - shapeLayer.a);
+}
