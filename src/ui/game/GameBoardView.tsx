@@ -35,7 +35,7 @@ export function GameBoardView({ tileFont, bootGrid, onWin }: Props) {
     [S, snap],
   );
 
-  const pad = snap(14 * S);
+  const pad = snap(30 * S);
   const canvasSize = m.boardSize + pad * 2;
 
   const {
@@ -75,9 +75,6 @@ export function GameBoardView({ tileFont, bootGrid, onWin }: Props) {
         <Group transform={[{ translateX: pad }, { translateY: pad }]}>
           <BoardSkin
             rect={{ x: 0, y: 0, width: m.boardSize, height: m.boardSize }}
-            radius={snap(16 * S)}
-            blurA={snap(4 * S)}
-            blurB={snap(8 * S)}
             S={S}
             snap={snap}
           />

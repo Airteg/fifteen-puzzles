@@ -20,13 +20,12 @@ type Props = {
 
 export function BoardSkin1({ rect, tintColor, S, snap }: Props) {
   // Для дошки з такою тінню відступ має бути трохи більшим, щоб тінь не обрізалась
-  const SHADOW_MARGIN = snap(20 * S);
-
+  const SHADOW_MARGIN = snap(30 * S);
   const canvasW = rect.width + SHADOW_MARGIN * 2;
   const canvasH = rect.height + SHADOW_MARGIN * 2;
 
   // Радіус заокруглення дошки. Зазвичай він масштабується через S.
-  const radius = snap(16 * S);
+  const radius = snap(22 * S);
 
   const uniforms = useMemo(() => {
     return {
