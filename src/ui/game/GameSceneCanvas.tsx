@@ -8,7 +8,9 @@ import { GameBoardSceneLayer } from "./GameBoardSceneLayer";
 import { useGameBoardController } from "./useGameBoardController";
 import type { GameSceneMetrics } from "./useGameSceneMetrics";
 
-// Витягуємо тип повернення контролера, щоб не писати всі 15 пропсів вручну
+// ДОДАНО: імпорт TimerSkin
+import { TimerSkin } from "@/ui/skia/TimerSkin";
+
 type BoardControllerState = ReturnType<typeof useGameBoardController>;
 
 type Props = {
@@ -18,6 +20,8 @@ type Props = {
   snap: (v: number) => number;
   tileFont: SkFont;
   boardCtrl: BoardControllerState;
+  // ДОДАНО: проп для тексту таймера
+  timeText?: string;
 };
 
 export const GameSceneCanvas: React.FC<Props> = ({
@@ -27,6 +31,7 @@ export const GameSceneCanvas: React.FC<Props> = ({
   snap,
   tileFont,
   boardCtrl,
+  timeText = "02:00", // Тимчасове значення до реалізації Кроку 7
 }) => {
   return (
     <Canvas style={StyleSheet.absoluteFill}>
@@ -48,24 +53,26 @@ export const GameSceneCanvas: React.FC<Props> = ({
         color="rgba(255, 100, 100, 0.3)"
       />
 
+      {/* ДОДАНО: Рендер реального TimerSkin замість зеленого Rect */}
       {metrics.timerFrame && (
-        <Rect
-          x={metrics.timerFrame.x}
-          y={metrics.timerFrame.y}
-          width={metrics.timerFrame.width}
-          height={metrics.timerFrame.height}
-          color="rgba(100, 255, 100, 0.3)"
+        <TimerSkin
+          frame={metrics.timerFrame}
+          timeText={timeText}
+          font={tileFont}
+          // Темно-сірий колір фону у форматі RGBA [0..1] для шейдера
+          bgColor={[0.15, 0.15, 0.15, 1.0]}
+          S={S}
+          snap={snap}
         />
       )}
 
-      {/* 3. РЕАЛЬНА ДОШКА (Беремо координати з метрик сцени) */}
+      {/* 3. РЕАЛЬНА ДОШКА */}
       <GameBoardSceneLayer
         boardFrame={metrics.boardFrame}
         m={boardM}
         S={S}
         snap={snap}
         tileFont={tileFont}
-        // Передаємо стейт з контролера
         tiles={boardCtrl.tiles}
         gridSV={boardCtrl.gridSV}
         emptyRow={boardCtrl.emptyRow}

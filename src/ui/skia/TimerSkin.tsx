@@ -9,6 +9,7 @@ import {
 import React, { useMemo } from "react";
 
 // Імпортуємо наш новий шейдер
+import type { SceneFrame } from "../game/useGameSceneMetrics";
 import timerShaderSource from "./shaders/timer.sksl";
 
 const timerEffect = Skia.RuntimeEffect.Make(timerShaderSource);
@@ -18,28 +19,18 @@ if (!timerEffect) {
 }
 
 type Props = {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
+  frame: SceneFrame;
   timeText: string;
-  font: SkFont | null;
+  font: SkFont;
   bgColor: [number, number, number, number]; // RGBA від hexToShader
   S: number;
   snap: (v: number) => number;
 };
 
-export function TimerSkin({
-  x,
-  y,
-  width,
-  height,
-  timeText,
-  font,
-  bgColor,
-  S,
-  snap,
-}: Props) {
+export function TimerSkin({ frame, timeText, font, bgColor, S, snap }: Props) {
+  // Розпаковуємо frame
+  const { x, y, width, height } = frame;
+
   // Відступ для зовнішньої тіні (щоб не обрізалася канвасом)
   const SHADOW_MARGIN = snap(16 * S);
 
@@ -60,7 +51,6 @@ export function TimerSkin({
 
   // Відцентровка тексту
   const textLayout = useMemo(() => {
-    if (!font) return null;
     const m = font.measureText(timeText);
 
     // Рахуємо координати тексту відносно чистого розміру таймера
@@ -85,15 +75,13 @@ export function TimerSkin({
         </Rect>
       </Group>
 
-      {font && textLayout && (
-        <Text
-          x={textLayout.x}
-          y={textLayout.y}
-          text={timeText}
-          font={font}
-          color="#216169" // Темно-синій текст
-        />
-      )}
+      <Text
+        x={textLayout.x}
+        y={textLayout.y}
+        text={timeText}
+        font={font}
+        color="#FFFFFF"
+      />
     </Group>
   );
 }
