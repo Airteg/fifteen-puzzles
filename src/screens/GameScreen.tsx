@@ -1,118 +1,47 @@
-import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import React, { useRef } from "react";
-import { StyleSheet, Text, View } from "react-native";
-
-import { useLayoutMetrics } from "@/context/LayoutMetricsProvider";
 import { RootStackParamList } from "@/types/types";
-
-import { useSkiaFonts } from "@/context/FontProvider";
-import { GameBoardView } from "@/ui/game/GameBoardView";
-import { shuffleTiles } from "@/ui/game/gameEngine/shuffleTiles";
-import { GameScreenShell } from "@/ui/shell/GameScreenShell";
+import { GameSceneCanvas } from "@/ui/game/GameSceneCanvas";
+import { useGameSceneMetrics } from "@/ui/game/useGameSceneMetrics";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import React, { useEffect, useState } from "react";
+import { View } from "react-native";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Game">;
 
 const GameScreen: React.FC<Props> = ({ route, navigation }) => {
-  const { title: tileFont } = useSkiaFonts();
-  const { S, snap } = useLayoutMetrics();
+  const hasTimer = route.params?.mode === "limitTime";
+  const metrics = useGameSceneMetrics(hasTimer);
 
-  const mode = route.params?.mode || "classic";
+  const [isReady, setIsReady] = useState(false);
 
-  // Boot-only grid: читається GameBoard controller-ом лише під час першого mount.
-  const bootGridRef = useRef<number[] | null>(null);
+  useEffect(() => {
+    // 1. Слухаємо нативну подію завершення анімації переходу екрана
+    const unsubscribe = navigation.addListener("transitionEnd", () => {
+      setIsReady(true);
+    });
 
-  if (!bootGridRef.current) {
-    bootGridRef.current = shuffleTiles();
-  }
+    // 2. Fallback (перестраховка): якщо екран відкривається миттєво без анімації
+    // (наприклад, при Deep Link або якщо це буде найперший екран), подія може не спрацювати.
+    // Тому через 400мс (стандартний час переходу) ми примусово показуємо Canvas.
+    const fallbackTimer = setTimeout(() => {
+      setIsReady(true);
+    }, 400);
 
-  const timerNode =
-    mode === "limitTime" ? (
-      <View
-        style={[
-          styles.tempTimer,
-          { height: snap(40 * S), borderRadius: snap(8 * S) },
-        ]}
-      >
-        <Text style={styles.tempText}>⏱ TIME 02:42</Text>
-      </View>
-    ) : undefined;
-
-  const buttonsNode = (
-    <View style={[styles.tempButtons, { height: snap(80 * S) }]}>
-      <View
-        style={[
-          styles.tempBtn,
-          { width: snap(80 * S), borderRadius: snap(8 * S) },
-        ]}
-      >
-        <Text>HOME</Text>
-      </View>
-      <View
-        style={[
-          styles.tempBtn,
-          { width: snap(80 * S), borderRadius: snap(8 * S) },
-        ]}
-      >
-        <Text>RESTART</Text>
-      </View>
-    </View>
-  );
-
-  const ctaNode = (
-    <View
-      style={[
-        styles.tempCta,
-        { height: snap(45 * S), borderRadius: snap(8 * S) },
-      ]}
-    >
-      <Text style={styles.tempText}>
-        {mode === "classic" ? "CLASSIC" : "LIMIT TIME"}
-      </Text>
-    </View>
-  );
+    // Очищення підписок
+    return () => {
+      unsubscribe();
+      clearTimeout(fallbackTimer);
+    };
+  }, [navigation]);
 
   return (
-    <GameScreenShell
-      timer={timerNode}
-      board={
-        <GameBoardView
-          tileFont={tileFont}
-          bootGrid={bootGridRef.current ?? undefined}
-          // ДОДАНО: обробник перемоги
-          onWin={() => navigation.navigate("Win", { score: 100 })}
-        />
-      }
-      buttons={buttonsNode}
-      cta={ctaNode}
-    />
+    <View style={{ flex: 1, backgroundColor: "#000" }}>
+      {isReady ? (
+        <GameSceneCanvas metrics={metrics} />
+      ) : (
+        <View style={{ flex: 1, backgroundColor: "#000" }} />
+      )}
+    </View>
   );
 };
 
 export default GameScreen;
-
-const styles = StyleSheet.create({
-  tempTimer: {
-    backgroundColor: "#E4FF00",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  tempButtons: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  tempBtn: {
-    height: "100%",
-    backgroundColor: "#4DD0E1",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  tempCta: {
-    backgroundColor: "#E0F7FA",
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#B2EBF2",
-  },
-  tempText: { color: "#216169", fontWeight: "bold" },
-});
