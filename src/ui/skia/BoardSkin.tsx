@@ -2,7 +2,6 @@ import type { Rect as UIRect } from "@/ui/pixel";
 import { Group, Rect, Shader, Skia } from "@shopify/react-native-skia";
 import React, { useMemo } from "react";
 
-// Підключаємо наш новий шейдер
 import boardShaderSource from "./shaders/board_v1.sksl";
 
 const boardEffect = Skia.RuntimeEffect.Make(boardShaderSource);

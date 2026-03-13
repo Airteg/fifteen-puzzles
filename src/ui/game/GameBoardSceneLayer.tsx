@@ -1,23 +1,26 @@
 import type { SkFont } from "@shopify/react-native-skia";
-import { Canvas, Rect } from "@shopify/react-native-skia";
+import { Group } from "@shopify/react-native-skia";
 import React from "react";
-import { StyleSheet } from "react-native";
 import type { SharedValue } from "react-native-reanimated";
 
-import { GameBoardSceneLayer } from "./GameBoardSceneLayer";
+import { BoardSkin } from "@/ui/skia/BoardSkin";
+import { BoardTileNode } from "./BoardTileNode";
 import type { BoardMetrics } from "./boardGeometry";
+// ДОДАНО: імпорт BoardTileDescriptor
 import type { BoardAxis } from "./gameBoardModel";
-import { GameSceneMetrics } from "./useGameSceneMetrics";
+import type { BoardTileDescriptor } from "./useGameBoardController";
+import type { SceneFrame } from "./useGameSceneMetrics";
 
 type Props = {
-  metrics: GameSceneMetrics;
-
-  // Пропси для дошки
+  boardFrame: SceneFrame;
   m: BoardMetrics;
   S: number;
   snap: (v: number) => number;
   tileFont: SkFont;
-  tiles: { id: number; label: string }[];
+
+  // ВИПРАВЛЕНО: тепер масив readonly і використовує канонічний тип
+  tiles: readonly BoardTileDescriptor[];
+
   gridSV: SharedValue<number[]>;
   emptyRow: SharedValue<number>;
   emptyCol: SharedValue<number>;
@@ -32,60 +35,31 @@ type Props = {
   animMovedIdsSV: SharedValue<number[]>;
 };
 
-export const GameSceneCanvas: React.FC<Props> = (props) => {
-  const { metrics, ...boardProps } = props;
+export function GameBoardSceneLayer(props: Props) {
+  const { boardFrame, m, S, snap, tileFont, tiles, ...rest } = props;
 
   return (
-    <Canvas style={StyleSheet.absoluteFill}>
-      {/* ФОН */}
-      <Rect
-        x={0}
-        y={0}
-        width={metrics.screenW}
-        height={metrics.screenH}
-        color="#121212"
+    <Group
+      transform={[{ translateX: boardFrame.x }, { translateY: boardFrame.y }]}
+    >
+      <BoardSkin
+        rect={{ x: 0, y: 0, width: m.boardSize, height: m.boardSize }}
+        S={S}
+        snap={snap}
       />
 
-      {/* 1. HEADER - поки що debug рамка */}
-      <Rect
-        x={metrics.headerFrame.x}
-        y={metrics.headerFrame.y}
-        width={metrics.headerFrame.width}
-        height={metrics.headerFrame.height}
-        color="rgba(255, 100, 100, 0.3)"
-      />
-
-      {/* 2. РЕАЛЬНА ДОШКА (Бере координати з метрик) */}
-      <GameBoardSceneLayer boardFrame={metrics.boardFrame} {...boardProps} />
-
-      {/* 3. TIMER - поки що debug рамка */}
-      {metrics.timerFrame && (
-        <Rect
-          x={metrics.timerFrame.x}
-          y={metrics.timerFrame.y}
-          width={metrics.timerFrame.width}
-          height={metrics.timerFrame.height}
-          color="rgba(100, 255, 100, 0.3)"
+      {tiles.map((t) => (
+        <BoardTileNode
+          key={t.id}
+          m={m}
+          S={S}
+          snap={snap}
+          tileId={t.id}
+          label={t.label}
+          font={tileFont}
+          {...rest}
         />
-      )}
-
-      {/* 4. BUTTONS - поки що debug рамка */}
-      <Rect
-        x={metrics.buttonsBlockFrame.x}
-        y={metrics.buttonsBlockFrame.y}
-        width={metrics.buttonsBlockFrame.width}
-        height={metrics.buttonsBlockFrame.height}
-        color="rgba(255, 255, 100, 0.3)"
-      />
-
-      {/* 5. MODE PANEL - поки що debug рамка */}
-      <Rect
-        x={metrics.modePanelFrame.x}
-        y={metrics.modePanelFrame.y}
-        width={metrics.modePanelFrame.width}
-        height={metrics.modePanelFrame.height}
-        color="rgba(255, 100, 255, 0.3)"
-      />
-    </Canvas>
+      ))}
+    </Group>
   );
-};
+}

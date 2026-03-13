@@ -1,42 +1,108 @@
 import { RootStackParamList } from "@/types/types";
-import { GameSceneCanvas } from "@/ui/game/GameSceneCanvas";
-import { useGameSceneMetrics } from "@/ui/game/useGameSceneMetrics";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { View } from "react-native";
+
+// Хуки та провайдери
+import { useSkiaFonts } from "@/context/FontProvider"; // ПРАВИЛЬНИЙ ІМПОРТ
+import { useLayoutMetrics } from "@/context/LayoutMetricsProvider";
+import { useGameBoardController } from "@/ui/game/useGameBoardController";
+import { useGameSceneMetrics } from "@/ui/game/useGameSceneMetrics";
+
+// Геометрія та константи
+import { makeBoardMetrics } from "@/ui/game/boardGeometry";
+import { GameMetrics } from "@/ui/game/gameMetrics";
+
+// UI Компоненти
+import { BoardGestureOverlay } from "@/ui/game/BoardGestureOverlay";
+import { GameSceneCanvas } from "@/ui/game/GameSceneCanvas";
+// Функція для генерації стартової сітки
+import { shuffleTiles } from "@/ui/game/gameEngine/shuffleTiles";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Game">;
 
 const GameScreen: React.FC<Props> = ({ route, navigation }) => {
+  // 1. Метрики екрана та сцени
   const hasTimer = route.params?.mode === "limitTime";
-  const metrics = useGameSceneMetrics(hasTimer);
+  const sceneMetrics = useGameSceneMetrics(hasTimer);
+  const { S, snap } = useLayoutMetrics();
 
+  // 2. Дістаємо твій оригінальний шрифт KronaOne для плиток
+  const { title: tileFont } = useSkiaFonts();
+
+  // 3. Метрики самої дошки
+  const boardM = useMemo(
+    () =>
+      makeBoardMetrics({
+        S,
+        snap,
+        size: GameMetrics.board.size,
+        inset: GameMetrics.board.inset,
+        tile: GameMetrics.board.tile,
+        gap: GameMetrics.board.gap,
+      }),
+    [S, snap],
+  );
+
+  // 4. Генерація початкової сітки (як у твоєму оригінальному файлі)
+  const bootGrid = useMemo(() => shuffleTiles(), []);
+
+  // 5. Ігровий контролер
+  const boardCtrl = useGameBoardController({
+    stepPx: boardM.step,
+    bootGrid: bootGrid,
+    onWin: () => {
+      navigation.navigate("Win", { score: 100 });
+    },
+  });
+
+  // 6. Стан готовності (анімація навігації)
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    // 1. Слухаємо нативну подію завершення анімації переходу екрана
-    const unsubscribe = navigation.addListener("transitionEnd", () => {
-      setIsReady(true);
-    });
-
-    // 2. Fallback (перестраховка): якщо екран відкривається миттєво без анімації
-    // (наприклад, при Deep Link або якщо це буде найперший екран), подія може не спрацювати.
-    // Тому через 400мс (стандартний час переходу) ми примусово показуємо Canvas.
-    const fallbackTimer = setTimeout(() => {
-      setIsReady(true);
-    }, 400);
-
-    // Очищення підписок
+    const unsubscribe = navigation.addListener("transitionEnd", () =>
+      setIsReady(true),
+    );
+    const fallbackTimer = setTimeout(() => setIsReady(true), 400);
     return () => {
       unsubscribe();
       clearTimeout(fallbackTimer);
     };
   }, [navigation]);
 
+  // Захист: чекаємо поки завантажиться шрифт
+  if (!tileFont) {
+    return <View style={{ flex: 1, backgroundColor: "#000" }} />;
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: "#000" }}>
       {isReady ? (
-        <GameSceneCanvas metrics={metrics} />
+        <>
+          <GameSceneCanvas
+            metrics={sceneMetrics}
+            boardM={boardM}
+            S={S}
+            snap={snap}
+            tileFont={tileFont} // Передаємо KronaOne
+            boardCtrl={boardCtrl}
+          />
+
+          <BoardGestureOverlay
+            boardFrame={sceneMetrics.boardFrame}
+            m={boardM}
+            lockAbs={snap(2 * S)}
+            emptyRow={boardCtrl.emptyRow}
+            emptyCol={boardCtrl.emptyCol}
+            dragActive={boardCtrl.dragActive}
+            dragAxis={boardCtrl.dragAxis}
+            dragStartRow={boardCtrl.dragStartRow}
+            dragStartCol={boardCtrl.dragStartCol}
+            dragOffsetPx={boardCtrl.dragOffsetPx}
+            onCommitShift={boardCtrl.onCommitShift}
+            onTapCell={boardCtrl.onTapCell}
+          />
+        </>
       ) : (
         <View style={{ flex: 1, backgroundColor: "#000" }} />
       )}

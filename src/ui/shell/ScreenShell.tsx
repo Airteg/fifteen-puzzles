@@ -24,9 +24,7 @@ export function ScreenShell({
   const gap2 = snap(animationToTitleGapDesign * S);
   const gap3 = snap(titleToContentGapDesign * S);
   const footerBottom = snap(footerBottomGapDesign * S);
-  // console.log("🚀 ~ gap1:", gap1);
-  // console.log("🚀 ~ gap2:", gap2);
-  // console.log("🚀 ~ gap3:", gap3);
+
   return (
     <View style={[root, { backgroundColor }]}>
       {/* 1) Header (всередині AppHeader вже є top offset + width=350*S + center) */}
