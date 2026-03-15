@@ -75,9 +75,6 @@ export function IconButtonSkin({ frame, type, label, font }: Props) {
   const tileInnerX = tileX0 + shadowInset;
   const tileInnerY = tileY0 + shadowInset;
 
-  const labelY0 = ButtonBaseW;
-  const labelH = ButtonBaseH - ButtonBaseW;
-
   const path = useMemo(() => {
     const svgStr = type === "home" ? HOME_PATH : RESTART_PATH;
     const p = Skia.Path.MakeFromSVGString(svgStr);
@@ -104,10 +101,10 @@ export function IconButtonSkin({ frame, type, label, font }: Props) {
     const m = font.measureText(label);
     return {
       x: (ButtonBaseW - m.width) / 2,
-      y: labelY0 + labelH / 2 + font.getSize() * 0.35,
+      y: ButtonBaseH - ButtonBaseW * 0.125,
     };
-  }, [label, font, ButtonBaseW, labelY0, labelH]);
-
+  }, [label, font, ButtonBaseW, ButtonBaseH]);
+  console.log("font.getSize()", font.getSize());
   return (
     <Group transform={[{ translateX: x0 }, { translateY: y0 }]}>
       {/* Загальний корпус кнопки */}
@@ -142,7 +139,7 @@ export function IconButtonSkin({ frame, type, label, font }: Props) {
           path={path}
           color="#000000"
           style="stroke"
-          strokeWidth={0.03125 * ButtonBaseW} // 2.5 при width=80
+          strokeWidth={0.025 * ButtonBaseW} // 2 при width=80
           strokeCap="round"
           strokeJoin="round"
         />
