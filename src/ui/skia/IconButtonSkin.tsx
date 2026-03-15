@@ -23,7 +23,6 @@ type Frame = {
   x: number;
   y: number;
   width: number;
-  height: number;
 };
 
 type Props = {
@@ -104,7 +103,7 @@ export function IconButtonSkin({ frame, type, label, font }: Props) {
       y: ButtonBaseH - ButtonBaseW * 0.125,
     };
   }, [label, font, ButtonBaseW, ButtonBaseH]);
-  console.log("font.getSize()", font.getSize());
+
   return (
     <Group transform={[{ translateX: x0 }, { translateY: y0 }]}>
       {/* Загальний корпус кнопки */}

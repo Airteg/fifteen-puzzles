@@ -65,7 +65,6 @@ const AboutScreen = ({ navigation }: Props<"About">) => {
                   x: figureX / scale,
                   y: figureY / scale,
                   width: 80,
-                  height: 99,
                 }}
                 type="restart"
                 label="RESTART"
