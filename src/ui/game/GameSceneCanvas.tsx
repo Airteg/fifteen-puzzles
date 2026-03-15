@@ -1,5 +1,5 @@
 import type { SkFont } from "@shopify/react-native-skia";
-import { Canvas, Rect } from "@shopify/react-native-skia";
+import { Canvas, Rect, useFont } from "@shopify/react-native-skia";
 import React from "react";
 import { StyleSheet } from "react-native";
 
@@ -10,6 +10,7 @@ import type { GameSceneMetrics } from "./useGameSceneMetrics";
 
 // ДОДАНО: імпорт TimerSkin
 import { TimerSkin } from "@/ui/skia/TimerSkin";
+import { IconButtonSkin } from "../skia/IconButtonSkin";
 
 type BoardControllerState = ReturnType<typeof useGameBoardController>;
 
@@ -33,6 +34,34 @@ export const GameSceneCanvas: React.FC<Props> = ({
   boardCtrl,
   timeText = "02:00", // Тимчасове значення до реалізації Кроку 7
 }) => {
+  // console.log(
+  //   "🚀 ~ metrics:\n" +
+  //     JSON.stringify(
+  //       metrics,
+  //       (k, v) => (typeof v === "number" ? Number(v.toFixed(1)) : v),
+  //       2,
+  //     ),
+  // );
+  // 1. Завантажуємо шрифт для кнопок із застосуванням масштабування
+  const iconFont = useFont(
+    require("../../../assets/fonts/Mariupol-Medium.ttf"),
+    snap(14 * S),
+  );
+  const btnW = snap(80 * S); // Базова ширина 80 пікселів, масштабована під екран
+
+  const homeFrame = {
+    x: metrics.buttonsBlockFrame.x,
+    y: metrics.buttonsBlockFrame.y,
+    width: btnW,
+  };
+
+  const restartFrame = {
+    // Ставимо з правого краю блоку кнопок
+    x: metrics.buttonsBlockFrame.x + metrics.buttonsBlockFrame.width - btnW,
+    y: metrics.buttonsBlockFrame.y,
+    width: btnW,
+  };
+
   return (
     <Canvas style={StyleSheet.absoluteFill}>
       {/* 1. ФОН */}
@@ -87,15 +116,30 @@ export const GameSceneCanvas: React.FC<Props> = ({
         animDirSV={boardCtrl.animDirSV}
         animMovedIdsSV={boardCtrl.animMovedIdsSV}
       />
-
+      {iconFont && (
+        <>
+          <IconButtonSkin
+            frame={homeFrame}
+            type="home"
+            label="Home"
+            font={iconFont}
+          />
+          <IconButtonSkin
+            frame={restartFrame}
+            type="restart"
+            label="Restart"
+            font={iconFont}
+          />
+        </>
+      )}
       {/* 4. НИЖНІ ПАНЕЛІ (Дебаг рамки) */}
-      <Rect
+      {/* <Rect
         x={metrics.buttonsBlockFrame.x}
         y={metrics.buttonsBlockFrame.y}
         width={metrics.buttonsBlockFrame.width}
         height={metrics.buttonsBlockFrame.height}
         color="rgba(255, 255, 100, 0.3)"
-      />
+      /> */}
       <Rect
         x={metrics.modePanelFrame.x}
         y={metrics.modePanelFrame.y}
