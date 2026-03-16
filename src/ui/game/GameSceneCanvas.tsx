@@ -1,5 +1,5 @@
 import type { SkFont } from "@shopify/react-native-skia";
-import { Canvas, Rect, useFont } from "@shopify/react-native-skia";
+import { Canvas, Group, Rect, useFont } from "@shopify/react-native-skia";
 import React from "react";
 import { StyleSheet } from "react-native";
 
@@ -11,6 +11,7 @@ import type { GameSceneMetrics } from "./useGameSceneMetrics";
 // ДОДАНО: імпорт TimerSkin
 import { TimerSkin } from "@/ui/skia/TimerSkin";
 import { IconButtonSkin } from "../skia/IconButtonSkin";
+import { SkiaButtonSkin } from "../skia/SkiaButtonSkin";
 
 type BoardControllerState = ReturnType<typeof useGameBoardController>;
 
@@ -21,8 +22,8 @@ type Props = {
   snap: (v: number) => number;
   tileFont: SkFont;
   boardCtrl: BoardControllerState;
-  // ДОДАНО: проп для тексту таймера
   timeText?: string;
+  modeText: string;
 };
 
 export const GameSceneCanvas: React.FC<Props> = ({
@@ -33,6 +34,7 @@ export const GameSceneCanvas: React.FC<Props> = ({
   tileFont,
   boardCtrl,
   timeText = "02:00", // Тимчасове значення до реалізації Кроку 7
+  modeText,
 }) => {
   // console.log(
   //   "🚀 ~ metrics:\n" +
@@ -42,11 +44,16 @@ export const GameSceneCanvas: React.FC<Props> = ({
   //       2,
   //     ),
   // );
+
   // 1. Завантажуємо шрифт для кнопок із застосуванням масштабування
   const iconFont = useFont(
     require("../../../assets/fonts/Mariupol-Medium.ttf"),
     snap(14 * S),
   );
+  // const titleFont = useFont(
+  //   require("../../../assets/fonts/Mariupol-Medium.ttf"),
+  //   snap(14 * S),
+  // );
   const btnW = snap(80 * S); // Базова ширина 80 пікселів, масштабована під екран
 
   const homeFrame = {
@@ -117,20 +124,20 @@ export const GameSceneCanvas: React.FC<Props> = ({
         animMovedIdsSV={boardCtrl.animMovedIdsSV}
       />
       {iconFont && (
-        <>
+        <Group>
           <IconButtonSkin
             frame={homeFrame}
             type="home"
-            label="Home"
+            label="HOME"
             font={iconFont}
           />
           <IconButtonSkin
             frame={restartFrame}
             type="restart"
-            label="Restart"
+            label="RESTART"
             font={iconFont}
           />
-        </>
+        </Group>
       )}
       {/* 4. НИЖНІ ПАНЕЛІ (Дебаг рамки) */}
       {/* <Rect
@@ -140,12 +147,18 @@ export const GameSceneCanvas: React.FC<Props> = ({
         height={metrics.buttonsBlockFrame.height}
         color="rgba(255, 255, 100, 0.3)"
       /> */}
-      <Rect
+      {/* <Rect
         x={metrics.modePanelFrame.x}
         y={metrics.modePanelFrame.y}
         width={metrics.modePanelFrame.width}
         height={metrics.modePanelFrame.height}
         color="rgba(255, 100, 255, 0.3)"
+      ></Rect> */}
+      <SkiaButtonSkin
+        rect={metrics.modePanelFrame}
+        title={modeText}
+        font={tileFont}
+        pressed={false} // Завжди false, жодних реакцій на натискання
       />
     </Canvas>
   );

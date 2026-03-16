@@ -39,17 +39,28 @@ export function BoardSkin({ rect, tintColor, S, snap }: Props) {
   if (!boardEffect) return null;
 
   return (
-    <Group transform={[{ translateX: rect.x }, { translateY: rect.y }]}>
-      <Group
-        transform={[
-          { translateX: -SHADOW_MARGIN },
-          { translateY: -SHADOW_MARGIN },
-        ]}
-      >
-        <Rect x={0} y={0} width={canvasW} height={canvasH}>
-          <Shader source={boardEffect} uniforms={uniforms} />
-        </Rect>
+    <>
+      {/* <Rect
+        x={0}
+        y={0}
+        width={canvasW}
+        height={canvasH}
+        color="#ff0000"
+        style="stroke"
+        strokeWidth={1} // Цей компонент треба закоментувати коли відпаде потреба контролювати розмір канваса, він допомагає візуально відстежувати його межі
+      /> */}
+      <Group transform={[{ translateX: rect.x }, { translateY: rect.y }]}>
+        <Group
+          transform={[
+            { translateX: -SHADOW_MARGIN },
+            { translateY: -SHADOW_MARGIN },
+          ]}
+        >
+          <Rect x={0} y={0} width={canvasW} height={canvasH}>
+            <Shader source={boardEffect} uniforms={uniforms} />
+          </Rect>
+        </Group>
       </Group>
-    </Group>
+    </>
   );
 }

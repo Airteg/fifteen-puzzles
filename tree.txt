@@ -93,9 +93,12 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   │   ├── BoardGestureOverlay.tsx
 │   │   │   ├── BoardTileNode.tsx
 │   │   │   ├── gameBoardModel.ts
+│   │   │   ├── GameBoardSceneLayer.tsx
 │   │   │   ├── GameBoardView.tsx
 │   │   │   ├── gameMetrics.ts
-│   │   │   └── useGameBoardController.ts
+│   │   │   ├── GameSceneCanvas.tsx
+│   │   │   ├── useGameBoardController.ts
+│   │   │   └── useGameSceneMetrics.ts
 │   │   ├── header
 │   │   │   ├── AppGameHeader.tsx
 │   │   │   └── AppHeader.tsx
@@ -106,14 +109,18 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   │   ├── debug
 │   │   │   │   └── DebugBounds.tsx
 │   │   │   ├── shaders
+│   │   │   │   ├── board_v1.sksl
 │   │   │   │   ├── button.sksl
 │   │   │   │   ├── tile_v2.sksl
-│   │   │   │   └── tile.sksl
+│   │   │   │   ├── tile.sksl
+│   │   │   │   └── timer.sksl
 │   │   │   ├── svg
 │   │   │   │   ├── sm.svg
 │   │   │   │   └── sms.svg
 │   │   │   ├── AppHeaderSurface.tsx
 │   │   │   ├── BoardSkin.tsx
+│   │   │   ├── BoardSkin1.tsx
+│   │   │   ├── IconButtonSkin.tsx
 │   │   │   ├── LogoFrameSkin.tsx
 │   │   │   ├── LogoSurface.tsx
 │   │   │   ├── PanelSurface.tsx
@@ -121,16 +128,19 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   │   ├── SkiaIconButtonSkin.tsx
 │   │   │   ├── SmileySkin.tsx
 │   │   │   ├── TileSkin.tsx
-│   │   │   └── TileSkin1.tsx
+│   │   │   ├── TileSkin1.tsx
+│   │   │   └── TimerSkin.tsx
 │   │   ├── PanelZone.tsx
 │   │   ├── pixel.ts
 │   │   └── T.tsx
 │   └── utils
 │       ├── color.ts
 │       └── splash.ts
+├── temp
 ├── tools
 │   └── skslTransformer.js
 ├── .gitignore
+├── Action_Plan.md
 ├── AI_INDEX.md
 ├── AI_RULES.md
 ├── app.json

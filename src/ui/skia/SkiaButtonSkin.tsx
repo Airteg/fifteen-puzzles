@@ -23,6 +23,15 @@ type Props = {
 };
 
 export function SkiaButtonSkin({ rect, title, font, pressed = false }: Props) {
+  // console.log(
+  //   "🚀 ~ rect:\n" +
+  //     JSON.stringify(
+  //       rect,
+  //       (k, v) => (typeof v === "number" ? Number(v.toFixed(1)) : v),
+  //       2,
+  //     ),
+  // );
+
   const textColor = "#216169";
 
   // Відступ для малювання тіні (щоб вона не обрізалася)

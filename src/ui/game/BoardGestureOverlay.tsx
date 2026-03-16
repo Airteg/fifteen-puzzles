@@ -199,7 +199,7 @@ export function BoardGestureOverlay(props: Props) {
           width: boardFrame.width,
           height: boardFrame.height,
           // Закоментуй backgroundColor коли переконаєшся, що оверлей лежить рівно над дошкою
-          // backgroundColor: "rgba(255, 0, 0, 0.2)",
+          // backgroundColor: "rgba(255, 0, 0, 0.899)",
         }}
       />
     </GestureDetector>

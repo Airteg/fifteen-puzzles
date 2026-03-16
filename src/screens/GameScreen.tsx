@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { View } from "react-native";
 
 // Хуки та провайдери
-import { useSkiaFonts } from "@/context/FontProvider"; // ПРАВИЛЬНИЙ ІМПОРТ
+import { useSkiaFonts } from "@/context/FontProvider";
 import { useLayoutMetrics } from "@/context/LayoutMetricsProvider";
 import { useGameBoardController } from "@/ui/game/useGameBoardController";
 import { useGameSceneMetrics } from "@/ui/game/useGameSceneMetrics";
@@ -13,10 +13,13 @@ import { useGameSceneMetrics } from "@/ui/game/useGameSceneMetrics";
 import { makeBoardMetrics } from "@/ui/game/boardGeometry";
 import { GameMetrics } from "@/ui/game/gameMetrics";
 
-// UI Компоненти
+// UI Компоненти:
+// Жести
 import { BoardGestureOverlay } from "@/ui/game/BoardGestureOverlay";
+// Сцена
 import { GameSceneCanvas } from "@/ui/game/GameSceneCanvas";
-// Функція для генерації стартової сітки
+
+// Функція для генерації початкового положення плиток
 import { shuffleTiles } from "@/ui/game/gameEngine/shuffleTiles";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Game">;
@@ -24,10 +27,12 @@ type Props = NativeStackScreenProps<RootStackParamList, "Game">;
 const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   // 1. Метрики екрана та сцени
   const hasTimer = route.params?.mode === "limitTime";
+  const currentMode = hasTimer ? "LIMIT TIME" : "CLASSIC";
+
   const sceneMetrics = useGameSceneMetrics(hasTimer);
   const { S, snap } = useLayoutMetrics();
 
-  // 2. Дістаємо твій оригінальний шрифт KronaOne для плиток
+  // 2. Дістаємо оригінальний шрифт KronaOne для плиток
   const { title: tileFont } = useSkiaFonts();
 
   // 3. Метрики самої дошки
@@ -44,7 +49,7 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     [S, snap],
   );
 
-  // 4. Генерація початкової сітки (як у твоєму оригінальному файлі)
+  // 4. Генерація початкового положення плиток
   const bootGrid = useMemo(() => shuffleTiles(), []);
 
   // 5. Ігровий контролер
@@ -84,8 +89,9 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
             boardM={boardM}
             S={S}
             snap={snap}
-            tileFont={tileFont} // Передаємо KronaOne
+            tileFont={tileFont}
             boardCtrl={boardCtrl}
+            modeText={currentMode}
           />
 
           <BoardGestureOverlay
