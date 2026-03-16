@@ -78,8 +78,6 @@ export function SkiaIconButtonSkin({ rect, pressed = false }: Props) {
 
       {/* Сама іконка */}
       <Group>
-        {/* Якщо потрібна залита стрілка - використовуй style="fill". 
-            Якщо потрібен контур як на скриншоті - зміни на style="stroke" та розкоментуй strokeWidth */}
         <Path
           path={path}
           color={iconColor}

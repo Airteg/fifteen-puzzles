@@ -29,7 +29,7 @@ half4 main(float2 pos) {
     // X: додатне = вправо, від'ємне = вліво.
     // Y: додатне = вниз, від'ємне = вгору.
     vec2 lightOffset = vec2(2.0, -2.0) * scale;
-    vec2 darkOffset  = vec2(-2.0, 2.0) * scale;
+    vec2 darkOffset  = vec2(-4.0, 4.0) * scale;
     // 2. РОЗМИТТЯ (Blur)
     // 4.0 — це радіус розмиття в пікселях. Більше число = більш "пухка" тінь.
     float blur = 3.0 * scale;

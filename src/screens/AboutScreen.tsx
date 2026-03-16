@@ -1,10 +1,4 @@
-import {
-  Canvas,
-  Group,
-  Rect,
-  RoundedRect,
-  useFont,
-} from "@shopify/react-native-skia";
+import { Canvas, Group, Rect, useFont } from "@shopify/react-native-skia";
 import React, { useState } from "react";
 import { Button, StyleSheet, Text, View } from "react-native";
 import { styles as globalStyles } from "../styles/globalStyles";
@@ -30,7 +24,7 @@ const AboutScreen = ({ navigation }: Props<"About">) => {
   // Шрифт:
   const font = useFont(
     require("../../assets/fonts/Krona_One/KronaOne-Regular.ttf"),
-    snap(110 * S),
+    snap(11 * S * scale),
   );
 
   const handleZoomIn = () => setScale((s) => Math.min(cW / figureW, s + 0.5));
@@ -103,7 +97,6 @@ const AboutScreen = ({ navigation }: Props<"About">) => {
                   x: 0,
                   y: 0,
                   width: figureW * scale,
-                  // font: font,
                 }}
                 S={1}
                 snap={snap}
