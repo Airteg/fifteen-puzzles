@@ -1,4 +1,10 @@
-import { Canvas, Group, Rect, useFont } from "@shopify/react-native-skia";
+import {
+  Canvas,
+  Group,
+  Rect,
+  RoundedRect,
+  useFont,
+} from "@shopify/react-native-skia";
 import React, { useState } from "react";
 import { Button, StyleSheet, Text, View } from "react-native";
 import { styles as globalStyles } from "../styles/globalStyles";
@@ -6,7 +12,7 @@ import type { Props } from "../types/types";
 
 // Імпортуємо хук для метрик
 import { useLayoutMetrics } from "@/context/LayoutMetricsProvider";
-import { IconButtonSkin } from "@/ui/skia/IconButtonSkin";
+import { LogoSkin } from "@/ui/skia/LogoSkin";
 
 const cW = 300;
 const cH = 550;
@@ -15,22 +21,27 @@ const AboutScreen = ({ navigation }: Props<"About">) => {
   const [scale, setScale] = useState(1);
   const { S, snap } = useLayoutMetrics();
 
-  const figureW = 80;
-  const figureH = 99;
+  const figureW = 40;
+  const figureH = 40;
   // Ділимо на 2, бо потім масштабуватимемо всю групу, а не окремі елементи.
   const figureX = (cW - figureW) / (2 * scale);
   const figureY = (cH - figureH) / (2 * scale);
 
   // Шрифт:
   const font = useFont(
-    require("../../assets/fonts/Mariupol-Medium.ttf"),
-    snap(14 * S),
+    require("../../assets/fonts/Krona_One/KronaOne-Regular.ttf"),
+    snap(110 * S),
   );
 
-  const handleZoomIn = () => setScale((s) => Math.min(5, s + 0.5));
+  const handleZoomIn = () => setScale((s) => Math.min(cW / figureW, s + 0.5));
   const handleZoomOut = () => setScale((s) => Math.max(0.5, s - 0.5));
   const handleReset = () => setScale(1);
-
+  console.log("scale", scale);
+  console.log("(figureW * scale) / 2 = ", (figureW * scale) / 2);
+  console.log(
+    "cW / 2 - (figureW * scale) / 2 = ",
+    cW / 2 - (figureW * scale) / 2,
+  );
   return (
     <View style={[globalStyles.container, localStyles.container]}>
       <View style={localStyles.controls}>
@@ -58,8 +69,23 @@ const AboutScreen = ({ navigation }: Props<"About">) => {
             style="stroke"
             strokeWidth={2}
           />
-          <Group transform={[{ scale: scale }]}>
-            {font && (
+          <Group
+            transform={[
+              { translateX: cW / 2 - (figureW * scale) / 2 },
+              { translateY: cH / 2 - (figureH * scale) / 2 },
+              // { translateX: cW / 2 - (figureW * scale) / 2 },
+              // { translateX: cH / 2 - (figureH * scale) / 2 },
+            ]}
+          >
+            {/* <RoundedRect
+              x={0}
+              y={0}
+              width={figureW * scale}
+              height={figureW * scale}
+              r={8}
+              color="#FAFF3F"
+            ></RoundedRect> */}
+            {/* {font && (
               <IconButtonSkin
                 frame={{
                   x: figureX / scale,
@@ -69,6 +95,18 @@ const AboutScreen = ({ navigation }: Props<"About">) => {
                 type="restart"
                 label="RESTART"
                 font={font}
+              />
+            )} */}
+            {font && (
+              <LogoSkin
+                frame={{
+                  x: 0,
+                  y: 0,
+                  width: figureW * scale,
+                  // font: font,
+                }}
+                S={1}
+                snap={snap}
               />
             )}
           </Group>
