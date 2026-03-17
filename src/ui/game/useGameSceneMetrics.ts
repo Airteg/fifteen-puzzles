@@ -25,6 +25,7 @@ export function useGameSceneMetrics(
   hasTimer: boolean = false,
 ): GameSceneMetrics {
   const { sw, sh, designW } = useLayoutMetrics();
+
   const insets = useSafeAreaInsets();
 
   return useMemo(() => {
@@ -55,7 +56,7 @@ export function useGameSceneMetrics(
     // --- 2. Вертикальне та горизонтальне компонування ---
 
     // Група 1: Header (приліплений до верхньої SafeArea)
-    const headerY = insets.top;
+    const headerY = insets.top + headerH * 0.308;
     const headerX = (sw - headerW) / 2;
 
     // Група 3: Панель режиму гри (приліплена до нижньої SafeArea)

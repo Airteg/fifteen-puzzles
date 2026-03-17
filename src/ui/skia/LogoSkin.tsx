@@ -132,8 +132,9 @@ export function LogoSkin({ frame, fiveImage }: Props) {
           r={BG_R}
           color={YELLOW_BG}
         >
-          <Shadow dx={0} dy={0} blur={8} color="rgba(0, 0, 0, 0.644)" />
-          <Shadow inner dx={0} dy={0} blur={8} color="rgba(0, 0, 0, 0.6)" />
+          {/* <Shadow dx={-5} dy={5} blur={8} color="rgba(0, 0, 0, 0.493)" />
+          <Shadow dx={5} dy={-5} blur={10} color="rgba(255, 255, 255, 0.606)" /> */}
+          <Shadow inner dx={4} dy={0} blur={12} color="rgba(0, 0, 0, 0.5)" />
         </RoundedRect>
 
         <RoundedRect
@@ -144,7 +145,7 @@ export function LogoSkin({ frame, fiveImage }: Props) {
           r={BG_R}
           style="stroke"
           color={STROKE}
-          strokeWidth={1}
+          strokeWidth={0.0}
         />
 
         {/* 2. Світла плитка "1" */}
@@ -159,7 +160,15 @@ export function LogoSkin({ frame, fiveImage }: Props) {
               { translateY: (TILE_SIZE - onePath.h) / 2 },
             ]}
           >
-            <Path path={onePath.path} color={DARK_TEXT} style="fill" />
+            <Path path={onePath.path} color={DARK_TEXT} style="fill">
+              <Shadow
+                inner
+                dx={0}
+                dy={0}
+                blur={6}
+                color="rgba(0, 0, 0, 0.396)"
+              />
+            </Path>
           </Group>
         </Group>
 
@@ -179,7 +188,9 @@ export function LogoSkin({ frame, fiveImage }: Props) {
             { translateY: DESIGN_W - fifteenPath.h - 18 },
           ]}
         >
-          <Path path={fifteenPath.path} color={DARK_TEXT} style="fill" />
+          <Path path={fifteenPath.path} color={DARK_TEXT} style="fill">
+            <Shadow inner dx={0} dy={0} blur={6} color="rgba(0, 0, 0, 0.396)" />
+          </Path>
         </Group>
       </Group>
     </Group>
