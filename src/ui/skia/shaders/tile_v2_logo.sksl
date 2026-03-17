@@ -29,17 +29,17 @@ half4 main(float2 pos) {
     // X: додатне = вправо, від'ємне = вліво.
     // Y: додатне = вниз, від'ємне = вгору.
     vec2 lightOffset = vec2(2.0, -2.0) * scale;
-    vec2 darkOffset  = vec2(-4.0, 4.0) * scale;
+    vec2 darkOffset  = vec2(-6.0, 6.0) * scale;
     // 2. РОЗМИТТЯ (Blur)
     // 4.0 — це радіус розмиття в пікселях. Більше число = більш "пухка" тінь.
-    float blur = 3.0 * scale;
+    float blur = 6.8 * scale;
 
     float dDark = sdRoundedBox(p - darkOffset, halfSize, radius);
     float maskDark = smoothstep(blur, -blur, dDark);
     // 3. КОЛІР ТА ПРОЗОРІСТЬ (Opacity)
     // Формат: half4(R, G, B, Alpha). Значення від 0.0 до 1.0.
     // Чорна тінь (0,0,0) з прозорістю 50% (0.5)
-    half4 colorDark = premultiply(half3(0.0, 0.0, 0.0), 0.4); 
+    half4 colorDark = premultiply(half3(0.0, 0.0, 0.0), 0.7); 
 
     float dLight = sdRoundedBox(p - lightOffset, halfSize, radius);
     float maskLight = smoothstep(blur, -blur, dLight);

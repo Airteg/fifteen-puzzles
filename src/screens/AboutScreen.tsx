@@ -1,4 +1,10 @@
-import { Canvas, Group, Rect, useFont } from "@shopify/react-native-skia";
+import {
+  Canvas,
+  Group,
+  Rect,
+  useFont,
+  useImage,
+} from "@shopify/react-native-skia";
 import React, { useState } from "react";
 import { Button, StyleSheet, Text, View } from "react-native";
 import { styles as globalStyles } from "../styles/globalStyles";
@@ -8,12 +14,13 @@ import type { Props } from "../types/types";
 import { useLayoutMetrics } from "@/context/LayoutMetricsProvider";
 import { LogoSkin } from "@/ui/skia/LogoSkin";
 
-const cW = 300;
+const cW = 350;
 const cH = 550;
 
 const AboutScreen = ({ navigation }: Props<"About">) => {
-  const [scale, setScale] = useState(1);
   const { S, snap } = useLayoutMetrics();
+  const [scale, setScale] = useState(1);
+  const fiveImage = useImage(require("../../assets/images/logo5.png"));
 
   const figureW = 40;
   const figureH = 40;
@@ -30,12 +37,14 @@ const AboutScreen = ({ navigation }: Props<"About">) => {
   const handleZoomIn = () => setScale((s) => Math.min(cW / figureW, s + 0.5));
   const handleZoomOut = () => setScale((s) => Math.max(0.5, s - 0.5));
   const handleReset = () => setScale(1);
-  console.log("scale", scale);
-  console.log("(figureW * scale) / 2 = ", (figureW * scale) / 2);
-  console.log(
-    "cW / 2 - (figureW * scale) / 2 = ",
-    cW / 2 - (figureW * scale) / 2,
-  );
+  // console.log("scale", scale);
+  // console.log("(figureW * scale) / 2 = ", (figureW * scale) / 2);
+  // console.log(
+  //   "cW / 2 - (figureW * scale) / 2 = ",
+  //   cW / 2 - (figureW * scale) / 2,
+  // );
+  if (!fiveImage) return null;
+
   return (
     <View style={[globalStyles.container, localStyles.container]}>
       <View style={localStyles.controls}>
@@ -97,9 +106,9 @@ const AboutScreen = ({ navigation }: Props<"About">) => {
                   x: 0,
                   y: 0,
                   width: figureW * scale,
+                  height: figureH * scale,
                 }}
-                S={1}
-                snap={snap}
+                fiveImage={fiveImage}
               />
             )}
           </Group>
@@ -114,7 +123,8 @@ const AboutScreen = ({ navigation }: Props<"About">) => {
 };
 
 const localStyles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0d676b", padding: 0 },
+  // container: { flex: 1, backgroundColor: "#0d676b", padding: 0 },
+  container: { flex: 1, backgroundColor: "#a1a1a1", padding: 0 },
   controls: {
     paddingTop: 60,
     paddingBottom: 20,
