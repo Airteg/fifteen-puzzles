@@ -78,7 +78,6 @@ export function SkiaButtonSkin({ rect, title, font, pressed = false }: Props) {
         </Rect>
       </Group>
 
-      {/* <Text x={textX} y={textY} text={title} font={font} color={textColor} /> */}
       <Group>
         {/* Основний текст */}
         <Text x={textX} y={textY} text={title} font={font} color={textColor} />
