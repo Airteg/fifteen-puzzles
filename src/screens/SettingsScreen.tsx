@@ -1,36 +1,144 @@
+import { useLayoutMetrics } from "@/context/LayoutMetricsProvider";
 import SettingsAnimationPlaceholder from "@/ui/animation/placeholders/SettingsAnimationPlaceholder";
 import { PanelZone } from "@/ui/PanelZone";
 import { ScreenShell } from "@/ui/shell/ScreenShell";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { View } from "react-native";
 import { Props } from "../types/types";
+import {
+  SettingsModalHost,
+  SettingsModalType,
+} from "./components/SettingsModalHost";
 
 const SettingsScreen = ({ navigation }: Props<"Settings">) => {
+  const { sw, sh, panelW, snap, S } = useLayoutMetrics();
+
+  // 1. Блокування екрана до завершення навігації (як у GameScreen)
+  const [isScreenReady, setIsScreenReady] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("transitionEnd", () =>
+      setIsScreenReady(true),
+    );
+    const fallbackTimer = setTimeout(() => setIsScreenReady(true), 400);
+    return () => {
+      unsubscribe();
+      clearTimeout(fallbackTimer);
+    };
+  }, [navigation]);
+
+  // 2. Стан і блокування модалок
+  const [activeModal, setActiveModal] = useState<SettingsModalType | null>(
+    null,
+  );
+  const isModalAnimating = useRef(false);
+
+  // 3. Обчислення єдиного modalFrame
+  const modalFrame = useMemo(() => {
+    if (!activeModal) return { x: 0, y: 0, width: 0, height: 0 };
+
+    const width = panelW;
+
+    // Динамічна висота залежно від типу модалки (дизайн-метрики)
+    let designHeight = 400;
+    if (activeModal === "skin") designHeight = 460;
+    else if (activeModal === "sound") designHeight = 320;
+    else if (activeModal === "statistic") designHeight = 520;
+
+    const height = snap(designHeight * S);
+    const x = (sw - width) / 2;
+    const y = (sh - height) / 2;
+
+    return { x, y, width, height };
+  }, [sw, sh, panelW, snap, S, activeModal]); // Додали activeModal у залежності
+
+  const handleOpenModal = useCallback(
+    (id: SettingsModalType) => {
+      if (!isScreenReady || isModalAnimating.current) return;
+      isModalAnimating.current = true;
+      setActiveModal(id);
+    },
+    [isScreenReady],
+  );
+
+  const handleCloseModal = useCallback(() => {
+    if (isModalAnimating.current) return;
+    isModalAnimating.current = true;
+
+    // У майбутньому тут запускатиметься анімація закриття (withTiming),
+    // а setActiveModal(null) викликатиметься в її колбеку onEnd через runOnJS.
+    // Поки Reanimated анімації немає, закриваємо миттєво і знімаємо лок.
+    setActiveModal(null);
+    isModalAnimating.current = false;
+  }, []);
+
+  const handleModalReady = useCallback(() => {
+    // Цей колбек викликає хост, коли модалка повністю "в'їхала" на екран
+    isModalAnimating.current = false;
+  }, []);
+
+  const handlePress = useCallback(
+    (id: string) => {
+      if (!isScreenReady || isModalAnimating.current) return;
+
+      switch (id) {
+        case "skin":
+        case "sound":
+        case "statistic":
+          handleOpenModal(id);
+          break;
+        case "support":
+          navigation.navigate("Support");
+          break;
+        case "back":
+          navigation.goBack();
+          break;
+      }
+    },
+    [handleOpenModal, navigation, isScreenReady],
+  );
+
   return (
-    <ScreenShell
-      title="SETTINGS"
-      animationHeightDesign={100} // приклад
-      headerToAnimationGapDesign={24} // приклад
-      animationToTitleGapDesign={16} // приклад
-      titleToContentGapDesign={24} // приклад
-      animation={<SettingsAnimationPlaceholder />}
-      footerBottomGapDesign={24}
-    >
-      <PanelZone
-        buttons={[
-          { id: "skin", title: "SKIN" },
-          { id: "sound", title: "SOUND" },
-          { id: "statistic", title: "STATISTIC" },
-          { id: "support", title: "SUPPORT" },
-          { id: "back", title: "back" },
-        ]}
-        onPress={(id) => {
-          if (id === "skin") navigation.navigate("About");
-          if (id === "sound") navigation.navigate("About");
-          if (id === "statistic") navigation.navigate("About");
-          if (id === "support") navigation.navigate("About");
-          if (id === "back") navigation.goBack();
-        }}
-      />
-    </ScreenShell>
+    <View style={{ flex: 1 }}>
+      <ScreenShell
+        title="SETTINGS"
+        animationHeightDesign={100}
+        headerToAnimationGapDesign={24}
+        animationToTitleGapDesign={16}
+        titleToContentGapDesign={24}
+        animation={<SettingsAnimationPlaceholder />}
+        footerBottomGapDesign={24}
+      >
+        <PanelZone
+          buttons={[
+            { id: "skin", title: "SKIN" },
+            { id: "sound", title: "SOUND" },
+            { id: "statistic", title: "STATISTIC" },
+            { id: "support", title: "SUPPORT" },
+            { id: "back", title: "back" },
+          ]}
+          onPress={handlePress}
+        />
+      </ScreenShell>
+
+      {activeModal && (
+        <SettingsModalHost
+          activeModal={activeModal}
+          onClose={handleCloseModal}
+          onReady={handleModalReady}
+          modalFrame={modalFrame}
+          sw={sw}
+          sh={sh}
+        />
+      )}
+    </View>
   );
 };
+
 export default SettingsScreen;
