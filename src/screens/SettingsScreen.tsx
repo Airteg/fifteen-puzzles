@@ -40,23 +40,26 @@ const SettingsScreen = ({ navigation }: Props<"Settings">) => {
   const isModalAnimating = useRef(false);
 
   // 3. Обчислення єдиного modalFrame
+  // 3. Обчислення єдиного modalFrame в SettingsScreen.tsx
   const modalFrame = useMemo(() => {
     if (!activeModal) return { x: 0, y: 0, width: 0, height: 0 };
 
-    const width = panelW;
-
-    // Динамічна висота залежно від типу модалки (дизайн-метрики)
+    let designWidth = panelW / S; // за замовчуванням ширина панелі
     let designHeight = 400;
-    if (activeModal === "skin") designHeight = 460;
-    else if (activeModal === "sound") designHeight = 320;
-    else if (activeModal === "statistic") designHeight = 520;
 
+    // Метрики конкретно для SOUND модалки згідно Фігми
+    if (activeModal === "sound") {
+      designWidth = 214;
+      designHeight = 169;
+    }
+
+    const width = snap(designWidth * S);
     const height = snap(designHeight * S);
     const x = (sw - width) / 2;
     const y = (sh - height) / 2;
 
     return { x, y, width, height };
-  }, [sw, sh, panelW, snap, S, activeModal]); // Додали activeModal у залежності
+  }, [sw, sh, panelW, snap, S, activeModal]);
 
   const handleOpenModal = useCallback(
     (id: SettingsModalType) => {

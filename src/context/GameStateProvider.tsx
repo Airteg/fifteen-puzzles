@@ -1,16 +1,17 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, {
   createContext,
-  useContext,
-  useState,
-  useEffect,
   ReactNode,
+  useContext,
+  useEffect,
+  useState,
 } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Ключі для збереження
 const STORAGE_KEYS = {
   GAME_STATE: "fifteen_puzzles_state",
   STATISTICS: "fifteen_puzzles_stats",
+  SOUND: "fifteen_puzzles_sound",
 };
 
 interface GameState {
@@ -30,9 +31,11 @@ interface Statistics {
 interface GameContextType {
   gameState: GameState | null;
   stats: Statistics;
+  isSoundEnabled: boolean;
   saveGame: (state: GameState) => Promise<void>;
   updateStats: (newStats: Partial<Statistics>) => Promise<void>;
   resetGame: () => Promise<void>;
+  toggleSound: () => Promise<void>;
 }
 
 const defaultStats: Statistics = {
@@ -47,24 +50,40 @@ const GameContext = createContext<GameContextType | undefined>(undefined);
 export const GameStateProvider = ({ children }: { children: ReactNode }) => {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [stats, setStats] = useState<Statistics>(defaultStats);
+  const [isSoundEnabled, setIsSoundEnabled] = useState<boolean>(true); // Стан звуку
 
   // Завантажуємо дані при старті додатка
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [savedState, savedStats] = await Promise.all([
+        // 1. Додаємо savedSound у деструктуризацію та третій getItem у Promise.all
+        const [savedState, savedStats, savedSound] = await Promise.all([
           AsyncStorage.getItem(STORAGE_KEYS.GAME_STATE),
           AsyncStorage.getItem(STORAGE_KEYS.STATISTICS),
+          AsyncStorage.getItem(STORAGE_KEYS.SOUND), // <-- Додаємо цей рядок
         ]);
 
         if (savedState) setGameState(JSON.parse(savedState));
         if (savedStats) setStats(JSON.parse(savedStats));
+
+        // 2. Тепер savedSound існує, і ми можемо його перевірити
+        if (savedSound !== null) setIsSoundEnabled(savedSound === "true");
       } catch (e) {
         console.error("Failed to load game data", e);
       }
     };
     loadData();
   }, []);
+
+  const toggleSound = async () => {
+    try {
+      const nextState = !isSoundEnabled;
+      setIsSoundEnabled(nextState);
+      await AsyncStorage.setItem(STORAGE_KEYS.SOUND, String(nextState));
+    } catch (e) {
+      console.error("Failed to save sound state", e);
+    }
+  };
 
   const saveGame = async (state: GameState) => {
     try {
@@ -98,7 +117,15 @@ export const GameStateProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <GameContext.Provider
-      value={{ gameState, stats, saveGame, updateStats, resetGame }}
+      value={{
+        gameState,
+        stats,
+        isSoundEnabled,
+        saveGame,
+        updateStats,
+        resetGame,
+        toggleSound,
+      }}
     >
       {children}
     </GameContext.Provider>

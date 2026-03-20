@@ -1,6 +1,10 @@
+import { useSkiaFonts } from "@/context/FontProvider";
+import { useGameState } from "@/context/GameStateProvider";
+import { useLayoutMetrics } from "@/context/LayoutMetricsProvider";
 import { Canvas, Rect, RoundedRect } from "@shopify/react-native-skia";
 import React, { useEffect } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
+import { SoundModalOverlay, SoundModalScene } from "./SoundModal";
 
 export type SettingsModalType = "skin" | "sound" | "statistic";
 
@@ -23,8 +27,12 @@ export function SettingsModalHost({
   sw,
   sh,
 }: Props) {
-  // Імітація завершення анімації появи.
-  // У бойовій версії тут буде runOnJS(onReady)() з Reanimated worklet'а
+  const { S, snap } = useLayoutMetrics();
+
+  // Викликаємо хуки ТУТ, за межами Canvas!
+  const { isSoundEnabled } = useGameState();
+  const { title: titleFont } = useSkiaFonts();
+
   useEffect(() => {
     if (onReady) onReady();
   }, [onReady]);
@@ -36,29 +44,34 @@ export function SettingsModalHost({
       importantForAccessibility="yes"
       accessibilityViewIsModal={true}
     >
-      {/* 1. Skia Scene */}
       <Canvas style={StyleSheet.absoluteFill}>
-        {/* Коректний бекграунд на весь екран */}
         <Rect x={0} y={0} width={sw} height={sh} color="rgba(0,0,0,0.5)" />
 
-        {/* Базовий фрейм модалки (спільний для Skia та RN) */}
+        {/* Базовий блакитний бекграунд */}
         <RoundedRect
           x={modalFrame.x}
           y={modalFrame.y}
           width={modalFrame.width}
           height={modalFrame.height}
           r={16}
-          color="#71D4EB" // Колір панелей (fill) з AppHeaderSurface/PanelSurface
+          color="#71D4EB"
         />
+
+        {/* Сцена конкретної модалки */}
+        {activeModal === "sound" && (
+          <SoundModalScene
+            frame={modalFrame}
+            S={S}
+            snap={snap}
+            isSoundEnabled={isSoundEnabled} // Передаємо як проп
+            titleFont={titleFont} // Передаємо як проп
+          />
+        )}
       </Canvas>
 
-      {/* 2. React Native Overlay */}
       <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-        {/* Backdrop: закриває модалку */}
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
 
-        {/* Контент позиціонується СУВОРО по modalFrame */}
-        {/* Замінюємо View на Pressable, щоб він став мішенню для жестів і поглинав кліки */}
         <Pressable
           style={{
             position: "absolute",
@@ -66,41 +79,17 @@ export function SettingsModalHost({
             top: modalFrame.y,
             width: modalFrame.width,
             height: modalFrame.height,
-            justifyContent: "center",
-            alignItems: "center",
           }}
-          // Порожній onPress або stopPropagation гарантує, що клік не піде нижче у backdrop
           onPress={(e) => {
             e.stopPropagation();
           }}
         >
-          <Text style={styles.tempTitle}>
-            MODAL: {activeModal.toUpperCase()}
-          </Text>
-          <Pressable onPress={onClose} style={styles.tempCloseBtn}>
-            <Text style={styles.tempCloseText}>CLOSE</Text>
-          </Pressable>
+          {/* Оверлей конкретної модалки */}
+          {activeModal === "sound" && (
+            <SoundModalOverlay frame={modalFrame} S={S} snap={snap} />
+          )}
         </Pressable>
       </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  tempTitle: {
-    color: "#216169", // Колір тексту з typography
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 40,
-  },
-  tempCloseBtn: {
-    backgroundColor: "#FF5252",
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    borderRadius: 8,
-  },
-  tempCloseText: {
-    color: "#FFF",
-    fontWeight: "bold",
-  },
-});
