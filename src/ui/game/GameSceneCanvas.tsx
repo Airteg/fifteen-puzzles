@@ -42,14 +42,14 @@ export const GameSceneCanvas: React.FC<Props> = ({
   timeText = "02:00", // Тимчасове значення до реалізації Кроку 7
   modeText,
 }) => {
-  console.log(
-    "🚀 ~ metrics:\n" +
-      JSON.stringify(
-        metrics,
-        (k, v) => (typeof v === "number" ? Number(v.toFixed(1)) : v),
-        2,
-      ),
-  );
+  // console.log(
+  //   "🚀 ~ metrics:\n" +
+  //     JSON.stringify(
+  //       metrics,
+  //       (k, v) => (typeof v === "number" ? Number(v.toFixed(1)) : v),
+  //       2,
+  //     ),
+  // );
 
   const iconFont = useFont(
     require("../../../assets/fonts/Mariupol-Medium.ttf"),
@@ -87,8 +87,7 @@ export const GameSceneCanvas: React.FC<Props> = ({
       />
       {/* 2. HEADER  */}
       <GameHeader hX={hX} hY={hY} hW={hW} hH={hH} fiveImage={fiveImage} />
-
-      {/* TimerSkin: */}
+      {/* 2.1. TimerSkin (якщо є): */}
       {metrics.timerFrame && (
         <TimerSkin
           frame={metrics.timerFrame}
@@ -121,6 +120,7 @@ export const GameSceneCanvas: React.FC<Props> = ({
         animDirSV={boardCtrl.animDirSV}
         animMovedIdsSV={boardCtrl.animMovedIdsSV}
       />
+      {/* 4. Кнопки управління */}
       {iconFont && (
         <Group>
           <IconButtonSkin
@@ -137,7 +137,7 @@ export const GameSceneCanvas: React.FC<Props> = ({
           />
         </Group>
       )}
-
+      {/* 5. Інформаційне табло про режим гри: */}
       <SkiaButtonSkin
         rect={metrics.modePanelFrame}
         title={modeText}
