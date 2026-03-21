@@ -4,6 +4,7 @@ import { useLayoutMetrics } from "@/context/LayoutMetricsProvider";
 import { Canvas, Rect, RoundedRect } from "@shopify/react-native-skia";
 import React, { useEffect } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
+import { SkinModalScene } from "./SkinModal";
 import { SoundModalOverlay, SoundModalScene } from "./SoundModal";
 
 export type SettingsModalType = "skin" | "sound" | "statistic";
@@ -30,7 +31,7 @@ export function SettingsModalHost({
   const { S, snap } = useLayoutMetrics();
 
   // Викликаємо хуки ТУТ, за межами Canvas!
-  const { isSoundEnabled } = useGameState();
+  const { isSoundEnabled, theme } = useGameState();
   const { title: titleFont } = useSkiaFonts();
 
   useEffect(() => {
@@ -65,6 +66,17 @@ export function SettingsModalHost({
             snap={snap}
             isSoundEnabled={isSoundEnabled}
             titleFont={titleFont}
+          />
+        )}
+        {/* Сцена SKIN */}
+        {activeModal === "skin" && (
+          <SkinModalScene
+            frame={modalFrame}
+            S={S}
+            snap={snap}
+            titleFont={titleFont}
+            boardColor={theme.boardColor} // <--- Передаємо колір дошки
+            tileColor={theme.tileColor} // <--- Передаємо колір плитки
           />
         )}
       </Canvas>
