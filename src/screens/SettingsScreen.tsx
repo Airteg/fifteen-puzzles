@@ -40,7 +40,6 @@ const SettingsScreen = ({ navigation }: Props<"Settings">) => {
   const isModalAnimating = useRef(false);
 
   // 3. Обчислення єдиного modalFrame
-  // 3. Обчислення єдиного modalFrame в SettingsScreen.tsx
   const modalFrame = useMemo(() => {
     if (!activeModal) return { x: 0, y: 0, width: 0, height: 0 };
 

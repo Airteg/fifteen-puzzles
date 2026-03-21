@@ -63,8 +63,8 @@ export function SettingsModalHost({
             frame={modalFrame}
             S={S}
             snap={snap}
-            isSoundEnabled={isSoundEnabled} // Передаємо як проп
-            titleFont={titleFont} // Передаємо як проп
+            isSoundEnabled={isSoundEnabled}
+            titleFont={titleFont}
           />
         )}
       </Canvas>

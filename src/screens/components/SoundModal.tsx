@@ -1,5 +1,6 @@
 import { useGameState } from "@/context/GameStateProvider";
 import { IconButtonSkin } from "@/ui/skia/IconButtonSkin";
+import { SkiaIconButtonSkin } from "@/ui/skia/SkiaIconButtonSkin";
 import {
   Group,
   RoundedRect,
@@ -61,7 +62,6 @@ export function SoundModalScene({
 
   return (
     <Group transform={[{ translateX: frame.x }, { translateY: frame.y }]}>
-      {/* Заголовок */}
       {titleFont && (
         <Text
           x={titleX}
@@ -82,7 +82,7 @@ export function SoundModalScene({
           r={innerR}
           color="#E1F5FE"
         >
-          <Shadow inner dx={0} dy={4} blur={8} color="rgba(0,0,0,0.15)" />
+          <Shadow inner dx={0} dy={4} blur={8} color="rgba(0,0,0,0.55)" />
         </RoundedRect>
       </Group>
 
@@ -92,7 +92,10 @@ export function SoundModalScene({
         type="soundOn"
         active={isSoundEnabled}
       />
-
+      <SkiaIconButtonSkin
+        rect={{ x: btn1X, y: btnY, width: btnSize, height: btnSize }}
+        pressed={true}
+      />
       <IconButtonSkin
         frame={{ x: btn2X, y: btnY, width: btnSize }}
         type="soundOff"
