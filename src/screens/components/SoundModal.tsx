@@ -107,7 +107,9 @@ export function SoundModalScene({
 
 // 2. React Native Оверлей для жестів (хуки контексту працюють, бо це не Skia)
 export function SoundModalOverlay({ frame, S, snap }: ModalProps) {
-  const { toggleSound, isSoundEnabled } = useGameState();
+  // ВИПРАВЛЕНО: Використовуємо новий канонічний API
+  const { settings, updateSettings } = useGameState();
+  const isSoundEnabled = settings.isSoundEnabled;
 
   const btnSize = snap(60 * S);
   const btnGap = snap(24 * S);
@@ -138,7 +140,8 @@ export function SoundModalOverlay({ frame, S, snap }: ModalProps) {
           height: btnSize,
         }}
         onPress={() => {
-          if (!isSoundEnabled) toggleSound();
+          // Якщо звук ВИМКНЕНО, клік по лівій кнопці його ВМИКАЄ
+          if (!isSoundEnabled) updateSettings({ isSoundEnabled: true });
         }}
       />
       <Pressable
@@ -150,7 +153,8 @@ export function SoundModalOverlay({ frame, S, snap }: ModalProps) {
           height: btnSize,
         }}
         onPress={() => {
-          if (isSoundEnabled) toggleSound();
+          // Якщо звук УВІМКНЕНО, клік по правій кнопці його ВИМИКАЄ
+          if (isSoundEnabled) updateSettings({ isSoundEnabled: false });
         }}
       />
     </View>

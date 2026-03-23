@@ -1,14 +1,14 @@
+import { useGameState } from "@/context/GameStateProvider";
 import { makeBoardMetrics } from "@/ui/game/boardGeometry";
 import { GameMetrics } from "@/ui/game/gameMetrics";
-import { useGameState } from "@/context/GameStateProvider";
 import {
   Circle,
   Group,
   Rect,
-  rrect,
   RoundedRect,
-  Shadow,
+  rrect,
   Shader,
+  Shadow,
   SkFont,
   Skia,
   rect as skRect,
@@ -336,7 +336,9 @@ export function SkinModalScene({
 // 2. React Native Оверлей
 export function SkinModalOverlay({ frame, S, snap }: SceneProps) {
   const layout = useSkinLayout(frame, S, snap);
-  const { theme, updateTheme } = useGameState(); // Беремо функцію збереження!
+
+  // ВИПРАВЛЕНО: Використовуємо новий канонічний API
+  const { updateSettings } = useGameState();
 
   return (
     <View
@@ -359,7 +361,7 @@ export function SkinModalOverlay({ frame, S, snap }: SceneProps) {
             width: layout.circleR * 2,
             height: layout.circleR * 2,
           }}
-          onPress={() => updateTheme({ tileColor: c.color })}
+          onPress={() => updateSettings({ tileColor: c.color })}
         />
       ))}
 
@@ -374,7 +376,7 @@ export function SkinModalOverlay({ frame, S, snap }: SceneProps) {
             width: layout.circleR * 2,
             height: layout.circleR * 2,
           }}
-          onPress={() => updateTheme({ boardColor: c.color })}
+          onPress={() => updateSettings({ boardColor: c.color })}
         />
       ))}
     </View>

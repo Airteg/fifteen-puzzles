@@ -30,8 +30,8 @@ export function SettingsModalHost({
 }: Props) {
   const { S, snap } = useLayoutMetrics();
 
-  // Викликаємо хуки ТУТ, за межами Canvas!
-  const { isSoundEnabled, theme } = useGameState();
+  // ВИПРАВЛЕНО: Дістаємо канонічний об'єкт settings
+  const { settings } = useGameState();
   const { title: titleFont } = useSkiaFonts();
 
   useEffect(() => {
@@ -64,7 +64,7 @@ export function SettingsModalHost({
             frame={modalFrame}
             S={S}
             snap={snap}
-            isSoundEnabled={isSoundEnabled}
+            isSoundEnabled={settings.isSoundEnabled} // <--- Читаємо з settings
             titleFont={titleFont}
           />
         )}
@@ -75,8 +75,8 @@ export function SettingsModalHost({
             S={S}
             snap={snap}
             titleFont={titleFont}
-            boardColor={theme.boardColor} // <--- Передаємо колір дошки
-            tileColor={theme.tileColor} // <--- Передаємо колір плитки
+            boardColor={settings.boardColor} // <--- Читаємо з settings
+            tileColor={settings.tileColor} // <--- Читаємо з settings
           />
         )}
       </Canvas>
