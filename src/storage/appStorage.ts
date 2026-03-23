@@ -1,12 +1,11 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import { STORAGE_KEYS } from "./storageKeys";
-import type {
+import {
   AppStorageData,
+  DEFAULT_APP_STORAGE,
   GameResult,
-  GameSettings,
 } from "./appStorage.types";
-import { DEFAULT_APP_STORAGE } from "./appStorage.types";
+import { STORAGE_KEYS } from "./storageKeys";
 
 function normalizeBestGames(bestGames: GameResult[]): GameResult[] {
   return [...bestGames]
@@ -25,10 +24,12 @@ function mergeWithDefaults(
   parsed: Partial<AppStorageData> | null | undefined,
 ): AppStorageData {
   return {
-    settings: {
-      ...DEFAULT_APP_STORAGE.settings,
-      ...(parsed?.settings ?? {}),
+    settings: { ...DEFAULT_APP_STORAGE.settings, ...(parsed?.settings ?? {}) },
+    statistics: {
+      ...DEFAULT_APP_STORAGE.statistics,
+      ...(parsed?.statistics ?? {}),
     },
+    gameState: parsed?.gameState ?? null,
     bestGames: normalizeBestGames(parsed?.bestGames ?? []),
   };
 }
@@ -49,13 +50,11 @@ export async function loadAppStorage(): Promise<AppStorageData> {
 export async function saveAppStorage(data: AppStorageData): Promise<void> {
   try {
     const normalized: AppStorageData = {
-      settings: {
-        ...DEFAULT_APP_STORAGE.settings,
-        ...data.settings,
-      },
+      settings: { ...DEFAULT_APP_STORAGE.settings, ...data.settings },
+      statistics: { ...DEFAULT_APP_STORAGE.statistics, ...data.statistics },
+      gameState: data.gameState,
       bestGames: normalizeBestGames(data.bestGames),
     };
-
     await AsyncStorage.setItem(
       STORAGE_KEYS.APP_DATA,
       JSON.stringify(normalized),
@@ -63,66 +62,4 @@ export async function saveAppStorage(data: AppStorageData): Promise<void> {
   } catch (error) {
     console.error("Failed to save app storage", error);
   }
-}
-
-export async function loadSettings(): Promise<GameSettings> {
-  const data = await loadAppStorage();
-  return data.settings;
-}
-
-export async function saveSettings(settings: GameSettings): Promise<void> {
-  const data = await loadAppStorage();
-
-  await saveAppStorage({
-    ...data,
-    settings: {
-      ...DEFAULT_APP_STORAGE.settings,
-      ...settings,
-    },
-  });
-}
-
-export async function patchSettings(
-  patch: Partial<GameSettings>,
-): Promise<GameSettings> {
-  const data = await loadAppStorage();
-
-  const nextSettings: GameSettings = {
-    ...data.settings,
-    ...patch,
-  };
-
-  await saveAppStorage({
-    ...data,
-    settings: nextSettings,
-  });
-
-  return nextSettings;
-}
-
-export async function loadBestGames(): Promise<GameResult[]> {
-  const data = await loadAppStorage();
-  return data.bestGames;
-}
-
-export async function addGameResult(result: GameResult): Promise<GameResult[]> {
-  const data = await loadAppStorage();
-
-  const nextBestGames = normalizeBestGames([...data.bestGames, result]);
-
-  await saveAppStorage({
-    ...data,
-    bestGames: nextBestGames,
-  });
-
-  return nextBestGames;
-}
-
-export async function clearBestGames(): Promise<void> {
-  const data = await loadAppStorage();
-
-  await saveAppStorage({
-    ...data,
-    bestGames: [],
-  });
 }

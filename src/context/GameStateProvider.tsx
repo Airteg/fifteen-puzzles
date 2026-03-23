@@ -1,171 +1,140 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { loadAppStorage, saveAppStorage } from "@/storage/appStorage";
+import {
+  AppStorageData,
+  DEFAULT_APP_STORAGE,
+  GameSettings,
+  GameState,
+  Statistics,
+} from "@/storage/appStorage.types";
 import React, {
   createContext,
   ReactNode,
+  useCallback,
   useContext,
   useEffect,
   useState,
 } from "react";
 
-// 1. КЛЮЧІ ЗБЕРЕЖЕННЯ
-const STORAGE_KEYS = {
-  GAME_STATE: "fifteen_puzzles_state",
-  STATISTICS: "fifteen_puzzles_stats",
-  SOUND: "fifteen_puzzles_sound",
-  THEME: "fifteen_puzzles_theme", // Додано ключ для теми
-};
-
-// 2. ІНТЕРФЕЙСИ
-export interface GameState {
-  grid: number[];
-  emptyRow: number;
-  emptyCol: number;
-  moves: number;
-  timeMs: number;
-  isPlaying: boolean;
-  mode: "classic" | "limitTime";
-}
-
-export interface Statistics {
-  bestTime: number;
-  bestMoves: number;
-  gamesPlayed: number;
-  gamesWon: number;
-}
-
-// Інтерфейс для теми
-export interface ThemeState {
-  tileColor: string;
-  boardColor: string;
-}
-
-// Загальний інтерфейс контексту
 interface GameContextType {
+  isHydrated: boolean;
+
   gameState: GameState | null;
-  stats: Statistics;
-  isSoundEnabled: boolean;
-  theme: ThemeState; // Додано тему
-  saveGame: (state: GameState) => Promise<void>;
-  updateStats: (newStats: Partial<Statistics>) => Promise<void>;
-  resetGame: () => Promise<void>;
-  toggleSound: () => Promise<void>;
-  updateTheme: (newTheme: Partial<ThemeState>) => Promise<void>; // Додано функцію оновлення
+  statistics: Statistics;
+  settings: GameSettings;
+
+  saveGame: (state: GameState) => void;
+  clearGame: () => void;
+  updateSettings: (patch: Partial<GameSettings>) => void;
+  updateStatistics: (patch: Partial<Statistics>) => void;
+
+  recordWin: (timeMs: number, moves: number) => void;
+  recordLoss: () => void;
 }
 
-// 3. ЗНАЧЕННЯ ЗА ЗАМОВЧУВАННЯМ
-const defaultStats: Statistics = {
-  bestTime: 0,
-  bestMoves: 0,
-  gamesPlayed: 0,
-  gamesWon: 0,
-};
-
-// Дефолтні кольори
-const defaultTheme: ThemeState = {
-  tileColor: "#71D4EB",
-  boardColor: "#133D44",
-};
-
-// 4. КОНТЕКСТ
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
-// 5. ПРОВАЙДЕР
 export const GameStateProvider = ({ children }: { children: ReactNode }) => {
-  const [gameState, setGameState] = useState<GameState | null>(null);
-  const [stats, setStats] = useState<Statistics>(defaultStats);
-  const [isSoundEnabled, setIsSoundEnabled] = useState<boolean>(true);
-  const [theme, setTheme] = useState<ThemeState>(defaultTheme);
+  const [data, setData] = useState<AppStorageData>(DEFAULT_APP_STORAGE);
+  const [isHydrated, setIsHydrated] = useState(false);
 
+  // 1. Гідрація (читання при старті з гарантією розблокування)
   useEffect(() => {
-    const loadData = async () => {
+    let mounted = true;
+    const initData = async () => {
       try {
-        const [savedState, savedStats, savedSound, savedTheme] =
-          await Promise.all([
-            AsyncStorage.getItem(STORAGE_KEYS.GAME_STATE),
-            AsyncStorage.getItem(STORAGE_KEYS.STATISTICS),
-            AsyncStorage.getItem(STORAGE_KEYS.SOUND),
-            AsyncStorage.getItem(STORAGE_KEYS.THEME),
-          ]);
-
-        if (savedState) setGameState(JSON.parse(savedState));
-        if (savedStats) setStats(JSON.parse(savedStats));
-        if (savedSound !== null) setIsSoundEnabled(savedSound === "true");
-        if (savedTheme) {
-          setTheme({ ...defaultTheme, ...JSON.parse(savedTheme) });
+        const storedData = await loadAppStorage();
+        if (mounted) {
+          setData(storedData);
         }
-      } catch (e) {
-        console.error("Failed to load game data", e);
+      } catch (error) {
+        console.error("Critical error during hydration:", error);
+        // Якщо сталася помилка, state залишиться DEFAULT_APP_STORAGE
+      } finally {
+        if (mounted) {
+          setIsHydrated(true); // Гарантовано знімаємо Splash Screen
+        }
       }
     };
-    loadData();
+    initData();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  const saveGame = async (state: GameState) => {
-    try {
-      setGameState(state);
-      await AsyncStorage.setItem(
-        STORAGE_KEYS.GAME_STATE,
-        JSON.stringify(state),
-      );
-    } catch (e) {
-      console.error("Failed to save game state", e);
-    }
-  };
+  // 2. Persistence Side Effect (безпечний запис)
+  useEffect(() => {
+    if (!isHydrated) return;
+    saveAppStorage(data).catch((e) => console.error("Persistence error", e));
+  }, [data, isHydrated]);
 
-  const updateStats = async (newStats: Partial<Statistics>) => {
-    try {
-      const updated = { ...stats, ...newStats };
-      setStats(updated);
-      await AsyncStorage.setItem(
-        STORAGE_KEYS.STATISTICS,
-        JSON.stringify(updated),
-      );
-    } catch (e) {
-      console.error("Failed to save statistics", e);
-    }
-  };
+  // --- БАЗОВІ МУТАТОРИ ---
 
-  const resetGame = async () => {
-    try {
-      setGameState(null);
-      await AsyncStorage.removeItem(STORAGE_KEYS.GAME_STATE);
-    } catch (e) {
-      console.error("Failed to reset game state", e);
-    }
-  };
+  const saveGame = useCallback((state: GameState) => {
+    setData((prev) => ({ ...prev, gameState: state }));
+  }, []);
 
-  const toggleSound = async () => {
-    try {
-      const nextState = !isSoundEnabled;
-      setIsSoundEnabled(nextState);
-      await AsyncStorage.setItem(STORAGE_KEYS.SOUND, String(nextState));
-    } catch (e) {
-      console.error("Failed to save sound state", e);
-    }
-  };
+  const clearGame = useCallback(() => {
+    setData((prev) => ({ ...prev, gameState: null }));
+  }, []);
 
-  const updateTheme = async (newTheme: Partial<ThemeState>) => {
-    try {
-      const updated = { ...theme, ...newTheme };
-      setTheme(updated);
-      await AsyncStorage.setItem(STORAGE_KEYS.THEME, JSON.stringify(updated));
-    } catch (e) {
-      console.error("Failed to save theme state", e);
-    }
-  };
+  const updateSettings = useCallback((patch: Partial<GameSettings>) => {
+    setData((prev) => ({
+      ...prev,
+      settings: { ...prev.settings, ...patch },
+    }));
+  }, []);
+
+  const updateStatistics = useCallback((patch: Partial<Statistics>) => {
+    setData((prev) => ({
+      ...prev,
+      statistics: { ...prev.statistics, ...patch },
+    }));
+  }, []);
+
+  // --- ДОМЕННІ ФУНКЦІЇ СТАТИСТИКИ ---
+
+  const recordWin = useCallback((timeMs: number, moves: number) => {
+    setData((prev) => {
+      const s = prev.statistics;
+      const isNewBestTime = s.bestTime === 0 || timeMs < s.bestTime;
+      const isNewBestMoves = s.bestMoves === 0 || moves < s.bestMoves;
+
+      return {
+        ...prev,
+        statistics: {
+          ...s,
+          gamesPlayed: s.gamesPlayed + 1,
+          gamesWon: s.gamesWon + 1,
+          bestTime: isNewBestTime ? timeMs : s.bestTime,
+          bestMoves: isNewBestMoves ? moves : s.bestMoves,
+        },
+      };
+    });
+  }, []);
+
+  const recordLoss = useCallback(() => {
+    setData((prev) => ({
+      ...prev,
+      statistics: {
+        ...prev.statistics,
+        gamesPlayed: prev.statistics.gamesPlayed + 1,
+      },
+    }));
+  }, []);
 
   return (
     <GameContext.Provider
       value={{
-        gameState,
-        stats,
-        isSoundEnabled,
-        theme,
+        isHydrated,
+        gameState: data.gameState,
+        statistics: data.statistics,
+        settings: data.settings,
         saveGame,
-        updateStats,
-        resetGame,
-        toggleSound,
-        updateTheme,
+        clearGame,
+        updateSettings,
+        updateStatistics,
+        recordWin,
+        recordLoss,
       }}
     >
       {children}
@@ -173,11 +142,9 @@ export const GameStateProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-// 6. ХУК
 export const useGameState = () => {
   const context = useContext(GameContext);
-  if (!context) {
+  if (!context)
     throw new Error("useGameState must be used within GameStateProvider");
-  }
   return context;
 };
