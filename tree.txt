@@ -40,13 +40,19 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   ├── Mariupol-Medium.ttf
 │   │   ├── Mariupol-Regular.ttf
 │   │   └── MariupolSymbols.ttf
-│   └── images
-│       ├── android-icon-background.png
-│       ├── android-icon-foreground.png
-│       ├── android-icon-monochrome.png
-│       ├── logo.png
-│       ├── logo5.png
-│       └── splash-icon.png
+│   ├── images
+│   │   ├── android-icon-background.png
+│   │   ├── android-icon-foreground.png
+│   │   ├── android-icon-monochrome.png
+│   │   ├── logo.png
+│   │   ├── logo5.png
+│   │   └── splash-icon.png
+│   └── sounds
+│       ├── gameOver1.mp3
+│       ├── gameOver2.mp3
+│       ├── gameOver3.mp3
+│       ├── move.mp3
+│       └── winner.mp3
 ├── src
 │   ├── context
 │   │   ├── AppShell.tsx
@@ -57,7 +63,10 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   └── RootNavigator.tsx
 │   ├── screens
 │   │   ├── components
-│   │   │   └── HomeFooterLinks.tsx
+│   │   │   ├── HomeFooterLinks.tsx
+│   │   │   ├── SettingsModalHost.tsx
+│   │   │   ├── SkinModal.tsx
+│   │   │   └── SoundModal.tsx
 │   │   ├── AboutScreen.tsx
 │   │   ├── GameScreen.tsx
 │   │   ├── HomeScreen.tsx
@@ -95,7 +104,6 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   │   ├── BoardTileNode.tsx
 │   │   │   ├── gameBoardModel.ts
 │   │   │   ├── GameBoardSceneLayer.tsx
-│   │   │   ├── GameBoardView.tsx
 │   │   │   ├── gameMetrics.ts
 │   │   │   ├── GameSceneCanvas.tsx
 │   │   │   ├── useGameBoardController.ts
@@ -130,6 +138,7 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   │   ├── LogoSurface.tsx
 │   │   │   ├── PanelSurface.tsx
 │   │   │   ├── SkiaButtonSkin.tsx
+│   │   │   ├── SkiaButtonSound.tsx
 │   │   │   ├── SkiaIconButtonSkin.tsx
 │   │   │   ├── SmileySkin.tsx
 │   │   │   ├── TileSkin.tsx

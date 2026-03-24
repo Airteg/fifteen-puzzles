@@ -10,16 +10,19 @@ import React, {
   useState,
 } from "react";
 import { View } from "react-native";
+import { useSharedValue, withTiming } from "react-native-reanimated";
 import { Props } from "../types/types";
 import {
   SettingsModalHost,
   SettingsModalType,
 } from "./components/SettingsModalHost";
 
+const MODAL_ANIMATION_MS = 200;
+
 const SettingsScreen = ({ navigation }: Props<"Settings">) => {
   const { sw, sh, panelW, snap, S } = useLayoutMetrics();
+  const modalOpacity = useSharedValue(0);
 
-  // 1. Блокування екрана до завершення навігації (як у GameScreen)
   const [isScreenReady, setIsScreenReady] = useState(false);
 
   useEffect(() => {
@@ -27,26 +30,24 @@ const SettingsScreen = ({ navigation }: Props<"Settings">) => {
       setIsScreenReady(true),
     );
     const fallbackTimer = setTimeout(() => setIsScreenReady(true), 400);
+
     return () => {
       unsubscribe();
       clearTimeout(fallbackTimer);
     };
   }, [navigation]);
 
-  // 2. Стан і блокування модалок
   const [activeModal, setActiveModal] = useState<SettingsModalType | null>(
     null,
   );
   const isModalAnimating = useRef(false);
 
-  // 3. Обчислення єдиного modalFrame
   const modalFrame = useMemo(() => {
     if (!activeModal) return { x: 0, y: 0, width: 0, height: 0 };
 
-    let designWidth = panelW / S; // за замовчуванням ширина панелі
+    let designWidth = panelW / S;
     let designHeight = 400;
 
-    // Метрики конкретно для SOUND модалки згідно Фігми
     if (activeModal === "sound") {
       designWidth = 214;
       designHeight = 169;
@@ -63,27 +64,30 @@ const SettingsScreen = ({ navigation }: Props<"Settings">) => {
   const handleOpenModal = useCallback(
     (id: SettingsModalType) => {
       if (!isScreenReady || isModalAnimating.current) return;
+
       isModalAnimating.current = true;
       setActiveModal(id);
+      modalOpacity.value = 0;
+      modalOpacity.value = withTiming(1, { duration: MODAL_ANIMATION_MS });
+
+      setTimeout(() => {
+        isModalAnimating.current = false;
+      }, MODAL_ANIMATION_MS);
     },
-    [isScreenReady],
+    [isScreenReady, modalOpacity],
   );
 
   const handleCloseModal = useCallback(() => {
     if (isModalAnimating.current) return;
+
     isModalAnimating.current = true;
+    modalOpacity.value = withTiming(0, { duration: MODAL_ANIMATION_MS });
 
-    // У майбутньому тут запускатиметься анімація закриття (withTiming),
-    // а setActiveModal(null) викликатиметься в її колбеку onEnd через runOnJS.
-    // Поки Reanimated анімації немає, закриваємо миттєво і знімаємо лок.
-    setActiveModal(null);
-    isModalAnimating.current = false;
-  }, []);
-
-  const handleModalReady = useCallback(() => {
-    // Цей колбек викликає хост, коли модалка повністю "в'їхала" на екран
-    isModalAnimating.current = false;
-  }, []);
+    setTimeout(() => {
+      setActiveModal(null);
+      isModalAnimating.current = false;
+    }, MODAL_ANIMATION_MS);
+  }, [modalOpacity]);
 
   const handlePress = useCallback(
     (id: string) => {
@@ -133,10 +137,10 @@ const SettingsScreen = ({ navigation }: Props<"Settings">) => {
         <SettingsModalHost
           activeModal={activeModal}
           onClose={handleCloseModal}
-          onReady={handleModalReady}
           modalFrame={modalFrame}
           sw={sw}
           sh={sh}
+          modalOpacity={modalOpacity}
         />
       )}
     </View>

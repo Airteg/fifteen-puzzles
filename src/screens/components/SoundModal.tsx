@@ -16,6 +16,7 @@ type ModalProps = {
   frame: { x: number; y: number; width: number; height: number };
   S: number;
   snap: (v: number) => number;
+  onClose?: () => void;
 };
 
 // Створюємо розширений тип спеціально для сцени
@@ -63,7 +64,6 @@ function useSoundLayout(
   }, [frame.width, frame.height, S, snap]);
 }
 
-// 1. Skia Візуальна частина (без власних хуків контексту!)
 export function SoundModalScene({
   frame,
   S,
@@ -130,12 +130,23 @@ export function SoundModalScene({
   );
 }
 
-// 2. React Native Оверлей для жестів (хуки контексту працюють, бо це не Skia)
-export function SoundModalOverlay({ frame, S, snap }: ModalProps) {
+export function SoundModalOverlay({ frame, S, snap, onClose }: ModalProps) {
   const { settings, updateSettings } = useGameState();
   const isSoundEnabled = settings.isSoundEnabled;
 
   const layout = useSoundLayout(frame, S, snap);
+
+  const handlePress = (newValue: boolean) => {
+    if (isSoundEnabled !== newValue) {
+      updateSettings({ isSoundEnabled: newValue });
+    }
+
+    if (onClose) {
+      setTimeout(() => {
+        onClose();
+      }, 300);
+    }
+  };
 
   return (
     <View
@@ -155,10 +166,7 @@ export function SoundModalOverlay({ frame, S, snap }: ModalProps) {
           width: layout.btnSize,
           height: layout.btnSize,
         }}
-        onPress={() => {
-          // Якщо звук ВИМКНЕНО, клік по лівій кнопці його ВМИКАЄ
-          if (!isSoundEnabled) updateSettings({ isSoundEnabled: true });
-        }}
+        onPress={() => handlePress(true)}
       />
       <Pressable
         style={{
@@ -168,10 +176,7 @@ export function SoundModalOverlay({ frame, S, snap }: ModalProps) {
           width: layout.btnSize,
           height: layout.btnSize,
         }}
-        onPress={() => {
-          // Якщо звук УВІМКНЕНО, клік по правій кнопці його ВИМИКАЄ
-          if (isSoundEnabled) updateSettings({ isSoundEnabled: false });
-        }}
+        onPress={() => handlePress(false)}
       />
     </View>
   );

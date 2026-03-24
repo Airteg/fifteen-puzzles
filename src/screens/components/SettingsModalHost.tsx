@@ -2,8 +2,12 @@ import { useSkiaFonts } from "@/context/FontProvider";
 import { useGameState } from "@/context/GameStateProvider";
 import { useLayoutMetrics } from "@/context/LayoutMetricsProvider";
 import { Canvas, Rect, RoundedRect } from "@shopify/react-native-skia";
-import React, { useEffect } from "react";
+import React from "react";
 import { Pressable, StyleSheet, View } from "react-native";
+import Animated, {
+  SharedValue,
+  useAnimatedStyle,
+} from "react-native-reanimated";
 import { SkinModalScene } from "./SkinModal";
 import { SoundModalOverlay, SoundModalScene } from "./SoundModal";
 
@@ -14,33 +18,33 @@ type SceneFrame = { x: number; y: number; width: number; height: number };
 interface Props {
   activeModal: SettingsModalType;
   onClose: () => void;
-  onReady?: () => void;
   modalFrame: SceneFrame;
   sw: number;
   sh: number;
+  modalOpacity: SharedValue<number>;
 }
 
 export function SettingsModalHost({
   activeModal,
   onClose,
-  onReady,
   modalFrame,
   sw,
   sh,
+  modalOpacity,
 }: Props) {
   const { S, snap } = useLayoutMetrics();
-
-  // ВИПРАВЛЕНО: Дістаємо канонічний об'єкт settings
   const { settings } = useGameState();
   const { title: titleFont } = useSkiaFonts();
 
-  useEffect(() => {
-    if (onReady) onReady();
-  }, [onReady]);
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: modalOpacity.value,
+    };
+  });
 
   return (
-    <View
-      style={StyleSheet.absoluteFill}
+    <Animated.View
+      style={[StyleSheet.absoluteFill, animatedStyle]}
       accessible={true}
       importantForAccessibility="yes"
       accessibilityViewIsModal={true}
@@ -48,7 +52,6 @@ export function SettingsModalHost({
       <Canvas style={StyleSheet.absoluteFill}>
         <Rect x={0} y={0} width={sw} height={sh} color="rgba(0,0,0,0.5)" />
 
-        {/* Базовий блакитний бекграунд */}
         <RoundedRect
           x={modalFrame.x}
           y={modalFrame.y}
@@ -58,25 +61,24 @@ export function SettingsModalHost({
           color="#71D4EB"
         />
 
-        {/* Сцена конкретної модалки */}
         {activeModal === "sound" && (
           <SoundModalScene
             frame={modalFrame}
             S={S}
             snap={snap}
-            isSoundEnabled={settings.isSoundEnabled} // <--- Читаємо з settings
+            isSoundEnabled={settings.isSoundEnabled}
             titleFont={titleFont}
           />
         )}
-        {/* Сцена SKIN */}
+
         {activeModal === "skin" && (
           <SkinModalScene
             frame={modalFrame}
             S={S}
             snap={snap}
             titleFont={titleFont}
-            boardColor={settings.boardColor} // <--- Читаємо з settings
-            tileColor={settings.tileColor} // <--- Читаємо з settings
+            boardColor={settings.boardColor}
+            tileColor={settings.tileColor}
           />
         )}
       </Canvas>
@@ -96,12 +98,16 @@ export function SettingsModalHost({
             e.stopPropagation();
           }}
         >
-          {/* Оверлей конкретної модалки */}
           {activeModal === "sound" && (
-            <SoundModalOverlay frame={modalFrame} S={S} snap={snap} />
+            <SoundModalOverlay
+              frame={modalFrame}
+              S={S}
+              snap={snap}
+              onClose={onClose}
+            />
           )}
         </Pressable>
       </View>
-    </View>
+    </Animated.View>
   );
 }
