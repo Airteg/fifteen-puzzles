@@ -8,8 +8,9 @@ import Animated, {
   SharedValue,
   useAnimatedStyle,
 } from "react-native-reanimated";
-import { SkinModalOverlay, SkinModalScene } from "./SkinModal";
+
 import { SoundModalOverlay, SoundModalScene } from "./SoundModal";
+import { SkinModalOverlay, SkinModalScene } from "./SkinModal";
 
 export type SettingsModalType = "skin" | "sound" | "statistic";
 
