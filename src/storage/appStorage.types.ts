@@ -4,7 +4,6 @@ export type GameSettings = {
   boardColor: string;
 };
 
-// Перенесено з GameStateProvider
 export interface GameState {
   grid: number[];
   emptyRow: number;
@@ -15,7 +14,6 @@ export interface GameState {
   mode: "classic" | "limitTime";
 }
 
-// Перенесено з GameStateProvider
 export interface Statistics {
   bestTime: number;
   bestMoves: number;
@@ -32,7 +30,7 @@ export type GameResult = {
 export type AppStorageData = {
   settings: GameSettings;
   statistics: Statistics;
-  gameState: GameState | null; // Канонічна поточна сесія гри
+  gameState: GameState | null;
   bestGames: GameResult[];
 };
 

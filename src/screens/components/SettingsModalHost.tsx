@@ -8,7 +8,7 @@ import Animated, {
   SharedValue,
   useAnimatedStyle,
 } from "react-native-reanimated";
-import { SkinModalScene } from "./SkinModal";
+import { SkinModalOverlay, SkinModalScene } from "./SkinModal";
 import { SoundModalOverlay, SoundModalScene } from "./SoundModal";
 
 export type SettingsModalType = "skin" | "sound" | "statistic";
@@ -57,7 +57,7 @@ export function SettingsModalHost({
           y={modalFrame.y}
           width={modalFrame.width}
           height={modalFrame.height}
-          r={16}
+          r={snap(16 * S)}
           color="#71D4EB"
         />
 
@@ -105,6 +105,10 @@ export function SettingsModalHost({
               snap={snap}
               onClose={onClose}
             />
+          )}
+
+          {activeModal === "skin" && (
+            <SkinModalOverlay frame={modalFrame} S={S} snap={snap} />
           )}
         </Pressable>
       </View>

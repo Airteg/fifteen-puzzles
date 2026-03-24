@@ -1,382 +1,381 @@
 import { useGameState } from "@/context/GameStateProvider";
-import { makeBoardMetrics } from "@/ui/game/boardGeometry";
-import { GameMetrics } from "@/ui/game/gameMetrics";
-import {
-  Circle,
-  Group,
-  Rect,
-  RoundedRect,
-  rrect,
-  Shader,
-  Shadow,
-  SkFont,
-  Skia,
-  rect as skRect,
-  Text,
-} from "@shopify/react-native-skia";
-
-import React, { useMemo } from "react";
+import { THEME_PALETTE } from "@/theme/themePalette";
+import { Group, RoundedRect, SkFont, Text } from "@shopify/react-native-skia";
+import React, { useCallback, useMemo } from "react";
 import { Pressable, View } from "react-native";
 
-import boardShaderSource from "../../ui/skia/shaders/board_v1.sksl";
-import tileShaderSource from "../../ui/skia/shaders/tile_v2.sksl";
-
-const boardEffect = Skia.RuntimeEffect.Make(boardShaderSource);
-const tileEffect = Skia.RuntimeEffect.Make(tileShaderSource);
-
-if (!tileEffect || !boardEffect) {
-  console.error("Помилка компіляції шейдерів у SkinModal");
-}
-
-export const THEME_PALETTE = {
-  tile: [
-    "#00d0ff7e",
-    "#fbff0099",
-    "#27ff047e",
-    "#8a2be27e",
-    "#ff00ff7e",
-    "#ff00007f",
-    "#8080807e",
-    "#00bfff7e",
-    "#0500ff7e",
-  ],
-  board: ["#ffffff", "#71D4EB", "#ffff00", "#80FF85"],
+type Frame = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 };
 
-type SceneProps = {
-  frame: { x: number; y: number; width: number; height: number };
+type ModalProps = {
+  frame: Frame;
   S: number;
   snap: (v: number) => number;
+};
+
+type SceneProps = ModalProps & {
   titleFont: SkFont | null;
   boardColor?: string;
   tileColor?: string;
 };
 
-// Утиліта для шейдерів
-function hexToShader(hex: string): [number, number, number, number] {
-  let c = hex.replace("#", "");
-  if (c.length === 3)
-    c = c
-      .split("")
-      .map((x) => x + x)
-      .join("");
-  if (c.length === 6) c += "FF";
-  if (c.length === 8) {
-    return [
-      parseInt(c.substring(0, 2), 16) / 255,
-      parseInt(c.substring(2, 4), 16) / 255,
-      parseInt(c.substring(4, 6), 16) / 255,
-      parseInt(c.substring(6, 8), 16) / 255,
-    ];
-  }
-  return [0, 0, 0, 1];
+type HitRect = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+function normalizeColor(color?: string) {
+  return (color ?? "").trim().toLowerCase();
 }
 
-// Спільна геометрія для Scene та Overlay
-function useSkinLayout(
-  frame: SceneProps["frame"],
-  S: number,
-  snap: SceneProps["snap"],
-) {
+function useSkinLayout(frame: Frame, S: number, snap: (v: number) => number) {
   return useMemo(() => {
+    const titleY = snap(42 * S);
+
     const innerInset = snap(16 * S);
     const innerY = snap(60 * S);
     const innerW = frame.width - innerInset * 2;
     const innerH = frame.height - innerY - innerInset;
+    const innerR = snap(8 * S);
 
-    // Метрики міні-дошки
-    const boardMaxW = innerW - snap(32 * S);
-    const scale = boardMaxW / (GameMetrics.board.size * S);
-    const miniS = S * scale;
+    const leftColX = innerInset + snap(10 * S);
+    const leftColY = innerY + snap(12 * S);
+    const tileSwatchSize = snap(26 * S);
+    const tileSwatchGap = snap(8 * S);
 
-    const boardM = makeBoardMetrics({
-      S: miniS,
-      snap: Math.round,
-      size: GameMetrics.board.size,
-      inset: GameMetrics.board.inset,
-      tile: GameMetrics.board.tile,
-      gap: GameMetrics.board.gap,
-    });
+    const tileRects: (HitRect & { color: string })[] = THEME_PALETTE.tile.map(
+      (color, index) => ({
+        color,
+        x: leftColX,
+        y: leftColY + index * (tileSwatchSize + tileSwatchGap),
+        width: tileSwatchSize,
+        height: tileSwatchSize,
+      }),
+    );
 
-    const boardX = innerInset + (innerW - boardM.boardSize) / 2;
-    const boardY = innerY + snap(16 * S);
+    const previewX = leftColX + tileSwatchSize + snap(18 * S);
+    const previewY = innerY + snap(16 * S);
+    const previewW = innerW - (previewX - innerInset) - snap(12 * S);
+    const previewH = snap(176 * S);
+    const previewR = snap(18 * S);
 
-    // Метрики палітри
-    const paletteY = boardY + boardM.boardSize + snap(24 * S);
-    const circleR = snap(10 * S);
-    const circleGap = snap(8 * S);
+    const previewInset = snap(12 * S);
+    const previewTileSize = snap(46 * S);
+    const previewTileGap = snap(8 * S);
 
-    // Координати для TILE кружечків
-    const tileRowY = paletteY + snap(24 * S);
-    const tileCircles = THEME_PALETTE.tile.map((color, i) => ({
-      color,
-      cx: boardX + circleR + i * (circleR * 2 + circleGap),
-      cy: tileRowY,
-    }));
+    const previewTileRects: (HitRect & { label: string })[] = [
+      {
+        label: "1",
+        x: previewX + previewInset,
+        y: previewY + previewInset,
+        width: previewTileSize,
+        height: previewTileSize,
+      },
+      {
+        label: "2",
+        x: previewX + previewInset + previewTileSize + previewTileGap,
+        y: previewY + previewInset,
+        width: previewTileSize,
+        height: previewTileSize,
+      },
+      {
+        label: "3",
+        x: previewX + previewInset + 2 * (previewTileSize + previewTileGap),
+        y: previewY + previewInset,
+        width: previewTileSize,
+        height: previewTileSize,
+      },
+      {
+        label: "4",
+        x: previewX + previewInset,
+        y: previewY + previewInset + previewTileSize + previewTileGap,
+        width: previewTileSize,
+        height: previewTileSize,
+      },
+      {
+        label: "5",
+        x: previewX + previewInset + previewTileSize + previewTileGap,
+        y: previewY + previewInset + previewTileSize + previewTileGap,
+        width: previewTileSize,
+        height: previewTileSize,
+      },
+    ];
 
-    // Координати для BOARD кружечків
-    const boardRowY = tileRowY + snap(40 * S);
-    const boardCircles = THEME_PALETTE.board.map((color, i) => ({
-      color,
-      cx: boardX + circleR + i * (circleR * 2 + circleGap),
-      cy: boardRowY,
-    }));
+    const boardPaletteSize = snap(42 * S);
+    const boardPaletteGap = snap(12 * S);
+    const boardPaletteY = previewY + previewH + snap(20 * S);
+
+    const totalBoardPaletteW =
+      THEME_PALETTE.board.length * boardPaletteSize +
+      (THEME_PALETTE.board.length - 1) * boardPaletteGap;
+
+    const boardPaletteX =
+      previewX + Math.max(0, (previewW - totalBoardPaletteW) / 2);
+
+    const boardRects: (HitRect & { color: string })[] = THEME_PALETTE.board.map(
+      (color, index) => ({
+        color,
+        x: boardPaletteX + index * (boardPaletteSize + boardPaletteGap),
+        y: boardPaletteY,
+        width: boardPaletteSize,
+        height: boardPaletteSize,
+      }),
+    );
 
     return {
+      titleY,
       innerInset,
       innerY,
       innerW,
       innerH,
-      boardM,
-      miniS,
-      boardX,
-      boardY,
-      paletteY,
-      circleR,
-      tileCircles,
-      boardCircles,
-      tileRowY,
-      boardRowY,
+      innerR,
+      tileRects,
+      previewX,
+      previewY,
+      previewW,
+      previewH,
+      previewR,
+      previewTileRects,
+      boardRects,
     };
   }, [frame.width, frame.height, S, snap]);
 }
 
-// 1. Skia Візуальна частина
 export function SkinModalScene({
   frame,
   S,
   snap,
   titleFont,
-  boardColor,
-  tileColor,
+  boardColor = "#133D44",
+  tileColor = "#71D4EB",
 }: SceneProps) {
   const layout = useSkinLayout(frame, S, snap);
-  if (!titleFont) return null;
 
-  const {
-    innerInset,
-    innerY,
-    innerW,
-    innerH,
-    boardM,
-    miniS,
-    boardX,
-    boardY,
-    paletteY,
-    circleR,
-    tileCircles,
-    boardCircles,
-    tileRowY,
-    boardRowY,
-  } = layout;
-
-  const titleY = snap(42 * S);
   const titleText = "SKIN";
-  const titleX = (frame.width - titleFont.measureText(titleText).width) / 2;
-
-  const clipPathInner = rrect(
-    skRect(innerInset, innerY, innerW, innerH),
-    snap(8 * S),
-    snap(8 * S),
-  );
-
-  const BOARD_SHADOW = snap(8 * miniS);
-  const boardCanvasSize = boardM.boardSize + BOARD_SHADOW * 2;
-  const boardUniforms = {
-    u_canvasSize: [boardCanvasSize, boardCanvasSize],
-    u_boardSize: [boardM.boardSize, boardM.boardSize],
-    u_tint: hexToShader(boardColor || "#133D44"),
-  };
-
-  const TILE_SHADOW = snap(4 * miniS);
-  const tileCanvasSize = boardM.tile + TILE_SHADOW * 2;
-  const tileUniforms = {
-    u_canvasSize: [tileCanvasSize, tileCanvasSize],
-    u_tileSize: [boardM.tile, boardM.tile],
-    u_tint: hexToShader(tileColor || "#71D4EB"),
-  };
-
-  const tilesPreview = Array.from({ length: 15 }, (_, i) => i + 1);
+  const titleX = titleFont
+    ? (frame.width - titleFont.measureText(titleText).width) / 2
+    : 0;
 
   return (
     <Group transform={[{ translateX: frame.x }, { translateY: frame.y }]}>
-      <Text
-        x={titleX}
-        y={titleY}
-        text={titleText}
-        font={titleFont}
-        color="#488B8F"
+      {titleFont && (
+        <Text
+          x={titleX}
+          y={layout.titleY}
+          text={titleText}
+          font={titleFont}
+          color="#488B8F"
+        />
+      )}
+
+      <RoundedRect
+        x={layout.innerInset}
+        y={layout.innerY}
+        width={layout.innerW}
+        height={layout.innerH}
+        r={layout.innerR}
+        color="#E1F5FE"
       />
 
-      <Group clip={clipPathInner}>
-        <RoundedRect
-          x={innerInset}
-          y={innerY}
-          width={innerW}
-          height={innerH}
-          r={snap(8 * S)}
-          color="#E1F5FE"
-        >
-          <Shadow inner dx={0} dy={4} blur={8} color="rgba(0,0,0,0.15)" />
-        </RoundedRect>
-      </Group>
+      {/* Ліва палітра плиток — простий скелет */}
+      {layout.tileRects.map((item) => {
+        const selected =
+          normalizeColor(item.color) === normalizeColor(tileColor);
 
-      {/* ДОШКА */}
-      <Group transform={[{ translateX: boardX }, { translateY: boardY }]}>
-        <Group
-          transform={[
-            { translateX: -BOARD_SHADOW },
-            { translateY: -BOARD_SHADOW },
-          ]}
-        >
-          <Rect x={0} y={0} width={boardCanvasSize} height={boardCanvasSize}>
-            {boardEffect && (
-              <Shader source={boardEffect} uniforms={boardUniforms} />
+        return (
+          <Group key={`tile-${item.color}`}>
+            <RoundedRect
+              x={item.x}
+              y={item.y}
+              width={item.width}
+              height={item.height}
+              r={snap(6 * S)}
+              color={item.color}
+            />
+            {selected && (
+              <RoundedRect
+                x={item.x - snap(3 * S)}
+                y={item.y - snap(3 * S)}
+                width={item.width + snap(6 * S)}
+                height={item.height + snap(6 * S)}
+                r={snap(8 * S)}
+                color="rgba(33,97,105,0.20)"
+              />
             )}
-          </Rect>
-        </Group>
+          </Group>
+        );
+      })}
 
-        {tilesPreview.map((id, index) => {
-          const row = Math.floor(index / 4);
-          const col = index % 4;
-          const x = boardM.inset + col * boardM.step;
-          const y = boardM.inset + row * boardM.step;
-          const textStr = String(id);
-          const tw = titleFont.measureText(textStr).width;
-          const textX = (boardM.tile - tw) / 2;
-          const textY = boardM.tile / 2 + titleFont.getSize() / 2.8;
+      {/* Основна preview-дошка — заглушка, але з реальними кольорами */}
+      <RoundedRect
+        x={layout.previewX}
+        y={layout.previewY}
+        width={layout.previewW}
+        height={layout.previewH}
+        r={layout.previewR}
+        color={boardColor}
+      />
 
-          return (
-            <Group key={id} transform={[{ translateX: x }, { translateY: y }]}>
-              <Group
-                transform={[
-                  { translateX: -TILE_SHADOW },
-                  { translateY: -TILE_SHADOW },
-                ]}
-              >
-                <Rect
-                  x={0}
-                  y={0}
-                  width={tileCanvasSize}
-                  height={tileCanvasSize}
-                >
-                  {tileEffect && (
-                    <Shader source={tileEffect} uniforms={tileUniforms} />
-                  )}
-                </Rect>
-              </Group>
+      {layout.previewTileRects.map((tile) => {
+        const textX = titleFont
+          ? tile.x + (tile.width - titleFont.measureText(tile.label).width) / 2
+          : tile.x + snap(12 * S);
+
+        const textY = titleFont
+          ? tile.y + tile.height / 2 + titleFont.getSize() / 2.8
+          : tile.y + snap(26 * S);
+
+        return (
+          <Group key={`preview-${tile.label}`}>
+            <RoundedRect
+              x={tile.x}
+              y={tile.y}
+              width={tile.width}
+              height={tile.height}
+              r={snap(8 * S)}
+              color={tileColor}
+            />
+            {titleFont && (
               <Text
                 x={textX}
                 y={textY}
-                text={textStr}
+                text={tile.label}
                 font={titleFont}
-                color="#000"
+                color="#216169"
               />
-            </Group>
-          );
-        })}
-      </Group>
+            )}
+          </Group>
+        );
+      })}
 
-      {/* ПАЛІТРА */}
-      <Text
-        x={boardX}
-        y={paletteY}
-        text="TILE"
-        font={titleFont}
-        color="#488B8F"
-      />
-      {tileCircles.map((c, i) => (
-        <Group key={`tile-${i}`}>
-          <Circle cx={c.cx} cy={c.cy} r={circleR} color={c.color}>
-            <Shadow inner dx={0} dy={2} blur={4} color="rgba(0,0,0,0.3)" />
-          </Circle>
-          {/* Обводка для вибраного кольору */}
-          {tileColor === c.color && (
-            <Circle
-              cx={c.cx}
-              cy={c.cy}
-              r={circleR + 2}
-              color="#488B8F"
-              style="stroke"
-              strokeWidth={2}
-            />
-          )}
-        </Group>
-      ))}
+      {/* Нижня палітра дошок — також простий скелет */}
+      {layout.boardRects.map((item) => {
+        const selected =
+          normalizeColor(item.color) === normalizeColor(boardColor);
+        const miniInset = snap(7 * S);
+        const miniTile = snap(10 * S);
+        const miniGap = snap(4 * S);
 
-      <Text
-        x={boardX}
-        y={tileRowY + snap(20 * S)}
-        text="BOARD"
-        font={titleFont}
-        color="#488B8F"
-      />
-      {boardCircles.map((c, i) => (
-        <Group key={`board-${i}`}>
-          <Circle cx={c.cx} cy={c.cy} r={circleR} color={c.color}>
-            <Shadow inner dx={0} dy={2} blur={4} color="rgba(0,0,0,0.3)" />
-          </Circle>
-          {/* Обводка для вибраного кольору */}
-          {boardColor === c.color && (
-            <Circle
-              cx={c.cx}
-              cy={c.cy}
-              r={circleR + 2}
-              color="#488B8F"
-              style="stroke"
-              strokeWidth={2}
+        return (
+          <Group key={`board-${item.color}`}>
+            <RoundedRect
+              x={item.x}
+              y={item.y}
+              width={item.width}
+              height={item.height}
+              r={snap(10 * S)}
+              color={item.color}
             />
-          )}
-        </Group>
-      ))}
+            <RoundedRect
+              x={item.x + miniInset}
+              y={item.y + miniInset}
+              width={miniTile}
+              height={miniTile}
+              r={snap(3 * S)}
+              color={tileColor}
+            />
+            <RoundedRect
+              x={item.x + miniInset + miniTile + miniGap}
+              y={item.y + miniInset}
+              width={miniTile}
+              height={miniTile}
+              r={snap(3 * S)}
+              color={tileColor}
+            />
+            <RoundedRect
+              x={item.x + miniInset}
+              y={item.y + miniInset + miniTile + miniGap}
+              width={miniTile}
+              height={miniTile}
+              r={snap(3 * S)}
+              color={tileColor}
+            />
+
+            {selected && (
+              <RoundedRect
+                x={item.x - snap(3 * S)}
+                y={item.y - snap(3 * S)}
+                width={item.width + snap(6 * S)}
+                height={item.height + snap(6 * S)}
+                r={snap(12 * S)}
+                color="rgba(33,97,105,0.20)"
+              />
+            )}
+          </Group>
+        );
+      })}
     </Group>
   );
 }
 
-// 2. React Native Оверлей
-export function SkinModalOverlay({ frame, S, snap }: SceneProps) {
+export function SkinModalOverlay({ frame, S, snap }: ModalProps) {
+  const { settings, updateSettings } = useGameState();
   const layout = useSkinLayout(frame, S, snap);
 
-  // ВИПРАВЛЕНО: Використовуємо новий канонічний API
-  const { updateSettings } = useGameState();
+  const handleTileColorPress = useCallback(
+    (color: string) => {
+      if (normalizeColor(settings.tileColor) === normalizeColor(color)) return;
+      updateSettings({ tileColor: color });
+    },
+    [settings.tileColor, updateSettings],
+  );
+
+  const handleBoardColorPress = useCallback(
+    (color: string) => {
+      if (normalizeColor(settings.boardColor) === normalizeColor(color)) return;
+      updateSettings({ boardColor: color });
+    },
+    [settings.boardColor, updateSettings],
+  );
 
   return (
     <View
       style={{
         position: "absolute",
-        left: frame.x,
-        top: frame.y,
+        left: 0,
+        top: 0,
         width: frame.width,
         height: frame.height,
       }}
+      pointerEvents="box-none"
     >
-      {/* Кнопки вибору кольору плиток */}
-      {layout.tileCircles.map((c, i) => (
+      {/* Hit-area для вибору кольору плиток */}
+      {layout.tileRects.map((item) => (
         <Pressable
-          key={`btn-tile-${i}`}
+          key={`tile-hit-${item.color}`}
           style={{
             position: "absolute",
-            left: c.cx - layout.circleR,
-            top: c.cy - layout.circleR,
-            width: layout.circleR * 2,
-            height: layout.circleR * 2,
+            left: item.x,
+            top: item.y,
+            width: item.width,
+            height: item.height,
           }}
-          onPress={() => updateSettings({ tileColor: c.color })}
+          accessibilityRole="button"
+          accessibilityLabel={`Tile color ${item.color}`}
+          onPress={() => handleTileColorPress(item.color)}
         />
       ))}
 
-      {/* Кнопки вибору кольору дошки */}
-      {layout.boardCircles.map((c, i) => (
+      {/* Hit-area для вибору кольору дошки */}
+      {layout.boardRects.map((item) => (
         <Pressable
-          key={`btn-board-${i}`}
+          key={`board-hit-${item.color}`}
           style={{
             position: "absolute",
-            left: c.cx - layout.circleR,
-            top: c.cy - layout.circleR,
-            width: layout.circleR * 2,
-            height: layout.circleR * 2,
+            left: item.x,
+            top: item.y,
+            width: item.width,
+            height: item.height,
           }}
-          onPress={() => updateSettings({ boardColor: c.color })}
+          accessibilityRole="button"
+          accessibilityLabel={`Board color ${item.color}`}
+          onPress={() => handleBoardColorPress(item.color)}
         />
       ))}
     </View>
