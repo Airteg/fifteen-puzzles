@@ -1,6 +1,5 @@
 import { useGameState } from "@/context/GameStateProvider";
-import { IconButtonSkin } from "@/ui/skia/IconButtonSkin";
-import { SkiaIconButtonSkin } from "@/ui/skia/SkiaIconButtonSkin";
+import { SkiaButtonSound } from "@/ui/skia/SkiaButtonSound";
 import {
   Group,
   RoundedRect,
@@ -30,12 +29,11 @@ export function SoundModalScene({
   frame,
   S,
   snap,
-  isSoundEnabled,
+  isSoundEnabled = false,
   titleFont,
 }: SceneProps) {
   // Метрики з макета
   const titleY = snap(42 * S);
-
   const innerInset = snap(16 * S);
   const innerY = snap(60 * S);
   const innerW = frame.width - innerInset * 2;
@@ -86,17 +84,13 @@ export function SoundModalScene({
         </RoundedRect>
       </Group>
 
-      {/* Кнопки (тепер стан береться з пропса isSoundEnabled) */}
-      <IconButtonSkin
+      <SkiaButtonSound
         frame={{ x: btn1X, y: btnY, width: btnSize }}
         type="soundOn"
         active={isSoundEnabled}
       />
-      <SkiaIconButtonSkin
-        rect={{ x: btn1X, y: btnY, width: btnSize, height: btnSize }}
-        pressed={true}
-      />
-      <IconButtonSkin
+
+      <SkiaButtonSound
         frame={{ x: btn2X, y: btnY, width: btnSize }}
         type="soundOff"
         active={!isSoundEnabled}
@@ -107,7 +101,6 @@ export function SoundModalScene({
 
 // 2. React Native Оверлей для жестів (хуки контексту працюють, бо це не Skia)
 export function SoundModalOverlay({ frame, S, snap }: ModalProps) {
-  // ВИПРАВЛЕНО: Використовуємо новий канонічний API
   const { settings, updateSettings } = useGameState();
   const isSoundEnabled = settings.isSoundEnabled;
 
@@ -125,8 +118,8 @@ export function SoundModalOverlay({ frame, S, snap }: ModalProps) {
     <View
       style={{
         position: "absolute",
-        left: frame.x,
-        top: frame.y,
+        left: 0,
+        top: 0,
         width: frame.width,
         height: frame.height,
       }}
@@ -140,10 +133,10 @@ export function SoundModalOverlay({ frame, S, snap }: ModalProps) {
           height: btnSize,
         }}
         onPress={() => {
-          // Якщо звук ВИМКНЕНО, клік по лівій кнопці його ВМИКАЄ
           if (!isSoundEnabled) updateSettings({ isSoundEnabled: true });
         }}
       />
+
       <Pressable
         style={{
           position: "absolute",
@@ -153,7 +146,6 @@ export function SoundModalOverlay({ frame, S, snap }: ModalProps) {
           height: btnSize,
         }}
         onPress={() => {
-          // Якщо звук УВІМКНЕНО, клік по правій кнопці його ВИМИКАЄ
           if (isSoundEnabled) updateSettings({ isSoundEnabled: false });
         }}
       />
