@@ -1,7 +1,9 @@
+import { TileSkin } from "@/ui/skia/TileSkin";
+import { hexToShader } from "@/utils/color";
+import { Group, RoundedRect, SkFont, Text } from "@shopify/react-native-skia";
 import React from "react";
-import { Group, RoundedRect, Text, SkFont } from "@shopify/react-native-skia";
-import { useSkinLayout } from "./useSkinLayout";
 import { SceneProps, normalizeColor } from "./SkinModal.types";
+import { useSkinLayout } from "./useSkinLayout";
 
 // --- Локальні підкомпоненти для чистоти рендеру ---
 
@@ -59,47 +61,35 @@ const PreviewBoardGroup = ({
   titleFont: SkFont | null;
   snap: (v: number) => number;
   S: number;
-}) => (
-  <Group>
-    <RoundedRect
-      x={layout.previewX}
-      y={layout.previewY}
-      width={layout.previewW}
-      height={layout.previewH}
-      r={layout.previewR}
-      color={boardColor}
-    />
-    {layout.previewTileRects.map((tile) => {
-      const textX = titleFont
-        ? tile.x + (tile.width - titleFont.measureText(tile.label).width) / 2
-        : tile.x + snap(12 * S);
-      const textY = titleFont
-        ? tile.y + tile.height / 2 + titleFont.getSize() / 2.8
-        : tile.y + snap(26 * S);
-      return (
+}) => {
+  return (
+    <Group>
+      <RoundedRect
+        x={layout.previewX}
+        y={layout.previewY}
+        width={layout.previewW}
+        height={layout.previewH}
+        r={layout.previewR}
+        color={boardColor}
+      />
+      {layout.previewTileRects.map((tile) => (
         <Group key={`preview-${tile.label}`}>
-          <RoundedRect
-            x={tile.x}
-            y={tile.y}
-            width={tile.width}
-            height={tile.height}
-            r={snap(8 * S)}
-            color={tileColor}
-          />
-          {titleFont && (
-            <Text
-              x={textX}
-              y={textY}
-              text={tile.label}
+          <Group transform={[{ translateX: tile.x }, { translateY: tile.y }]}>
+            <TileSkin
+              rect={{ x: 0, y: 0, width: tile.width, height: tile.width }}
+              label={tile.label}
               font={titleFont}
-              color="#216169"
+              S={S}
+              snap={snap}
+              tintColor={hexToShader(tileColor, 0.5)}
+              textColor="#1C2833"
             />
-          )}
+          </Group>
         </Group>
-      );
-    })}
-  </Group>
-);
+      ))}
+    </Group>
+  );
+};
 
 const BoardPaletteGroup = ({
   layout,
