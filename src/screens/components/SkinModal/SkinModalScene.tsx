@@ -5,8 +5,6 @@ import React from "react";
 import { SceneProps, normalizeColor } from "./SkinModal.types";
 import { useSkinLayout } from "./useSkinLayout";
 
-// --- Локальні підкомпоненти для чистоти рендеру ---
-
 const TilePaletteGroup = ({
   layout,
   tileColor,

@@ -39,6 +39,7 @@ export function TileSkin({
   const SHADOW_MARGIN = snap(8 * S);
 
   const canvasW = rect.width + SHADOW_MARGIN * 2;
+  console.log("🚀 ~ rect.width:", rect.width);
   const canvasH = rect.height + SHADOW_MARGIN * 2;
 
   const uniforms = useMemo(() => {

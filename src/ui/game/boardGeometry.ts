@@ -17,7 +17,7 @@ export function makeBoardMetrics(params: {
   snap: (v: number) => number;
   size: number; // design board size, e.g. 276
   inset: number; // design inset, e.g. 12
-  tile: number; // design tile, e.g. 60  (тільки для довідки, ми перераховуємо)
+  tile: number; // design tile, e.g. 60
   gap: number; // design gap, e.g. 4
 }): BoardMetrics {
   const { S, snap } = params;
