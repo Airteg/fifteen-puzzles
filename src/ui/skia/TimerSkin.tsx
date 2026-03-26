@@ -11,6 +11,7 @@ import React, { useMemo } from "react";
 // Імпортуємо наш новий шейдер
 import type { SceneFrame } from "../game/useGameSceneMetrics";
 import timerShaderSource from "./shaders/timer.sksl";
+import { useLayoutRenderHelpers } from "@/context/LayoutSnapshotProvider";
 
 const timerEffect = Skia.RuntimeEffect.Make(timerShaderSource);
 
@@ -23,11 +24,10 @@ type Props = {
   timeText: string;
   font: SkFont;
   bgColor: [number, number, number, number]; // RGBA від hexToShader
-  S: number;
-  snap: (v: number) => number;
 };
 
-export function TimerSkin({ frame, timeText, font, bgColor, S, snap }: Props) {
+export function TimerSkin({ frame, timeText, font, bgColor }: Props) {
+  const { S, snap } = useLayoutRenderHelpers();
   // Розпаковуємо frame
   const { x, y, width, height } = frame;
 

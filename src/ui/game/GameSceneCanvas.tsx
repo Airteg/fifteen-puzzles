@@ -90,18 +90,13 @@ export const GameSceneCanvas: React.FC<Props> = ({
           frame={metrics.timerFrame}
           timeText={timeText}
           font={tileFont}
-          // Темно-сірий колір фону у форматі RGBA [0..1] для шейдера
           bgColor={[0.15, 0.15, 0.15, 1.0]}
-          S={S}
-          snap={snap}
         />
       )}
       {/* 3. ДОШКА */}
       <GameBoardSceneLayer
         boardFrame={metrics.boardFrame}
         mode={mode}
-        S={S}
-        snap={snap}
         tileFont={tileFont}
         tiles={boardCtrl.tiles}
         gridSV={boardCtrl.gridSV}

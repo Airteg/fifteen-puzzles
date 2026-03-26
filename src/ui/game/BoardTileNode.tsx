@@ -10,9 +10,6 @@ import type { BoardAxis } from "./gameBoardModel";
 
 export type BoardTileNodeProps = {
   mode: "classic" | "limitTime";
-  S: number;
-  snap: (v: number) => number;
-
   tileId: number;
   label: string;
   font: SkFont;
@@ -37,8 +34,6 @@ export const BoardTileNode = memo(function BoardTileNode(
 ) {
   const {
     mode,
-    S,
-    snap,
     tileId,
     label,
     font,
@@ -108,12 +103,9 @@ export const BoardTileNode = memo(function BoardTileNode(
   return (
     <Group transform={transform}>
       <TileSkin
-        // Передаємо нульові координати, оскільки transform бере на себе абсолютне позиціонування
         rect={{ x: 0, y: 0, width: m.tile, height: m.tile }}
         label={label}
         font={font}
-        S={S}
-        snap={snap}
         baseColor={[0.88, 0.92, 0.95, 1.0]}
         textColor="#1C2833"
       />

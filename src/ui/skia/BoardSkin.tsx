@@ -2,6 +2,7 @@ import type { Rect as UIRect } from "@/ui/pixel";
 import { Group, Rect, Shader, Skia } from "@shopify/react-native-skia";
 import React, { useMemo } from "react";
 
+import { useLayoutRenderHelpers } from "@/context/LayoutSnapshotProvider";
 import boardShaderSource from "./shaders/board_v1.sksl";
 
 const boardEffect = Skia.RuntimeEffect.Make(boardShaderSource);
@@ -13,11 +14,10 @@ if (!boardEffect) {
 type Props = {
   rect: UIRect;
   tintColor?: [number, number, number, number];
-  S: number;
-  snap: (v: number) => number;
 };
 
-export function BoardSkin({ rect, tintColor, S, snap }: Props) {
+export function BoardSkin({ rect, tintColor }: Props) {
+  const { S, snap } = useLayoutRenderHelpers();
   // Для дошки з такою тінню відступ має бути трохи більшим, щоб тінь не обрізалась
   const SHADOW_MARGIN = snap(30 * S);
   const canvasW = rect.width + SHADOW_MARGIN * 2;

@@ -12,13 +12,9 @@ import type { SceneFrame } from "./useGameSceneMetrics";
 type Props = {
   boardFrame: SceneFrame;
   mode: "classic" | "limitTime";
-  S: number;
-  snap: (v: number) => number;
+
   tileFont: SkFont;
-
-  // ВИПРАВЛЕНО: тепер масив readonly і використовує канонічний тип
   tiles: readonly BoardTileDescriptor[];
-
   gridSV: SharedValue<number[]>;
   emptyRow: SharedValue<number>;
   emptyCol: SharedValue<number>;
@@ -34,7 +30,7 @@ type Props = {
 };
 
 export function GameBoardSceneLayer(props: Props) {
-  const { boardFrame, mode, S, snap, tileFont, tiles, ...rest } = props;
+  const { boardFrame, mode, tileFont, tiles, ...rest } = props;
   const m = useGameLayout(mode).board;
 
   return (
@@ -43,16 +39,12 @@ export function GameBoardSceneLayer(props: Props) {
     >
       <BoardSkin
         rect={{ x: 0, y: 0, width: m.boardSize, height: m.boardSize }}
-        S={S}
-        snap={snap}
       />
 
       {tiles.map((t) => (
         <BoardTileNode
           key={t.id}
           mode={mode}
-          S={S}
-          snap={snap}
           tileId={t.id}
           label={t.label}
           font={tileFont}
