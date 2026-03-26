@@ -13,17 +13,6 @@ export type BoardLayout = {
   step: number;
 };
 
-export type GameScreenLayout = {
-  headerFrame: Frame;
-  timerFrame: Frame | null;
-  boardFrame: Frame;
-  buttonsBlockFrame: Frame;
-  modePanelFrame: Frame;
-  board: BoardLayout;
-  homeButtonFrame: Frame;
-  restartButtonFrame: Frame;
-};
-
 export type AppLayoutSnapshot = {
   device: {
     screenW: number;
@@ -44,8 +33,14 @@ export type AppLayoutSnapshot = {
 
   screens: {
     game: {
-      classic: GameScreenLayout;
-      limitTime: GameScreenLayout;
+      headerFrame: Frame;
+      timerFrame: Frame | null;
+      boardFrame: Frame;
+      buttonsBlockFrame: Frame;
+      modePanelFrame: Frame;
+      board: BoardLayout;
+      homeButtonFrame: Frame;
+      restartButtonFrame: Frame;
     };
 
     settings: {

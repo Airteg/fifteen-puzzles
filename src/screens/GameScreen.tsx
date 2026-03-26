@@ -9,10 +9,6 @@ import { useLayoutMetrics } from "@/context/LayoutMetricsProvider";
 import { useGameBoardController } from "@/ui/game/useGameBoardController";
 import { useGameSceneMetrics } from "@/ui/game/useGameSceneMetrics";
 
-// Геометрія та константи
-import { makeBoardMetrics } from "@/ui/game/boardGeometry";
-import { GameMetrics } from "@/ui/game/gameMetrics";
-
 // UI Компоненти:
 // Жести
 import { BoardGestureOverlay } from "@/ui/game/BoardGestureOverlay";
@@ -20,6 +16,7 @@ import { BoardGestureOverlay } from "@/ui/game/BoardGestureOverlay";
 import { GameSceneCanvas } from "@/ui/game/GameSceneCanvas";
 
 // Функція для генерації початкового положення плиток
+import { useGameLayout } from "@/context/LayoutSnapshotProvider";
 import { shuffleTiles } from "@/ui/game/gameEngine/shuffleTiles";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Game">;
@@ -28,26 +25,18 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   // 1. Метрики екрана та сцени
   const hasTimer = route.params?.mode === "limitTime";
   const currentMode = hasTimer ? "LIMIT TIME" : "CLASSIC";
+  const gameMode = hasTimer ? "limitTime" : "classic";
 
   const sceneMetrics = useGameSceneMetrics(hasTimer);
+  const gameLayout = useGameLayout(gameMode);
+
   const { S, snap } = useLayoutMetrics();
 
   // 2. Дістаємо оригінальний шрифт KronaOne для плиток
   const { title: tileFont } = useSkiaFonts();
 
   // 3. Метрики самої дошки
-  const boardM = useMemo(
-    () =>
-      makeBoardMetrics({
-        S,
-        snap,
-        size: GameMetrics.board.size,
-        inset: GameMetrics.board.inset,
-        tile: GameMetrics.board.tile,
-        gap: GameMetrics.board.gap,
-      }),
-    [S, snap],
-  );
+  const boardM = gameLayout.board;
 
   // 4. Генерація початкового положення плиток
   const bootGrid = useMemo(() => shuffleTiles(), []);
@@ -86,7 +75,7 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
         <>
           <GameSceneCanvas
             metrics={sceneMetrics}
-            boardM={boardM}
+            mode={gameMode}
             S={S}
             snap={snap}
             tileFont={tileFont}

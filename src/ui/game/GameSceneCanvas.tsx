@@ -9,11 +9,11 @@ import {
 import React from "react";
 import { StyleSheet } from "react-native";
 
-import type { BoardMetrics } from "./boardGeometry";
 import { GameBoardSceneLayer } from "./GameBoardSceneLayer";
 import { useGameBoardController } from "./useGameBoardController";
 import type { GameSceneMetrics } from "./useGameSceneMetrics";
 
+import { useGameLayout } from "@/context/LayoutSnapshotProvider";
 import { GameHeader } from "@/ui/skia/GameHeader";
 import { TimerSkin } from "@/ui/skia/TimerSkin";
 import { IconButtonSkin } from "../skia/IconButtonSkin";
@@ -23,7 +23,7 @@ type BoardControllerState = ReturnType<typeof useGameBoardController>;
 
 type Props = {
   metrics: GameSceneMetrics;
-  boardM: BoardMetrics;
+  mode: "classic" | "limitTime";
   S: number;
   snap: (v: number) => number;
   tileFont: SkFont;
@@ -34,14 +34,15 @@ type Props = {
 
 export const GameSceneCanvas: React.FC<Props> = ({
   metrics,
-  boardM,
+  mode,
   S,
   snap,
   tileFont,
   boardCtrl,
-  timeText = "02:00", // Тимчасове значення до реалізації Кроку 7
+  timeText = "02:00",
   modeText,
 }) => {
+  const boardM = useGameLayout(mode).board;
   // console.log(
   //   "🚀 ~ metrics:\n" +
   //     JSON.stringify(
