@@ -3,7 +3,7 @@ import React, { useCallback, useMemo, useState } from "react";
 import { Image, LayoutChangeEvent, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useLayoutMetrics } from "@/context/LayoutMetricsProvider";
+import { useLayoutRenderHelpers } from "@/context/LayoutSnapshotProvider";
 import { snapRect, type Rect } from "@/ui/pixel";
 import { LogoFrameSkin } from "@/ui/skia/LogoFrameSkin";
 import { T } from "@/ui/T";
@@ -23,7 +23,7 @@ export function AppHeader({
   title = "FIFTEEN TILES",
   desc = "A classic game\nthat doesn’t get boring",
 }: Props) {
-  const { S, snap } = useLayoutMetrics();
+  const { S, snap } = useLayoutRenderHelpers();
   const insets = useSafeAreaInsets();
 
   // Figma tokens

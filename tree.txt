@@ -58,14 +58,23 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   ├── AppShell.tsx
 │   │   ├── FontProvider.tsx
 │   │   ├── GameStateProvider.tsx
-│   │   └── LayoutMetricsProvider.tsx
+│   │   ├── LayoutMetricsProvider.tsx
+│   │   └── LayoutSnapshotProvider.tsx
+│   ├── layout
+│   │   ├── createAppLayoutSnapshot.ts
+│   │   └── types.ts
 │   ├── navigation
 │   │   └── RootNavigator.tsx
 │   ├── screens
 │   │   ├── components
+│   │   │   ├── SkinModal
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── SkinModal.types.ts
+│   │   │   │   ├── SkinModalOverlay.tsx
+│   │   │   │   ├── SkinModalScene.tsx
+│   │   │   │   └── useSkinLayout.ts
 │   │   │   ├── HomeFooterLinks.tsx
 │   │   │   ├── SettingsModalHost.tsx
-│   │   │   ├── SkinModal.tsx
 │   │   │   └── SoundModal.tsx
 │   │   ├── AboutScreen.tsx
 │   │   ├── GameScreen.tsx
@@ -152,6 +161,8 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │       ├── color.ts
 │       └── splash.ts
 ├── temp
+│   ├── createAppLayoutSnapshot.ts
+│   └── types.ts
 ├── tools
 │   └── skslTransformer.js
 ├── .gitignore

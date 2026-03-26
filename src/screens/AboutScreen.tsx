@@ -11,14 +11,14 @@ import { styles as globalStyles } from "../styles/globalStyles";
 import type { Props } from "../types/types";
 
 // Імпортуємо хук для метрик
-import { useLayoutMetrics } from "@/context/LayoutMetricsProvider";
+import { useLayoutRenderHelpers } from "@/context/LayoutSnapshotProvider";
 import { LogoSkin } from "@/ui/skia/LogoSkin";
 
 const cW = 350;
 const cH = 550;
 
 const AboutScreen = ({ navigation }: Props<"About">) => {
-  const { S, snap } = useLayoutMetrics();
+  const { S, snap } = useLayoutRenderHelpers();
   const [scale, setScale] = useState(1);
   const fiveImage = useImage(require("../../assets/images/logo5.png"));
 

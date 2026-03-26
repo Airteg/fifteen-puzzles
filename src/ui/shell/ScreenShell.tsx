@@ -1,4 +1,4 @@
-import { useLayoutMetrics } from "@/context/LayoutMetricsProvider";
+import { useLayoutRenderHelpers } from "@/context/LayoutSnapshotProvider";
 import { ScreenShellProps } from "@/types/types";
 import { T } from "@/ui/T";
 import { AppHeader } from "@/ui/header/AppHeader";
@@ -17,7 +17,7 @@ export function ScreenShell({
   footerBottomGapDesign = 0,
   backgroundColor = "#D5F7FF",
 }: ScreenShellProps) {
-  const { S, snap } = useLayoutMetrics();
+  const { S, snap } = useLayoutRenderHelpers();
 
   const hAnim = snap(animationHeightDesign * S);
   const gap1 = snap(headerToAnimationGapDesign * S);

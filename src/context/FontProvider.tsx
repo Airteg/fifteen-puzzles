@@ -2,7 +2,7 @@ import { SkFont, useFont } from "@shopify/react-native-skia";
 import { useFonts } from "expo-font";
 import React, { createContext, ReactNode, useContext, useMemo } from "react";
 
-import { useLayoutMetrics } from "@/context/LayoutMetricsProvider";
+import { useLayoutRenderHelpers } from "./LayoutSnapshotProvider";
 
 type SkiaFonts = {
   button: SkFont | null; // 24 * S
@@ -29,7 +29,7 @@ export const FontProvider = ({ children }: { children: ReactNode }) => {
   });
 
   // 2) Layout metrics (uniform scale S)
-  const { S, snap } = useLayoutMetrics();
+  const { S, snap } = useLayoutRenderHelpers();
 
   // 3) Skia fonts (render in Canvas)
   // useFont loads and caches by (ttf,size)
