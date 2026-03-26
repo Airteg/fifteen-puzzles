@@ -4,13 +4,15 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import type { SharedValue } from "react-native-reanimated";
 import { useSharedValue } from "react-native-reanimated";
 
-import { useGameLayout } from "@/context/LayoutSnapshotProvider";
+import {
+  useGameLayout,
+  useLayoutRenderHelpers,
+} from "@/context/LayoutSnapshotProvider";
 import type { SceneFrame } from "./useGameSceneMetrics";
 
 type Props = {
   boardFrame: SceneFrame;
   mode: "classic" | "limitTime";
-  lockAbs: number;
   lockRatio?: number;
 
   emptyRow: SharedValue<number>;
@@ -29,7 +31,7 @@ type Props = {
 export function BoardGestureOverlay(props: Props) {
   const {
     boardFrame,
-    lockAbs,
+
     mode,
     emptyRow: emptyRowSV,
     emptyCol: emptyColSV,
@@ -42,7 +44,8 @@ export function BoardGestureOverlay(props: Props) {
     onTapCell,
   } = props;
   const m = useGameLayout(mode).board;
-
+  const { S, snap } = useLayoutRenderHelpers();
+  const lockAbs = snap(2 * S);
   const dragStepsSV = useSharedValue(0);
 
   const gesture = useMemo(() => {

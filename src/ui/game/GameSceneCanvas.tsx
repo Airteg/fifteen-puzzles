@@ -13,6 +13,7 @@ import { GameBoardSceneLayer } from "./GameBoardSceneLayer";
 import { useGameBoardController } from "./useGameBoardController";
 import type { GameSceneMetrics } from "./useGameSceneMetrics";
 
+import { useLayoutRenderHelpers } from "@/context/LayoutSnapshotProvider";
 import { GameHeader } from "@/ui/skia/GameHeader";
 import { TimerSkin } from "@/ui/skia/TimerSkin";
 import { IconButtonSkin } from "../skia/IconButtonSkin";
@@ -23,8 +24,6 @@ type BoardControllerState = ReturnType<typeof useGameBoardController>;
 type Props = {
   metrics: GameSceneMetrics;
   mode: "classic" | "limitTime";
-  S: number;
-  snap: (v: number) => number;
   tileFont: SkFont;
   boardCtrl: BoardControllerState;
   timeText?: string;
@@ -34,13 +33,12 @@ type Props = {
 export const GameSceneCanvas: React.FC<Props> = ({
   metrics,
   mode,
-  S,
-  snap,
   tileFont,
   boardCtrl,
   timeText = "02:00",
   modeText,
 }) => {
+  const { S, snap } = useLayoutRenderHelpers();
   // console.log(
   //   "🚀 ~ metrics:\n" +
   //     JSON.stringify(

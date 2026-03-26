@@ -5,7 +5,6 @@ import { View } from "react-native";
 
 // Хуки та провайдери
 import { useSkiaFonts } from "@/context/FontProvider";
-import { useLayoutMetrics } from "@/context/LayoutMetricsProvider";
 import { useGameBoardController } from "@/ui/game/useGameBoardController";
 import { useGameSceneMetrics } from "@/ui/game/useGameSceneMetrics";
 
@@ -27,8 +26,6 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   const gameMode = hasTimer ? "limitTime" : "classic";
 
   const sceneMetrics = useGameSceneMetrics(hasTimer);
-
-  const { S, snap } = useLayoutMetrics();
 
   // 2. Дістаємо оригінальний шрифт KronaOne для плиток
   const { title: tileFont } = useSkiaFonts();
@@ -71,8 +68,6 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
           <GameSceneCanvas
             metrics={sceneMetrics}
             mode={gameMode}
-            S={S}
-            snap={snap}
             tileFont={tileFont}
             boardCtrl={boardCtrl}
             modeText={currentMode}
@@ -81,7 +76,6 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
           <BoardGestureOverlay
             boardFrame={sceneMetrics.boardFrame}
             mode={gameMode}
-            lockAbs={snap(2 * S)}
             emptyRow={boardCtrl.emptyRow}
             emptyCol={boardCtrl.emptyCol}
             dragActive={boardCtrl.dragActive}

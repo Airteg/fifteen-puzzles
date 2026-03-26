@@ -4,12 +4,12 @@ import React, { memo } from "react";
 import type { SharedValue } from "react-native-reanimated";
 import { useDerivedValue } from "react-native-reanimated";
 
-import type { BoardMetrics } from "@/ui/game/boardGeometry";
+import { useGameLayout } from "@/context/LayoutSnapshotProvider";
 import { TileSkin } from "@/ui/skia/TileSkin";
 import type { BoardAxis } from "./gameBoardModel";
 
 export type BoardTileNodeProps = {
-  m: BoardMetrics;
+  mode: "classic" | "limitTime";
   S: number;
   snap: (v: number) => number;
 
@@ -36,7 +36,7 @@ export const BoardTileNode = memo(function BoardTileNode(
   props: BoardTileNodeProps,
 ) {
   const {
-    m,
+    mode,
     S,
     snap,
     tileId,
@@ -55,6 +55,8 @@ export const BoardTileNode = memo(function BoardTileNode(
     animDirSV,
     animMovedIdsSV,
   } = props;
+
+  const m = useGameLayout(mode).board;
 
   const step = m.step;
   const inset = m.inset;

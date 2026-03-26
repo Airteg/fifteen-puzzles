@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useMemo } from "react";
-import { useWindowDimensions } from "react-native";
+import { PixelRatio, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { createAppLayoutSnapshot } from "@/layout/createAppLayoutSnapshot";
@@ -63,4 +63,13 @@ export function useLayoutTokens() {
 
 export function useLayoutDevice() {
   return useAppLayoutSnapshot().device;
+}
+
+export function useLayoutRenderHelpers() {
+  const { scale } = useLayoutDevice();
+
+  return {
+    S: scale,
+    snap: PixelRatio.roundToNearestPixel,
+  };
 }

@@ -50,7 +50,7 @@ export function GameBoardSceneLayer(props: Props) {
       {tiles.map((t) => (
         <BoardTileNode
           key={t.id}
-          m={m}
+          mode={mode}
           S={S}
           snap={snap}
           tileId={t.id}
