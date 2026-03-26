@@ -85,7 +85,7 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
 
           <BoardGestureOverlay
             boardFrame={sceneMetrics.boardFrame}
-            m={boardM}
+            mode={gameMode}
             lockAbs={snap(2 * S)}
             emptyRow={boardCtrl.emptyRow}
             emptyCol={boardCtrl.emptyCol}

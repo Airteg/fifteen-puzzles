@@ -4,12 +4,12 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import type { SharedValue } from "react-native-reanimated";
 import { useSharedValue } from "react-native-reanimated";
 
-import type { BoardMetrics } from "@/ui/game/boardGeometry";
+import { useGameLayout } from "@/context/LayoutSnapshotProvider";
 import type { SceneFrame } from "./useGameSceneMetrics";
 
 type Props = {
-  boardFrame: SceneFrame; // Отримуємо фрейм замість pad/canvasSize
-  m: BoardMetrics;
+  boardFrame: SceneFrame;
+  mode: "classic" | "limitTime";
   lockAbs: number;
   lockRatio?: number;
 
@@ -29,8 +29,8 @@ type Props = {
 export function BoardGestureOverlay(props: Props) {
   const {
     boardFrame,
-    m,
     lockAbs,
+    mode,
     emptyRow: emptyRowSV,
     emptyCol: emptyColSV,
     dragActive: dragActiveSV,
@@ -41,6 +41,7 @@ export function BoardGestureOverlay(props: Props) {
     onCommitShift,
     onTapCell,
   } = props;
+  const m = useGameLayout(mode).board;
 
   const dragStepsSV = useSharedValue(0);
 
