@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { useSharedValue, withTiming } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets"; // ДОДАНО
 
+import { useGameLayout } from "@/context/LayoutSnapshotProvider";
 import type { BoardAxis } from "./gameBoardModel";
 import {
   commitShift,
@@ -49,9 +50,9 @@ export type UseGameBoardControllerResult = {
 };
 
 type UseGameBoardControllerParams = {
-  stepPx: number;
+  mode: "classic" | "limitTime";
   bootGrid?: number[];
-  onWin?: () => void; // ДОДАНО
+  onWin?: () => void;
 };
 
 const resolveBootGrid = (bootGrid?: number[]) => {
@@ -62,10 +63,11 @@ const resolveBootGrid = (bootGrid?: number[]) => {
 };
 
 export function useGameBoardController({
-  stepPx,
+  mode,
   bootGrid,
-  onWin, // ДОДАНО
+  onWin,
 }: UseGameBoardControllerParams): UseGameBoardControllerResult {
+  const stepPx = useGameLayout(mode).board.step;
   const resolvedBootGrid = resolveBootGrid(bootGrid);
   const bootEmpty = findEmpty(resolvedBootGrid);
 

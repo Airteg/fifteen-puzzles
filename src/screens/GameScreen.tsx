@@ -16,7 +16,6 @@ import { BoardGestureOverlay } from "@/ui/game/BoardGestureOverlay";
 import { GameSceneCanvas } from "@/ui/game/GameSceneCanvas";
 
 // Функція для генерації початкового положення плиток
-import { useGameLayout } from "@/context/LayoutSnapshotProvider";
 import { shuffleTiles } from "@/ui/game/gameEngine/shuffleTiles";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Game">;
@@ -28,22 +27,18 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   const gameMode = hasTimer ? "limitTime" : "classic";
 
   const sceneMetrics = useGameSceneMetrics(hasTimer);
-  const gameLayout = useGameLayout(gameMode);
 
   const { S, snap } = useLayoutMetrics();
 
   // 2. Дістаємо оригінальний шрифт KronaOne для плиток
   const { title: tileFont } = useSkiaFonts();
 
-  // 3. Метрики самої дошки
-  const boardM = gameLayout.board;
-
   // 4. Генерація початкового положення плиток
   const bootGrid = useMemo(() => shuffleTiles(), []);
 
   // 5. Ігровий контролер
   const boardCtrl = useGameBoardController({
-    stepPx: boardM.step,
+    mode: gameMode,
     bootGrid: bootGrid,
     onWin: () => {
       navigation.navigate("Win", { score: 100 });

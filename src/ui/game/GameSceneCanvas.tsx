@@ -13,7 +13,6 @@ import { GameBoardSceneLayer } from "./GameBoardSceneLayer";
 import { useGameBoardController } from "./useGameBoardController";
 import type { GameSceneMetrics } from "./useGameSceneMetrics";
 
-import { useGameLayout } from "@/context/LayoutSnapshotProvider";
 import { GameHeader } from "@/ui/skia/GameHeader";
 import { TimerSkin } from "@/ui/skia/TimerSkin";
 import { IconButtonSkin } from "../skia/IconButtonSkin";
@@ -42,7 +41,6 @@ export const GameSceneCanvas: React.FC<Props> = ({
   timeText = "02:00",
   modeText,
 }) => {
-  const boardM = useGameLayout(mode).board;
   // console.log(
   //   "🚀 ~ metrics:\n" +
   //     JSON.stringify(
@@ -103,7 +101,7 @@ export const GameSceneCanvas: React.FC<Props> = ({
       {/* 3. ДОШКА */}
       <GameBoardSceneLayer
         boardFrame={metrics.boardFrame}
-        m={boardM}
+        mode={mode}
         S={S}
         snap={snap}
         tileFont={tileFont}
