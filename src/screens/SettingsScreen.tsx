@@ -1,14 +1,11 @@
-import { useLayoutMetrics } from "@/context/LayoutMetricsProvider";
+import {
+  useLayoutDevice,
+  useSettingsLayout,
+} from "@/context/LayoutSnapshotProvider";
 import SettingsAnimationPlaceholder from "@/ui/animation/placeholders/SettingsAnimationPlaceholder";
 import { PanelZone } from "@/ui/PanelZone";
 import { ScreenShell } from "@/ui/shell/ScreenShell";
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { View } from "react-native";
 import { useSharedValue, withTiming } from "react-native-reanimated";
 import { Props } from "../types/types";
@@ -20,7 +17,8 @@ import {
 const MODAL_ANIMATION_MS = 200;
 
 const SettingsScreen = ({ navigation }: Props<"Settings">) => {
-  const { sw, sh, panelW, snap, S } = useLayoutMetrics();
+  const { screenW: sw, screenH: sh } = useLayoutDevice();
+  const settingsLayout = useSettingsLayout();
   const modalOpacity = useSharedValue(0);
 
   const [isScreenReady, setIsScreenReady] = useState(false);
@@ -42,24 +40,10 @@ const SettingsScreen = ({ navigation }: Props<"Settings">) => {
   );
   const isModalAnimating = useRef(false);
 
-  const modalFrame = useMemo(() => {
-    if (!activeModal) return { x: 0, y: 0, width: 0, height: 0 };
-
-    let designWidth = panelW / S;
-    let designHeight = 400;
-
-    if (activeModal === "sound") {
-      designWidth = 214;
-      designHeight = 169;
-    }
-
-    const width = snap(designWidth * S);
-    const height = snap(designHeight * S);
-    const x = (sw - width) / 2;
-    const y = (sh - height) / 2;
-
-    return { x, y, width, height };
-  }, [sw, sh, panelW, snap, S, activeModal]);
+  const modalFrame =
+    activeModal === "sound"
+      ? settingsLayout.modalSoundFrame
+      : settingsLayout.modalDefaultFrame;
 
   const handleOpenModal = useCallback(
     (id: SettingsModalType) => {

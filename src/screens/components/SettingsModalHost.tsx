@@ -1,6 +1,5 @@
 import { useSkiaFonts } from "@/context/FontProvider";
 import { useGameState } from "@/context/GameStateProvider";
-import { useLayoutMetrics } from "@/context/LayoutMetricsProvider";
 import { Canvas, Rect, RoundedRect } from "@shopify/react-native-skia";
 import React from "react";
 import { Pressable, StyleSheet, View } from "react-native";
@@ -9,8 +8,9 @@ import Animated, {
   useAnimatedStyle,
 } from "react-native-reanimated";
 
-import { SoundModalOverlay, SoundModalScene } from "./SoundModal";
+import { useLayoutRenderHelpers } from "@/context/LayoutSnapshotProvider";
 import { SkinModalOverlay, SkinModalScene } from "./SkinModal";
+import { SoundModalOverlay, SoundModalScene } from "./SoundModal";
 
 export type SettingsModalType = "skin" | "sound" | "statistic";
 
@@ -33,7 +33,7 @@ export function SettingsModalHost({
   sh,
   modalOpacity,
 }: Props) {
-  const { S, snap } = useLayoutMetrics();
+  const { S, snap } = useLayoutRenderHelpers();
   const { settings } = useGameState();
   const { title: titleFont } = useSkiaFonts();
 
