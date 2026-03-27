@@ -2,7 +2,6 @@ import type { Rect as UIRect } from "@/ui/pixel";
 import { Group, Rect, Shader, Skia } from "@shopify/react-native-skia";
 import React, { useMemo } from "react";
 
-import { useLayoutRenderHelpers } from "@/context/LayoutSnapshotProvider";
 import boardShaderSource from "./shaders/board_v1.sksl";
 
 const boardEffect = Skia.RuntimeEffect.Make(boardShaderSource);
@@ -14,10 +13,11 @@ if (!boardEffect) {
 type Props = {
   rect: UIRect;
   tintColor?: [number, number, number, number];
+  S: number;
+  snap: (v: number) => number;
 };
 
-export function BoardSkin({ rect, tintColor }: Props) {
-  const { S, snap } = useLayoutRenderHelpers();
+export function BoardSkin({ rect, tintColor, S, snap }: Props) {
   // Для дошки з такою тінню відступ має бути трохи більшим, щоб тінь не обрізалась
   const SHADOW_MARGIN = snap(30 * S);
   const canvasW = rect.width + SHADOW_MARGIN * 2;
@@ -32,7 +32,7 @@ export function BoardSkin({ rect, tintColor }: Props) {
       u_boardSize: [rect.width, rect.height],
       u_tint: tintColor || [0.0, 0.0, 0.0, 0.0],
       u_radius: radius,
-      u_scale: S, // Передаємо S в шейдер для масштабування тіней
+      u_scale: S,
     };
   }, [canvasW, canvasH, rect.width, rect.height, tintColor, radius, S]);
 
@@ -40,15 +40,6 @@ export function BoardSkin({ rect, tintColor }: Props) {
 
   return (
     <>
-      {/* <Rect
-        x={0}
-        y={0}
-        width={canvasW}
-        height={canvasH}
-        color="#ff0000"
-        style="stroke"
-        strokeWidth={1} // Цей компонент треба закоментувати коли відпаде потреба контролювати розмір канваса, він допомагає візуально відстежувати його межі
-      /> */}
       <Group transform={[{ translateX: rect.x }, { translateY: rect.y }]}>
         <Group
           transform={[

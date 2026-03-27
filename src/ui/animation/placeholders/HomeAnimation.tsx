@@ -107,6 +107,8 @@ const AnimatedTile = ({ config, cx, cy, tileSize, font, S, snap }: any) => {
         font={font}
         baseColor={config.color}
         textColor="#000000"
+        S={S}
+        snap={snap}
       />
     </Group>
   );

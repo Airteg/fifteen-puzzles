@@ -1,18 +1,21 @@
+import type { BoardLayout } from "@/layout/types";
 import type { SkFont } from "@shopify/react-native-skia";
 import { Group } from "@shopify/react-native-skia";
 import React, { memo } from "react";
 import type { SharedValue } from "react-native-reanimated";
 import { useDerivedValue } from "react-native-reanimated";
 
-import { useGameLayout } from "@/context/LayoutSnapshotProvider";
 import { TileSkin } from "@/ui/skia/TileSkin";
 import type { BoardAxis } from "./gameBoardModel";
 
 export type BoardTileNodeProps = {
-  mode: "classic" | "limitTime";
+  m: BoardLayout;
   tileId: number;
   label: string;
   font: SkFont;
+
+  S: number;
+  snap: (v: number) => number;
 
   gridSV: SharedValue<number[]>;
   emptyRow: SharedValue<number>;
@@ -33,10 +36,12 @@ export const BoardTileNode = memo(function BoardTileNode(
   props: BoardTileNodeProps,
 ) {
   const {
-    mode,
+    m,
     tileId,
     label,
     font,
+    S,
+    snap,
     gridSV,
     emptyRow,
     emptyCol,
@@ -51,24 +56,19 @@ export const BoardTileNode = memo(function BoardTileNode(
     animMovedIdsSV,
   } = props;
 
-  const m = useGameLayout(mode).board;
-
   const step = m.step;
   const inset = m.inset;
 
   const transform = useDerivedValue(() => {
-    // 1. Отримуємо АКТУАЛЬНУ позицію безпосередньо в UI-потоці
     const idx = gridSV.value.indexOf(tileId);
     if (idx === -1) return [{ translateX: 0 }, { translateY: 0 }];
 
     const row = Math.floor(idx / 4);
     const col = idx % 4;
 
-    // 2. Базові абсолютні координати на дошці
     let dx = inset + col * step;
     let dy = inset + row * step;
 
-    // 3. Додаємо зсув від пальця під час драгу
     if (dragActive.value === 1) {
       const offsetPx = dragOffsetPx.value;
       if (offsetPx !== 0) {
@@ -83,14 +83,13 @@ export const BoardTileNode = memo(function BoardTileNode(
           if (col === dragStartCol.value && col === emptyCol.value) {
             const sR = dragStartRow.value;
             const eR = emptyRow.value;
-            if (sR < eR && row >= sR && row <= eR - 1) dy += offsetPx;
-            else if (sR > eR && row >= eR + 1 && row <= sR) dy += offsetPx;
+            if (sR < eR && row >= eR && row <= sR - 1) dy += offsetPx;
+            else if (sR > eR && row >= sR + 1 && row <= eR) dy += offsetPx;
           }
         }
       }
     }
 
-    // 4. Додаємо зсув для дотягування анімацією
     if (animMovedIdsSV.value.includes(tileId)) {
       const back = (1 - animT.value) * step;
       if (animAxisSV.value === "x") dx += -animDirSV.value * back;
@@ -106,6 +105,8 @@ export const BoardTileNode = memo(function BoardTileNode(
         rect={{ x: 0, y: 0, width: m.tile, height: m.tile }}
         label={label}
         font={font}
+        S={S}
+        snap={snap}
         baseColor={[0.88, 0.92, 0.95, 1.0]}
         textColor="#1C2833"
       />

@@ -1,4 +1,3 @@
-import { useLayoutRenderHelpers } from "@/context/LayoutSnapshotProvider";
 import type { Rect as UIRect } from "@/ui/pixel";
 import {
   Group,
@@ -24,6 +23,8 @@ type Props = {
   baseColor?: [number, number, number, number];
   textColor?: string;
   tintColor?: [number, number, number, number];
+  S: number;
+  snap: (v: number) => number;
 };
 
 export function TileSkin({
@@ -32,8 +33,9 @@ export function TileSkin({
   font,
   tintColor,
   textColor = "#216169",
+  S,
+  snap,
 }: Props) {
-  const { S, snap } = useLayoutRenderHelpers();
   const SHADOW_MARGIN = snap(8 * S);
 
   const canvasW = rect.width + SHADOW_MARGIN * 2;

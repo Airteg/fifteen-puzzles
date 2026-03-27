@@ -13,7 +13,10 @@ import { GameBoardSceneLayer } from "./GameBoardSceneLayer";
 import { useGameBoardController } from "./useGameBoardController";
 import type { GameSceneMetrics } from "./useGameSceneMetrics";
 
-import { useLayoutRenderHelpers } from "@/context/LayoutSnapshotProvider";
+import {
+  useGameLayout,
+  useLayoutRenderHelpers,
+} from "@/context/LayoutSnapshotProvider";
 import { GameHeader } from "@/ui/skia/GameHeader";
 import { TimerSkin } from "@/ui/skia/TimerSkin";
 import { IconButtonSkin } from "../skia/IconButtonSkin";
@@ -39,14 +42,7 @@ export const GameSceneCanvas: React.FC<Props> = ({
   modeText,
 }) => {
   const { S, snap } = useLayoutRenderHelpers();
-  // console.log(
-  //   "🚀 ~ metrics:\n" +
-  //     JSON.stringify(
-  //       metrics,
-  //       (k, v) => (typeof v === "number" ? Number(v.toFixed(1)) : v),
-  //       2,
-  //     ),
-  // );
+  const boardM = useGameLayout(mode).board;
 
   const iconFont = useFont(
     require("../../../assets/fonts/Mariupol-Medium.ttf"),
@@ -74,7 +70,6 @@ export const GameSceneCanvas: React.FC<Props> = ({
 
   return (
     <Canvas style={StyleSheet.absoluteFill}>
-      {/* 1. ФОН */}
       <Rect
         x={0}
         y={0}
@@ -82,21 +77,25 @@ export const GameSceneCanvas: React.FC<Props> = ({
         height={metrics.screenH}
         color="#D5F7FF"
       />
-      {/* 2. HEADER  */}
+
       <GameHeader hX={hX} hY={hY} hW={hW} hH={hH} fiveImage={fiveImage} />
-      {/* 2.1. TimerSkin (якщо є): */}
+
       {metrics.timerFrame && (
         <TimerSkin
           frame={metrics.timerFrame}
           timeText={timeText}
           font={tileFont}
           bgColor={[0.15, 0.15, 0.15, 1.0]}
+          S={S}
+          snap={snap}
         />
       )}
-      {/* 3. ДОШКА */}
+
       <GameBoardSceneLayer
         boardFrame={metrics.boardFrame}
-        mode={mode}
+        m={boardM}
+        S={S}
+        snap={snap}
         tileFont={tileFont}
         tiles={boardCtrl.tiles}
         gridSV={boardCtrl.gridSV}
@@ -112,7 +111,7 @@ export const GameSceneCanvas: React.FC<Props> = ({
         animDirSV={boardCtrl.animDirSV}
         animMovedIdsSV={boardCtrl.animMovedIdsSV}
       />
-      {/* 4. Кнопки управління */}
+
       {iconFont && (
         <Group>
           <IconButtonSkin
@@ -129,12 +128,12 @@ export const GameSceneCanvas: React.FC<Props> = ({
           />
         </Group>
       )}
-      {/* 5. Інформаційне табло про режим гри: */}
+
       <SkiaButtonSkin
         rect={metrics.modePanelFrame}
         title={modeText}
         font={tileFont}
-        pressed={false} // Завжди false, жодних реакцій на натискання
+        pressed={false}
       />
     </Canvas>
   );

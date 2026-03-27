@@ -122,10 +122,11 @@ const AnimatedTile = ({ config, cx, cy, tileSize, font, S, snap }: any) => {
     <Group transform={transform}>
       <TileSkin
         rect={{ x: 0, y: 0, width: tileSize, height: tileSize }}
-        label={config.label}
+        label={String(config.label)}
         font={font}
-        baseColor={config.color}
-        textColor="#000000"
+        tintColor={config.tint}
+        S={S}
+        snap={snap}
       />
     </Group>
   );

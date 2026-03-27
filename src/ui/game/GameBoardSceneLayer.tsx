@@ -1,4 +1,4 @@
-import { useGameLayout } from "@/context/LayoutSnapshotProvider";
+import type { BoardLayout } from "@/layout/types";
 import { BoardSkin } from "@/ui/skia/BoardSkin";
 import type { SkFont } from "@shopify/react-native-skia";
 import { Group } from "@shopify/react-native-skia";
@@ -11,7 +11,9 @@ import type { SceneFrame } from "./useGameSceneMetrics";
 
 type Props = {
   boardFrame: SceneFrame;
-  mode: "classic" | "limitTime";
+  m: BoardLayout;
+  S: number;
+  snap: (v: number) => number;
 
   tileFont: SkFont;
   tiles: readonly BoardTileDescriptor[];
@@ -30,8 +32,7 @@ type Props = {
 };
 
 export function GameBoardSceneLayer(props: Props) {
-  const { boardFrame, mode, tileFont, tiles, ...rest } = props;
-  const m = useGameLayout(mode).board;
+  const { boardFrame, m, tileFont, tiles, S, snap, ...rest } = props;
 
   return (
     <Group
@@ -39,15 +40,19 @@ export function GameBoardSceneLayer(props: Props) {
     >
       <BoardSkin
         rect={{ x: 0, y: 0, width: m.boardSize, height: m.boardSize }}
+        S={S}
+        snap={snap}
       />
 
       {tiles.map((t) => (
         <BoardTileNode
           key={t.id}
-          mode={mode}
+          m={m}
           tileId={t.id}
           label={t.label}
           font={tileFont}
+          S={S}
+          snap={snap}
           {...rest}
         />
       ))}
