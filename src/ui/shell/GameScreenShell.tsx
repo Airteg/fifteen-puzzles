@@ -1,4 +1,4 @@
-import { useLayoutMetrics } from "@/context/LayoutMetricsProvider";
+import { useLayoutRenderHelpers } from "@/context/LayoutSnapshotProvider";
 import React from "react";
 import { View } from "react-native";
 import { AppGameHeader } from "../header/AppGameHeader";
@@ -18,7 +18,7 @@ type Props = {
 };
 
 export function GameScreenShell({ timer, board, buttons, cta }: Props) {
-  const { S, snap } = useLayoutMetrics();
+  const { S, snap } = useLayoutRenderHelpers();
 
   // Design constraints:
   // content side padding = 57 (on 390 wide design) => contentW = 276

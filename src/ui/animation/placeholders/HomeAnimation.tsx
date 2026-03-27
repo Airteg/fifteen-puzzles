@@ -12,7 +12,7 @@ import {
 } from "react-native-reanimated";
 
 import { useSkiaFonts } from "@/context/FontProvider";
-import { useLayoutMetrics } from "@/context/LayoutMetricsProvider";
+import { useLayoutRenderHelpers } from "@/context/LayoutSnapshotProvider";
 import { SmileySkin } from "@/ui/skia/SmileySkin";
 import { TileSkin } from "@/ui/skia/TileSkin";
 
@@ -105,8 +105,6 @@ const AnimatedTile = ({ config, cx, cy, tileSize, font, S, snap }: any) => {
         rect={{ x: 0, y: 0, width: tileSize, height: tileSize }}
         label={config.label}
         font={font}
-        S={S}
-        snap={snap}
         baseColor={config.color}
         textColor="#000000"
       />
@@ -152,9 +150,7 @@ const AnimatedSmiley = ({ cx, cy, smileySize }: any) => {
 
 export default function HomeAnimation() {
   const { width } = useWindowDimensions();
-  const lm = useLayoutMetrics();
-  const S = lm.S;
-  const snap = lm.snap;
+  const { S, snap } = useLayoutRenderHelpers();
   const { title: tileFont } = useSkiaFonts();
 
   const [animationKey, setAnimationKey] = useState(0);
