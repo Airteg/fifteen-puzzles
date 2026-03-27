@@ -83,8 +83,10 @@ export const BoardTileNode = memo(function BoardTileNode(
           if (col === dragStartCol.value && col === emptyCol.value) {
             const sR = dragStartRow.value;
             const eR = emptyRow.value;
-            if (sR < eR && row >= eR && row <= sR - 1) dy += offsetPx;
-            else if (sR > eR && row >= sR + 1 && row <= eR) dy += offsetPx;
+
+            // ВИПРАВЛЕНО: row >= sR замість row >= eR
+            if (sR < eR && row >= sR && row <= eR - 1) dy += offsetPx;
+            else if (sR > eR && row >= eR + 1 && row <= sR) dy += offsetPx;
           }
         }
       }
