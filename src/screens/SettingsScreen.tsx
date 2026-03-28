@@ -7,7 +7,11 @@ import { PanelZone } from "@/ui/PanelZone";
 import { ScreenShell } from "@/ui/shell/ScreenShell";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { View } from "react-native";
-import { useSharedValue, withTiming } from "react-native-reanimated";
+import {
+  cancelAnimation,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 import { Props } from "../types/types";
 import {
   SettingsModalHost,
@@ -22,6 +26,13 @@ const SettingsScreen = ({ navigation }: Props<"Settings">) => {
   const modalOpacity = useSharedValue(0);
 
   const [isScreenReady, setIsScreenReady] = useState(false);
+  const [activeModal, setActiveModal] = useState<SettingsModalType | null>(
+    null,
+  );
+
+  const isModalAnimating = useRef(false);
+  const unlockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("transitionEnd", () =>
@@ -35,49 +46,67 @@ const SettingsScreen = ({ navigation }: Props<"Settings">) => {
     };
   }, [navigation]);
 
-  const [activeModal, setActiveModal] = useState<SettingsModalType | null>(
-    null,
-  );
-  const isModalAnimating = useRef(false);
+  useEffect(() => {
+    return () => {
+      if (unlockTimerRef.current) {
+        clearTimeout(unlockTimerRef.current);
+      }
+      if (closeTimerRef.current) {
+        clearTimeout(closeTimerRef.current);
+      }
+      cancelAnimation(modalOpacity);
+    };
+  }, [modalOpacity]);
 
-  const modalFrame =
-    activeModal === "sound"
-      ? settingsLayout.modalSoundFrame
-      : settingsLayout.modalDefaultFrame;
+  const scheduleUnlock = useCallback((delayMs: number) => {
+    if (unlockTimerRef.current) {
+      clearTimeout(unlockTimerRef.current);
+    }
+
+    unlockTimerRef.current = setTimeout(() => {
+      isModalAnimating.current = false;
+      unlockTimerRef.current = null;
+    }, delayMs);
+  }, []);
 
   const handleOpenModal = useCallback(
-    (id: SettingsModalType) => {
-      if (!isScreenReady || isModalAnimating.current) return;
+    (id: Exclude<SettingsModalType, "statistic">) => {
+      if (!isScreenReady || isModalAnimating.current || activeModal === id) {
+        return;
+      }
+
+      if (closeTimerRef.current) {
+        clearTimeout(closeTimerRef.current);
+        closeTimerRef.current = null;
+      }
 
       isModalAnimating.current = true;
-      modalOpacity.value = 0; // 1. Фіксуємо прозорість на 0
-      setActiveModal(id); // 2. Тригеримо монтування Canvas
-
-      // 3. Відкладаємо старт анімації на 50 мс.
-      // За цей час Skia встигне зрендерити модалку "в тіні", без фризів для юзера.
-      setTimeout(() => {
-        modalOpacity.value = withTiming(1, { duration: MODAL_ANIMATION_MS });
-      }, 50);
-
-      // 4. Знімаємо блокування модалки з урахуванням затримки
-      setTimeout(() => {
-        isModalAnimating.current = false;
-      }, MODAL_ANIMATION_MS + 50);
+      setActiveModal(id);
+      cancelAnimation(modalOpacity);
+      modalOpacity.value = 0;
+      modalOpacity.value = withTiming(1, { duration: MODAL_ANIMATION_MS });
+      scheduleUnlock(MODAL_ANIMATION_MS);
     },
-    [isScreenReady, modalOpacity],
+    [activeModal, isScreenReady, modalOpacity, scheduleUnlock],
   );
 
   const handleCloseModal = useCallback(() => {
-    if (isModalAnimating.current) return;
+    if (isModalAnimating.current || !activeModal) return;
 
     isModalAnimating.current = true;
+    cancelAnimation(modalOpacity);
     modalOpacity.value = withTiming(0, { duration: MODAL_ANIMATION_MS });
 
-    setTimeout(() => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+    }
+
+    closeTimerRef.current = setTimeout(() => {
       setActiveModal(null);
       isModalAnimating.current = false;
+      closeTimerRef.current = null;
     }, MODAL_ANIMATION_MS);
-  }, [modalOpacity]);
+  }, [activeModal, modalOpacity]);
 
   const handlePress = useCallback(
     (id: string) => {
@@ -86,8 +115,10 @@ const SettingsScreen = ({ navigation }: Props<"Settings">) => {
       switch (id) {
         case "skin":
         case "sound":
-        case "statistic":
           handleOpenModal(id);
+          break;
+        case "statistic":
+          navigation.navigate("Statistic");
           break;
         case "support":
           navigation.navigate("Support");
@@ -125,16 +156,15 @@ const SettingsScreen = ({ navigation }: Props<"Settings">) => {
             />
           </ScreenShell>
 
-          {activeModal && (
-            <SettingsModalHost
-              activeModal={activeModal}
-              onClose={handleCloseModal}
-              modalFrame={modalFrame}
-              sw={sw}
-              sh={sh}
-              modalOpacity={modalOpacity}
-            />
-          )}
+          <SettingsModalHost
+            activeModal={activeModal}
+            onClose={handleCloseModal}
+            defaultFrame={settingsLayout.modalDefaultFrame}
+            soundFrame={settingsLayout.modalSoundFrame}
+            sw={sw}
+            sh={sh}
+            modalOpacity={modalOpacity}
+          />
         </>
       ) : null}
     </View>
