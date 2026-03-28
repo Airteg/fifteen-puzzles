@@ -5,6 +5,68 @@ import React from "react";
 import { SceneProps, normalizeColor } from "./SkinModal.types";
 import { useSkinLayout } from "./useSkinLayout";
 
+// --- Головний компонент ---
+export function SkinModalScene({
+  frame,
+  S,
+  snap,
+  titleFont,
+  boardColor = "#133D44",
+  tileColor = "#71D4EB",
+}: SceneProps) {
+  const layout = useSkinLayout(frame, S, snap);
+
+  const titleText = "SKIN";
+  const titleX = titleFont
+    ? (frame.width - titleFont.measureText(titleText).width) / 2
+    : 0;
+
+  return (
+    <Group transform={[{ translateX: frame.x }, { translateY: frame.y }]}>
+      {titleFont && (
+        <Text
+          x={titleX}
+          y={layout.titleY}
+          text={titleText}
+          font={titleFont}
+          color="#488B8F"
+        />
+      )}
+
+      <RoundedRect
+        x={layout.innerInset}
+        y={layout.innerY}
+        width={layout.innerW}
+        height={layout.innerH}
+        r={layout.innerR}
+        color="#E1F5FE"
+      />
+
+      <TilePaletteGroup
+        layout={layout}
+        tileColor={tileColor}
+        snap={snap}
+        S={S}
+      />
+      <PreviewBoardGroup
+        layout={layout}
+        boardColor={boardColor}
+        tileColor={tileColor}
+        titleFont={titleFont}
+        snap={snap}
+        S={S}
+      />
+      <BoardPaletteGroup
+        layout={layout}
+        boardColor={boardColor}
+        tileColor={tileColor}
+        snap={snap}
+        S={S}
+      />
+    </Group>
+  );
+}
+
 const TilePaletteGroup = ({
   layout,
   tileColor,
@@ -159,66 +221,3 @@ const BoardPaletteGroup = ({
     })}
   </Group>
 );
-
-// --- Головний компонент ---
-
-export function SkinModalScene({
-  frame,
-  S,
-  snap,
-  titleFont,
-  boardColor = "#133D44",
-  tileColor = "#71D4EB",
-}: SceneProps) {
-  const layout = useSkinLayout(frame, S, snap);
-
-  const titleText = "SKIN";
-  const titleX = titleFont
-    ? (frame.width - titleFont.measureText(titleText).width) / 2
-    : 0;
-
-  return (
-    <Group transform={[{ translateX: frame.x }, { translateY: frame.y }]}>
-      {titleFont && (
-        <Text
-          x={titleX}
-          y={layout.titleY}
-          text={titleText}
-          font={titleFont}
-          color="#488B8F"
-        />
-      )}
-
-      <RoundedRect
-        x={layout.innerInset}
-        y={layout.innerY}
-        width={layout.innerW}
-        height={layout.innerH}
-        r={layout.innerR}
-        color="#E1F5FE"
-      />
-
-      <TilePaletteGroup
-        layout={layout}
-        tileColor={tileColor}
-        snap={snap}
-        S={S}
-      />
-      <PreviewBoardGroup
-        layout={layout}
-        boardColor={boardColor}
-        tileColor={tileColor}
-        titleFont={titleFont}
-        snap={snap}
-        S={S}
-      />
-      <BoardPaletteGroup
-        layout={layout}
-        boardColor={boardColor}
-        tileColor={tileColor}
-        snap={snap}
-        S={S}
-      />
-    </Group>
-  );
-}

@@ -41,6 +41,14 @@ export const GameSceneCanvas: React.FC<Props> = ({
   timeText = "02:00",
   modeText,
 }) => {
+  // console.log(
+  //   "🚀 ~ rect:\n" +
+  //     JSON.stringify(
+  //       metrics,
+  //       (k, v) => (typeof v === "number" ? Number(v.toFixed(1)) : v),
+  //       2,
+  //     ),
+  // );
   const { S, snap } = useLayoutRenderHelpers();
   const boardM = useGameLayout(mode).board;
 

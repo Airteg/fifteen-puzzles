@@ -29,7 +29,7 @@ export function findEmpty(grid: number[]): BoardCell {
   return { row: Math.floor(i / 4), col: i % 4 };
 }
 
-// ДОДАНО: Перевірка на переможний стан
+// Перевірка на переможний стан
 export function isWinningGrid(grid: number[]): boolean {
   "worklet";
   if (grid.length !== 16) return false;
@@ -37,7 +37,6 @@ export function isWinningGrid(grid: number[]): boolean {
   for (let i = 0; i < 15; i++) {
     if (grid[i] !== i + 1) return false;
   }
-  // Остання клітинка має бути пустою (0)
   return grid[15] === 0;
 }
 

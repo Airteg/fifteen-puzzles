@@ -50,13 +50,19 @@ const SettingsScreen = ({ navigation }: Props<"Settings">) => {
       if (!isScreenReady || isModalAnimating.current) return;
 
       isModalAnimating.current = true;
-      setActiveModal(id);
-      modalOpacity.value = 0;
-      modalOpacity.value = withTiming(1, { duration: MODAL_ANIMATION_MS });
+      modalOpacity.value = 0; // 1. Фіксуємо прозорість на 0
+      setActiveModal(id); // 2. Тригеримо монтування Canvas
 
+      // 3. Відкладаємо старт анімації на 50 мс.
+      // За цей час Skia встигне зрендерити модалку "в тіні", без фризів для юзера.
+      setTimeout(() => {
+        modalOpacity.value = withTiming(1, { duration: MODAL_ANIMATION_MS });
+      }, 50);
+
+      // 4. Знімаємо блокування модалки з урахуванням затримки
       setTimeout(() => {
         isModalAnimating.current = false;
-      }, MODAL_ANIMATION_MS);
+      }, MODAL_ANIMATION_MS + 50);
     },
     [isScreenReady, modalOpacity],
   );
@@ -95,38 +101,42 @@ const SettingsScreen = ({ navigation }: Props<"Settings">) => {
   );
 
   return (
-    <View style={{ flex: 1 }}>
-      <ScreenShell
-        title="SETTINGS"
-        animationHeightDesign={100}
-        headerToAnimationGapDesign={24}
-        animationToTitleGapDesign={16}
-        titleToContentGapDesign={24}
-        animation={<SettingsAnimationPlaceholder />}
-        footerBottomGapDesign={24}
-      >
-        <PanelZone
-          buttons={[
-            { id: "skin", title: "SKIN" },
-            { id: "sound", title: "SOUND" },
-            { id: "statistic", title: "STATISTIC" },
-            { id: "support", title: "SUPPORT" },
-            { id: "back", title: "back" },
-          ]}
-          onPress={handlePress}
-        />
-      </ScreenShell>
+    <View style={{ flex: 1, backgroundColor: "#D5F7FF" }}>
+      {isScreenReady ? (
+        <>
+          <ScreenShell
+            title="SETTINGS"
+            animationHeightDesign={100}
+            headerToAnimationGapDesign={24}
+            animationToTitleGapDesign={16}
+            titleToContentGapDesign={24}
+            animation={<SettingsAnimationPlaceholder />}
+            footerBottomGapDesign={24}
+          >
+            <PanelZone
+              buttons={[
+                { id: "skin", title: "SKIN" },
+                { id: "sound", title: "SOUND" },
+                { id: "statistic", title: "STATISTIC" },
+                { id: "support", title: "SUPPORT" },
+                { id: "back", title: "back" },
+              ]}
+              onPress={handlePress}
+            />
+          </ScreenShell>
 
-      {activeModal && (
-        <SettingsModalHost
-          activeModal={activeModal}
-          onClose={handleCloseModal}
-          modalFrame={modalFrame}
-          sw={sw}
-          sh={sh}
-          modalOpacity={modalOpacity}
-        />
-      )}
+          {activeModal && (
+            <SettingsModalHost
+              activeModal={activeModal}
+              onClose={handleCloseModal}
+              modalFrame={modalFrame}
+              sw={sw}
+              sh={sh}
+              modalOpacity={modalOpacity}
+            />
+          )}
+        </>
+      ) : null}
     </View>
   );
 };
