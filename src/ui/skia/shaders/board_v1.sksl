@@ -109,24 +109,40 @@ vec4 main(vec2 coord) {
     float t = (proj + u_boardSize.x / 2.0) / u_boardSize.x;
     t = clamp(t, 0.0, 1.0);
     
-    vec4 color;
-    
+    // 1. Отримуємо "сирий" колір градієнта з твоїх функцій
+    vec4 rawGradientColor;
     if (dTop <= 0.0) {
-        color = getTopGradient(t); 
+        rawGradientColor = getTopGradient(t); 
     } else if (dMid <= 0.0) {
-        color = getMidGradient(t);
+        rawGradientColor = getMidGradient(t);
     } else {
-        color = rgb(183.0, 183.0, 183.0); // #B7B7B7
+        rawGradientColor = rgb(183.0, 183.0, 183.0); // Колір фаски
     }
     
-    // Накладання кольору (tint)
-    if (u_tint.a > 0.0) {
-        color.rgb = mix(color.rgb, u_tint.rgb, u_tint.a);
+    // --- НОВА ЛОГІКА НАКЛАДАННЯ ---
+    
+    // 2. Визначаємо БАЗОВИЙ шар (u_tint). Якщо його немає (alpha = 0), база буде білою.
+    vec3 baseColor = mix(vec3(1.0), u_tint.rgb, u_tint.a);
+    
+    // 3. Математично перетворюємо білий колір градієнта на прозорість (альфа-канал).
+    // Знаходимо, скільки "білого" є в кольорі градієнта:
+    float whiteAmount = min(rawGradientColor.r, min(rawGradientColor.g, rawGradientColor.b));
+    
+    // Прозорість оверлею — це все, що залишилося від білого:
+    float overlayAlpha = 1.0 - whiteAmount;
+    
+    // Витягуємо чистий колір тіні/бліку без домішок білого тла:
+    vec3 overlayColor = vec3(0.0);
+    if (overlayAlpha > 0.001) { // Захист від ділення на 0
+        overlayColor = (rawGradientColor.rgb - whiteAmount) / overlayAlpha;
     }
+    
+    // 4. Змішуємо: накладаємо тінь/блік поверх u_tint.
+    // Там, де градієнт був 100% білим, overlayAlpha буде 0, і ми побачимо чистий baseColor.
+    vec3 finalRgb = mix(baseColor, overlayColor, overlayAlpha);
     
     // Антиаліасінг (згладжування країв самої дошки)
     float aa = clamp(-dBase, 0.0, 1.0);
-    color.a = aa;
     
-    return color;
+    return vec4(finalRgb, aa);
 }
