@@ -12,7 +12,8 @@ import type { Props } from "../types/types";
 
 // Імпортуємо хук для метрик
 import { useLayoutRenderHelpers } from "@/context/LayoutSnapshotProvider";
-import { LogoSkin } from "@/ui/skia/LogoSkin";
+import { BoardSkin } from "@/ui/skia/BoardSkin";
+import { hexToShader } from "@/utils/color";
 
 const cW = 350;
 const cH = 550;
@@ -22,8 +23,8 @@ const AboutScreen = ({ navigation }: Props<"About">) => {
   const [scale, setScale] = useState(1);
   const fiveImage = useImage(require("../../assets/images/logo5.png"));
 
-  const figureW = 40;
-  const figureH = 40;
+  const figureW = 324;
+  const figureH = 324;
   // Ділимо на 2, бо потім масштабуватимемо всю групу, а не окремі елементи.
   const figureX = (cW - figureW) / (2 * scale);
   const figureY = (cH - figureH) / (2 * scale);
@@ -80,37 +81,20 @@ const AboutScreen = ({ navigation }: Props<"About">) => {
               // { translateX: cH / 2 - (figureH * scale) / 2 },
             ]}
           >
-            {/* <RoundedRect
-              x={0}
-              y={0}
-              width={figureW * scale}
-              height={figureW * scale}
-              r={8}
-              color="#FAFF3F"
-            ></RoundedRect> */}
-            {/* {font && (
-              <IconButtonSkin
-                frame={{
-                  x: figureX / scale,
-                  y: figureY / scale,
-                  width: 80,
-                }}
-                type="restart"
-                label="RESTART"
-                font={font}
+            <Group
+              transform={[
+                { translateX: cW / 2 - (figureW * scale) / 2 },
+                { translateY: cH / 2 - (figureH * scale) / 2 },
+                // { scale: scale },
+              ]}
+            >
+              <BoardSkin
+                rect={{ x: 0, y: 0, width: figureW, height: figureH }}
+                S={S}
+                snap={snap}
+                tintColor={hexToShader("#2c306e")}
               />
-            )} */}
-            {font && (
-              <LogoSkin
-                frame={{
-                  x: 0,
-                  y: 0,
-                  width: figureW * scale,
-                  height: figureH * scale,
-                }}
-                fiveImage={fiveImage}
-              />
-            )}
+            </Group>
           </Group>
         </Canvas>
       </View>

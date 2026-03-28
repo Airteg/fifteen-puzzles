@@ -18,6 +18,9 @@ type Props = {
 };
 
 export function BoardSkin({ rect, tintColor, S, snap }: Props) {
+  console.log("🚀 ~ rect:", rect);
+  // 🚀 ~ rect: {"height": 309.09090909090907, "width": 309.09090909090907, "x": 0, "y": 0}
+
   // Для дошки з такою тінню відступ має бути трохи більшим, щоб тінь не обрізалась
   const SHADOW_MARGIN = snap(30 * S);
   const canvasW = rect.width + SHADOW_MARGIN * 2;

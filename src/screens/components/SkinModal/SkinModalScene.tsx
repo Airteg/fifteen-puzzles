@@ -4,6 +4,7 @@ import { Group, RoundedRect, SkFont, Text } from "@shopify/react-native-skia";
 import React from "react";
 import { SceneProps, normalizeColor } from "./SkinModal.types";
 import { useSkinLayout } from "./useSkinLayout";
+import { BoardSkin } from "@/ui/skia/BoardSkin";
 
 // --- Головний компонент ---
 export function SkinModalScene({
@@ -124,15 +125,17 @@ const PreviewBoardGroup = ({
 }) => {
   return (
     <Group>
-      <RoundedRect
+      {/* <RoundedRect
         x={layout.previewX}
         y={layout.previewY}
         width={layout.previewW}
-        height={layout.previewH}
+        height={layout.previewW}
         r={layout.previewR}
         color={boardColor}
-      />
-      {layout.previewTileRects.map((tile) => (
+      /> */}
+      {/* <BoardSkin /> */}
+
+      {/* {layout.previewTileRects.map((tile) => (
         <Group key={`preview-${tile.label}`}>
           <Group transform={[{ translateX: tile.x }, { translateY: tile.y }]}>
             <TileSkin
@@ -146,7 +149,7 @@ const PreviewBoardGroup = ({
             />
           </Group>
         </Group>
-      ))}
+      ))} */}
     </Group>
   );
 };
@@ -168,20 +171,22 @@ const BoardPaletteGroup = ({
     {layout.boardRects.map((item) => {
       const selected =
         normalizeColor(item.color) === normalizeColor(boardColor);
-      const miniInset = snap(7 * S);
+      const miniInset = snap(5 * S);
       const miniTile = snap(10 * S);
-      const miniGap = snap(4 * S);
+      const miniGap = snap(1.5 * S);
 
       return (
         <Group key={`board-${item.color}`}>
+          {/* Іконки Board */}
           <RoundedRect
             x={item.x}
             y={item.y}
             width={item.width}
             height={item.height}
-            r={snap(10 * S)}
+            r={snap(8 * S)}
             color={item.color}
           />
+          {/* Іконки Tile */}
           <RoundedRect
             x={item.x + miniInset}
             y={item.y + miniInset}
@@ -192,6 +197,14 @@ const BoardPaletteGroup = ({
           />
           <RoundedRect
             x={item.x + miniInset + miniTile + miniGap}
+            y={item.y + miniInset}
+            width={miniTile}
+            height={miniTile}
+            r={snap(3 * S)}
+            color={tileColor}
+          />
+          <RoundedRect
+            x={item.x + miniInset + miniTile + miniGap + miniTile + miniGap}
             y={item.y + miniInset}
             width={miniTile}
             height={miniTile}
@@ -212,8 +225,10 @@ const BoardPaletteGroup = ({
               y={item.y - snap(3 * S)}
               width={item.width + snap(6 * S)}
               height={item.height + snap(6 * S)}
-              r={snap(12 * S)}
-              color="rgba(33,97,105,0.20)"
+              r={snap(9 * S)}
+              style={"stroke"}
+              strokeWidth={2}
+              color="#ff0000"
             />
           )}
         </Group>
