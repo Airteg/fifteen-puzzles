@@ -2,6 +2,7 @@ export type GameSettings = {
   isSoundEnabled: boolean;
   tileColor: string;
   boardColor: string;
+  limitTimeMs: number;
 };
 
 export interface GameState {
@@ -34,10 +35,13 @@ export type AppStorageData = {
   bestGames: GameResult[];
 };
 
+export const DEFAULT_LIMIT_TIME_MS = 120000;
+
 export const DEFAULT_SETTINGS: GameSettings = {
   isSoundEnabled: true,
   tileColor: "#71D4EB",
   boardColor: "#133D44",
+  limitTimeMs: DEFAULT_LIMIT_TIME_MS,
 };
 
 export const DEFAULT_STATISTICS: Statistics = {

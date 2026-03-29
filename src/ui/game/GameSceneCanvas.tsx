@@ -31,7 +31,7 @@ type Props = {
   mode: "classic" | "limitTime";
   tileFont: SkFont;
   boardCtrl: BoardControllerState;
-  timeText?: string;
+  timeText: string;
   modeText: string;
   onHomePress: () => void;
   onRestartPress: () => void;
@@ -42,7 +42,7 @@ export const GameSceneCanvas: React.FC<Props> = ({
   mode,
   tileFont,
   boardCtrl,
-  timeText = "02:00",
+  timeText,
   modeText,
   onHomePress,
   onRestartPress,

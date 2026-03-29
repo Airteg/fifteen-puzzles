@@ -21,11 +21,17 @@ interface GameContextType {
   gameState: GameState | null;
   statistics: Statistics;
   settings: GameSettings;
+  countdownMs: number;
+  isCountdownActive: boolean;
 
   saveGame: (state: GameState) => void;
   clearGame: () => void;
   updateSettings: (patch: Partial<GameSettings>) => void;
   updateStatistics: (patch: Partial<Statistics>) => void;
+  startCountdown: (initialMs: number) => void;
+  setCountdownMs: (ms: number) => void;
+  stopCountdown: () => void;
+  resetCountdown: (initialMs: number) => void;
 
   recordWin: (timeMs: number, moves: number) => void;
   recordLoss: () => void;
@@ -36,6 +42,10 @@ const GameContext = createContext<GameContextType | undefined>(undefined);
 export const GameStateProvider = ({ children }: { children: ReactNode }) => {
   const [data, setData] = useState<AppStorageData>(DEFAULT_APP_STORAGE);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [countdownMs, setCountdownMsState] = useState(
+    DEFAULT_APP_STORAGE.settings.limitTimeMs,
+  );
+  const [isCountdownActive, setIsCountdownActive] = useState(false);
 
   // 1. Гідрація (читання при старті з гарантією розблокування)
   useEffect(() => {
@@ -91,6 +101,24 @@ export const GameStateProvider = ({ children }: { children: ReactNode }) => {
     }));
   }, []);
 
+  const startCountdown = useCallback((initialMs: number) => {
+    setCountdownMsState(Math.max(0, Math.round(initialMs)));
+    setIsCountdownActive(true);
+  }, []);
+
+  const setCountdownMs = useCallback((ms: number) => {
+    setCountdownMsState(Math.max(0, Math.round(ms)));
+  }, []);
+
+  const stopCountdown = useCallback(() => {
+    setIsCountdownActive(false);
+  }, []);
+
+  const resetCountdown = useCallback((initialMs: number) => {
+    setCountdownMsState(Math.max(0, Math.round(initialMs)));
+    setIsCountdownActive(false);
+  }, []);
+
   // --- ДОМЕННІ ФУНКЦІЇ СТАТИСТИКИ ---
 
   const recordWin = useCallback((timeMs: number, moves: number) => {
@@ -129,10 +157,16 @@ export const GameStateProvider = ({ children }: { children: ReactNode }) => {
         gameState: data.gameState,
         statistics: data.statistics,
         settings: data.settings,
+        countdownMs,
+        isCountdownActive,
         saveGame,
         clearGame,
         updateSettings,
         updateStatistics,
+        startCountdown,
+        setCountdownMs,
+        stopCountdown,
+        resetCountdown,
         recordWin,
         recordLoss,
       }}
