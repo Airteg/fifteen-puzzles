@@ -30,6 +30,7 @@ export type BoardTileNodeProps = {
   animAxisSV: SharedValue<BoardAxis>;
   animDirSV: SharedValue<1 | -1>;
   animMovedIdsSV: SharedValue<number[]>;
+  tileTintColor: [number, number, number, number];
 };
 
 export const BoardTileNode = memo(function BoardTileNode(
@@ -54,6 +55,7 @@ export const BoardTileNode = memo(function BoardTileNode(
     animAxisSV,
     animDirSV,
     animMovedIdsSV,
+    tileTintColor,
   } = props;
 
   const step = m.step;
@@ -109,7 +111,7 @@ export const BoardTileNode = memo(function BoardTileNode(
         font={font}
         S={S}
         snap={snap}
-        baseColor={[0.88, 0.92, 0.95, 1.0]}
+        tintColor={tileTintColor}
         textColor="#1C2833"
       />
     </Group>

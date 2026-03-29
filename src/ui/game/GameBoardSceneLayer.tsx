@@ -14,6 +14,8 @@ type Props = {
   m: BoardLayout;
   S: number;
   snap: (v: number) => number;
+  boardTintColor: [number, number, number, number];
+  tileTintColor: [number, number, number, number];
 
   tileFont: SkFont;
   tiles: readonly BoardTileDescriptor[];
@@ -32,7 +34,17 @@ type Props = {
 };
 
 export function GameBoardSceneLayer(props: Props) {
-  const { boardFrame, m, tileFont, tiles, S, snap, ...rest } = props;
+  const {
+    boardFrame,
+    m,
+    tileFont,
+    tiles,
+    S,
+    snap,
+    boardTintColor,
+    tileTintColor,
+    ...rest
+  } = props;
 
   return (
     <Group
@@ -40,6 +52,7 @@ export function GameBoardSceneLayer(props: Props) {
     >
       <BoardSkin
         rect={{ x: 0, y: 0, width: m.boardSize, height: m.boardSize }}
+        tintColor={boardTintColor}
         S={S}
         snap={snap}
       />
@@ -53,6 +66,7 @@ export function GameBoardSceneLayer(props: Props) {
           font={tileFont}
           S={S}
           snap={snap}
+          tileTintColor={tileTintColor}
           {...rest}
         />
       ))}

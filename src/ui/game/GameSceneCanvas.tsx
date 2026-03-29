@@ -6,9 +6,10 @@ import {
   useFont,
   useImage,
 } from "@shopify/react-native-skia";
-import React from "react";
+import React, { useMemo } from "react";
 import { StyleSheet } from "react-native";
 
+import { useGameState } from "@/context/GameStateProvider";
 import { GameBoardSceneLayer } from "./GameBoardSceneLayer";
 import { useGameBoardController } from "./useGameBoardController";
 import type { GameSceneMetrics } from "./useGameSceneMetrics";
@@ -19,6 +20,7 @@ import {
 } from "@/context/LayoutSnapshotProvider";
 import { GameHeader } from "@/ui/skia/GameHeader";
 import { TimerSkin } from "@/ui/skia/TimerSkin";
+import { hexToShader } from "@/utils/color";
 import { IconButtonSkin } from "../skia/IconButtonSkin";
 import { SkiaButtonSkin } from "../skia/SkiaButtonSkin";
 
@@ -51,6 +53,16 @@ export const GameSceneCanvas: React.FC<Props> = ({
   // );
   const { S, snap } = useLayoutRenderHelpers();
   const boardM = useGameLayout(mode).board;
+  const { settings } = useGameState();
+
+  const boardTintColor = useMemo(
+    () => hexToShader(settings.boardColor),
+    [settings.boardColor],
+  );
+  const tileTintColor = useMemo(
+    () => hexToShader(settings.tileColor),
+    [settings.tileColor],
+  );
 
   const iconFont = useFont(
     require("../../../assets/fonts/Mariupol-Medium.ttf"),
@@ -104,6 +116,8 @@ export const GameSceneCanvas: React.FC<Props> = ({
         m={boardM}
         S={S}
         snap={snap}
+        boardTintColor={boardTintColor}
+        tileTintColor={tileTintColor}
         tileFont={tileFont}
         tiles={boardCtrl.tiles}
         gridSV={boardCtrl.gridSV}
