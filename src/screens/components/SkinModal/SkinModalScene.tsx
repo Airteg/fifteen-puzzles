@@ -17,14 +17,14 @@ export function SkinModalScene({
 }: SceneProps) {
   const layout = useSkinLayout(frame, S, snap);
   // console.log("🚀 ~ layout:", layout.boardRects);
-  console.log(
-    "🚀 ~ layout:\n" +
-      JSON.stringify(
-        layout,
-        (k, v) => (typeof v === "number" ? Number(v.toFixed(1)) : v),
-        2,
-      ),
-  );
+  // console.log(
+  //   "🚀 ~ layout:\n" +
+  //     JSON.stringify(
+  //       layout,
+  //       (k, v) => (typeof v === "number" ? Number(v.toFixed(1)) : v),
+  //       2,
+  //     ),
+  // );
 
   const titleText = "SKIN";
   const titleX = titleFont
@@ -146,7 +146,6 @@ const PreviewBoardGroup = ({
         transform={[
           { translateX: layout.previewX },
           { translateY: layout.previewY },
-          // { scale: scale },
         ]}
       >
         <BoardSkin
