@@ -161,8 +161,6 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │       ├── color.ts
 │       └── splash.ts
 ├── temp
-│   ├── createAppLayoutSnapshot.ts
-│   └── types.ts
 ├── tools
 │   └── skslTransformer.js
 ├── .gitignore

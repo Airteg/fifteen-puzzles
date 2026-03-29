@@ -1,6 +1,6 @@
 import { RootStackParamList } from "@/types/types";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { View } from "react-native";
 
 // Хуки та провайдери
@@ -56,6 +56,14 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     };
   }, [navigation]);
 
+  const handleHomePress = useCallback(() => {
+    navigation.popToTop();
+  }, [navigation]);
+
+  const handleRestartPress = useCallback(() => {
+    boardCtrl.resetBoard(shuffleTiles());
+  }, [boardCtrl]);
+
   // Захист: чекаємо поки завантажиться шрифт
   if (!tileFont) {
     return <View style={{ flex: 1, backgroundColor: "#000" }} />;
@@ -71,6 +79,8 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
             tileFont={tileFont}
             boardCtrl={boardCtrl}
             modeText={currentMode}
+            onHomePress={handleHomePress}
+            onRestartPress={handleRestartPress}
           />
 
           <BoardGestureOverlay
