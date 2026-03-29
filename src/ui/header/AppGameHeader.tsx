@@ -1,3 +1,4 @@
+import { useLayoutRenderHelpers } from "@/context/LayoutSnapshotProvider";
 import {
   Canvas,
   Group,
@@ -10,10 +11,9 @@ import {
 } from "@shopify/react-native-skia";
 import React, { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
-import { useLayoutMetrics } from "../../context/LayoutMetricsProvider";
 
 export const AppGameHeader = () => {
-  const { S, snap } = useLayoutMetrics();
+  const { S, snap } = useLayoutRenderHelpers();
   const [isMuted, setIsMuted] = useState(false);
 
   // Завантаження ресурсів

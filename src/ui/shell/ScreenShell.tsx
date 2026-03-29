@@ -1,4 +1,4 @@
-import { useLayoutMetrics } from "@/context/LayoutMetricsProvider";
+import { useLayoutRenderHelpers } from "@/context/LayoutSnapshotProvider";
 import { ScreenShellProps } from "@/types/types";
 import { T } from "@/ui/T";
 import { AppHeader } from "@/ui/header/AppHeader";
@@ -17,16 +17,14 @@ export function ScreenShell({
   footerBottomGapDesign = 0,
   backgroundColor = "#D5F7FF",
 }: ScreenShellProps) {
-  const { S, snap } = useLayoutMetrics();
+  const { S, snap } = useLayoutRenderHelpers();
 
   const hAnim = snap(animationHeightDesign * S);
   const gap1 = snap(headerToAnimationGapDesign * S);
   const gap2 = snap(animationToTitleGapDesign * S);
   const gap3 = snap(titleToContentGapDesign * S);
   const footerBottom = snap(footerBottomGapDesign * S);
-  // console.log("🚀 ~ gap1:", gap1);
-  // console.log("🚀 ~ gap2:", gap2);
-  // console.log("🚀 ~ gap3:", gap3);
+
   return (
     <View style={[root, { backgroundColor }]}>
       {/* 1) Header (всередині AppHeader вже є top offset + width=350*S + center) */}

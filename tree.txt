@@ -40,23 +40,42 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   ├── Mariupol-Medium.ttf
 │   │   ├── Mariupol-Regular.ttf
 │   │   └── MariupolSymbols.ttf
-│   └── images
-│       ├── android-icon-background.png
-│       ├── android-icon-foreground.png
-│       ├── android-icon-monochrome.png
-│       ├── logo.png
-│       └── splash-icon.png
+│   ├── images
+│   │   ├── android-icon-background.png
+│   │   ├── android-icon-foreground.png
+│   │   ├── android-icon-monochrome.png
+│   │   ├── logo.png
+│   │   ├── logo5.png
+│   │   └── splash-icon.png
+│   └── sounds
+│       ├── gameOver1.mp3
+│       ├── gameOver2.mp3
+│       ├── gameOver3.mp3
+│       ├── move.mp3
+│       └── winner.mp3
 ├── src
 │   ├── context
 │   │   ├── AppShell.tsx
 │   │   ├── FontProvider.tsx
 │   │   ├── GameStateProvider.tsx
-│   │   └── LayoutMetricsProvider.tsx
+│   │   ├── LayoutMetricsProvider.tsx
+│   │   └── LayoutSnapshotProvider.tsx
+│   ├── layout
+│   │   ├── createAppLayoutSnapshot.ts
+│   │   └── types.ts
 │   ├── navigation
 │   │   └── RootNavigator.tsx
 │   ├── screens
 │   │   ├── components
-│   │   │   └── HomeFooterLinks.tsx
+│   │   │   ├── SkinModal
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── SkinModal.types.ts
+│   │   │   │   ├── SkinModalOverlay.tsx
+│   │   │   │   ├── SkinModalScene.tsx
+│   │   │   │   └── useSkinLayout.ts
+│   │   │   ├── HomeFooterLinks.tsx
+│   │   │   ├── SettingsModalHost.tsx
+│   │   │   └── SoundModal.tsx
 │   │   ├── AboutScreen.tsx
 │   │   ├── GameScreen.tsx
 │   │   ├── HomeScreen.tsx
@@ -75,6 +94,7 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   ├── test
 │   │   └── RnghSmoke.tsx
 │   ├── theme
+│   │   ├── themePalette.ts
 │   │   └── typography.ts
 │   ├── types
 │   │   ├── rngh-children.d.ts
@@ -93,9 +113,11 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   │   ├── BoardGestureOverlay.tsx
 │   │   │   ├── BoardTileNode.tsx
 │   │   │   ├── gameBoardModel.ts
-│   │   │   ├── GameBoardView.tsx
+│   │   │   ├── GameBoardSceneLayer.tsx
 │   │   │   ├── gameMetrics.ts
-│   │   │   └── useGameBoardController.ts
+│   │   │   ├── GameSceneCanvas.tsx
+│   │   │   ├── useGameBoardController.ts
+│   │   │   └── useGameSceneMetrics.ts
 │   │   ├── header
 │   │   │   ├── AppGameHeader.tsx
 │   │   │   └── AppHeader.tsx
@@ -106,31 +128,43 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   │   ├── debug
 │   │   │   │   └── DebugBounds.tsx
 │   │   │   ├── shaders
+│   │   │   │   ├── board_v1.sksl
 │   │   │   │   ├── button.sksl
+│   │   │   │   ├── tile_v2_logo.sksl
 │   │   │   │   ├── tile_v2.sksl
-│   │   │   │   └── tile.sksl
+│   │   │   │   ├── tile.sksl
+│   │   │   │   └── timer.sksl
 │   │   │   ├── svg
+│   │   │   │   ├── logo.svg
 │   │   │   │   ├── sm.svg
 │   │   │   │   └── sms.svg
 │   │   │   ├── AppHeaderSurface.tsx
 │   │   │   ├── BoardSkin.tsx
+│   │   │   ├── BoardSkin1.tsx
+│   │   │   ├── GameHeader.tsx
+│   │   │   ├── IconButtonSkin.tsx
 │   │   │   ├── LogoFrameSkin.tsx
+│   │   │   ├── LogoSkin.tsx
 │   │   │   ├── LogoSurface.tsx
 │   │   │   ├── PanelSurface.tsx
 │   │   │   ├── SkiaButtonSkin.tsx
+│   │   │   ├── SkiaButtonSound.tsx
 │   │   │   ├── SkiaIconButtonSkin.tsx
 │   │   │   ├── SmileySkin.tsx
 │   │   │   ├── TileSkin.tsx
-│   │   │   └── TileSkin1.tsx
+│   │   │   ├── TileSkin1.tsx
+│   │   │   └── TimerSkin.tsx
 │   │   ├── PanelZone.tsx
 │   │   ├── pixel.ts
 │   │   └── T.tsx
 │   └── utils
 │       ├── color.ts
 │       └── splash.ts
+├── temp
 ├── tools
 │   └── skslTransformer.js
 ├── .gitignore
+├── Action_Plan.md
 ├── AI_INDEX.md
 ├── AI_RULES.md
 ├── app.json

@@ -1,37 +1,50 @@
-import { Canvas, Group, useFont } from "@shopify/react-native-skia";
+import {
+  Canvas,
+  Group,
+  Rect,
+  useFont,
+  useImage,
+} from "@shopify/react-native-skia";
 import React, { useState } from "react";
 import { Button, StyleSheet, Text, View } from "react-native";
 import { styles as globalStyles } from "../styles/globalStyles";
-import { Props } from "../types/types";
+import type { Props } from "../types/types";
 
 // Імпортуємо хук для метрик
-import { useLayoutMetrics } from "@/context/LayoutMetricsProvider";
-import { TimerSkin } from "@/ui/skia/TimerSkin";
+import { useLayoutRenderHelpers } from "@/context/LayoutSnapshotProvider";
+import { BoardSkin } from "@/ui/skia/BoardSkin";
 import { hexToShader } from "@/utils/color";
 
-const PADDING = 40;
+const cW = 350;
+const cH = 550;
 
 const AboutScreen = ({ navigation }: Props<"About">) => {
+  const { S, snap } = useLayoutRenderHelpers();
   const [scale, setScale] = useState(1);
-  const { buttonW, S, snap } = useLayoutMetrics();
+  const fiveImage = useImage(require("../../assets/images/logo5.png"));
 
-  // Визначаємо розміри таймера за твоїми пропорціями
-  const timerWidth = buttonW;
-  const timerHeight = snap(buttonW * 0.1812);
+  const figureW = 324;
+  const figureH = 324;
+  // Ділимо на 2, бо потім масштабуватимемо всю групу, а не окремі елементи.
+  const figureX = (cW - figureW) / (2 * scale);
+  const figureY = (cH - figureH) / (2 * scale);
 
-  // Канвас тепер адаптується під ширину таймера
-  const canvasW = timerWidth + PADDING * 2;
-  const canvasH = timerHeight + PADDING * 2;
-
-  // Шрифт: для таймера розмір зазвичай менший за 40. Спробуємо 20 * S.
+  // Шрифт:
   const font = useFont(
     require("../../assets/fonts/Krona_One/KronaOne-Regular.ttf"),
-    snap(20 * S),
+    snap(11 * S * scale),
   );
 
-  const handleZoomIn = () => setScale((s) => Math.min(5, s + 0.5));
+  const handleZoomIn = () => setScale((s) => Math.min(cW / figureW, s + 0.5));
   const handleZoomOut = () => setScale((s) => Math.max(0.5, s - 0.5));
   const handleReset = () => setScale(1);
+  // console.log("scale", scale);
+  // console.log("(figureW * scale) / 2 = ", (figureW * scale) / 2);
+  // console.log(
+  //   "cW / 2 - (figureW * scale) / 2 = ",
+  //   cW / 2 - (figureW * scale) / 2,
+  // );
+  if (!fiveImage) return null;
 
   return (
     <View style={[globalStyles.container, localStyles.container]}>
@@ -47,22 +60,41 @@ const AboutScreen = ({ navigation }: Props<"About">) => {
       <View style={localStyles.testArea}>
         <Canvas
           style={{
-            width: canvasW * scale,
-            height: canvasH * scale,
+            width: cW,
+            height: cH,
           }}
         >
-          <Group transform={[{ scale: scale }]}>
-            <TimerSkin
-              x={PADDING}
-              y={PADDING}
-              width={timerWidth}
-              height={timerHeight}
-              timeText="⏱ TIME 02:42" // Текст за замовчуванням
-              font={font}
-              bgColor={hexToShader("#E4FF00")} // Стартовий лимонний колір
-              S={S}
-              snap={snap}
-            />
+          <Rect
+            x={0}
+            y={0}
+            width={cW}
+            height={cH}
+            color="#ff0000"
+            style="stroke"
+            strokeWidth={2}
+          />
+          <Group
+            transform={[
+              { translateX: cW / 2 - (figureW * scale) / 2 },
+              { translateY: cH / 2 - (figureH * scale) / 2 },
+              // { translateX: cW / 2 - (figureW * scale) / 2 },
+              // { translateX: cH / 2 - (figureH * scale) / 2 },
+            ]}
+          >
+            <Group
+              transform={[
+                { translateX: cW / 2 - (figureW * scale) / 2 },
+                { translateY: cH / 2 - (figureH * scale) / 2 },
+                // { scale: scale },
+              ]}
+            >
+              <BoardSkin
+                rect={{ x: 0, y: 0, width: figureW, height: figureH }}
+                S={S}
+                snap={snap}
+                tintColor={hexToShader("#ff00ff")}
+              />
+            </Group>
           </Group>
         </Canvas>
       </View>
@@ -75,7 +107,8 @@ const AboutScreen = ({ navigation }: Props<"About">) => {
 };
 
 const localStyles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0d676b" },
+  // container: { flex: 1, backgroundColor: "#0d676b", padding: 0 },
+  container: { flex: 1, backgroundColor: "#a1a1a1", padding: 0 },
   controls: {
     paddingTop: 60,
     paddingBottom: 20,
@@ -92,6 +125,8 @@ const localStyles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    borderColor: "white",
+    borderWidth: 1,
   },
   footer: {
     padding: 30,

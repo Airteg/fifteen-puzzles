@@ -22,9 +22,9 @@ type Props = {
   font?: SkFont | null;
   baseColor?: [number, number, number, number];
   textColor?: string;
+  tintColor?: [number, number, number, number];
   S: number;
   snap: (v: number) => number;
-  tintColor?: [number, number, number, number];
 };
 
 export function TileSkin({

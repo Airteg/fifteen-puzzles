@@ -1,20 +1,20 @@
-import React, { useEffect, useState, useCallback } from "react";
-import { useWindowDimensions } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { Canvas, Group, Rect, Shadow } from "@shopify/react-native-skia";
+import React, { useCallback, useEffect, useState } from "react";
+import { useWindowDimensions } from "react-native";
 import {
-  useSharedValue,
   useDerivedValue,
+  useSharedValue,
+  withDelay,
+  withSequence,
   withSpring,
   withTiming,
-  withSequence,
-  withDelay,
 } from "react-native-reanimated";
-import { useFocusEffect } from "@react-navigation/native";
 
-import { useLayoutMetrics } from "@/context/LayoutMetricsProvider";
 import { useSkiaFonts } from "@/context/FontProvider";
-import { TileSkin } from "@/ui/skia/TileSkin";
+import { useLayoutRenderHelpers } from "@/context/LayoutSnapshotProvider";
 import { SmileySkin } from "@/ui/skia/SmileySkin";
+import { TileSkin } from "@/ui/skia/TileSkin";
 
 // --- КОНФІГУРАЦІЯ ПЛИТОК ---
 // Слова "you", "can", "do", "it", кути нахилу та кольори за макетом
@@ -122,12 +122,11 @@ const AnimatedTile = ({ config, cx, cy, tileSize, font, S, snap }: any) => {
     <Group transform={transform}>
       <TileSkin
         rect={{ x: 0, y: 0, width: tileSize, height: tileSize }}
-        label={config.label}
+        label={String(config.label)}
         font={font}
+        tintColor={config.tint}
         S={S}
         snap={snap}
-        baseColor={config.color}
-        textColor="#000000"
       />
     </Group>
   );
@@ -173,9 +172,7 @@ const AnimatedSmiley = ({ cx, cy, smileySize }: any) => {
 // --- ГОЛОВНА СЦЕНА ---
 export default function NewGameAnimation() {
   const { width } = useWindowDimensions();
-  const lm = useLayoutMetrics();
-  const S = lm.S;
-  const snap = lm.snap;
+  const { S, snap } = useLayoutRenderHelpers();
   const { title: tileFont } = useSkiaFonts();
 
   const [animationKey, setAnimationKey] = useState(0);

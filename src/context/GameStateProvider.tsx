@@ -1,104 +1,175 @@
+import { loadAppStorage, saveAppStorage } from "@/storage/appStorage";
+import {
+  AppStorageData,
+  DEFAULT_APP_STORAGE,
+  GameSettings,
+  GameState,
+  Statistics,
+} from "@/storage/appStorage.types";
 import React, {
   createContext,
-  useContext,
-  useState,
-  useEffect,
   ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
 } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
-// Ключі для збереження
-const STORAGE_KEYS = {
-  GAME_STATE: "fifteen_puzzles_state",
-  STATISTICS: "fifteen_puzzles_stats",
-};
-
-interface GameState {
-  tiles: number[];
-  moves: number;
-  time: number;
-  isActive: boolean;
-}
-
-interface Statistics {
-  bestTime: number;
-  bestMoves: number;
-  gamesPlayed: number;
-  gamesWon: number;
-}
 
 interface GameContextType {
-  gameState: GameState | null;
-  stats: Statistics;
-  saveGame: (state: GameState) => Promise<void>;
-  updateStats: (newStats: Partial<Statistics>) => Promise<void>;
-  resetGame: () => Promise<void>;
-}
+  isHydrated: boolean;
 
-const defaultStats: Statistics = {
-  bestTime: 0,
-  bestMoves: 0,
-  gamesPlayed: 0,
-  gamesWon: 0,
-};
+  gameState: GameState | null;
+  statistics: Statistics;
+  settings: GameSettings;
+  countdownMs: number;
+  isCountdownActive: boolean;
+
+  saveGame: (state: GameState) => void;
+  clearGame: () => void;
+  updateSettings: (patch: Partial<GameSettings>) => void;
+  updateStatistics: (patch: Partial<Statistics>) => void;
+  startCountdown: (initialMs: number) => void;
+  setCountdownMs: (ms: number) => void;
+  stopCountdown: () => void;
+  resetCountdown: (initialMs: number) => void;
+
+  recordWin: (timeMs: number, moves: number) => void;
+  recordLoss: () => void;
+}
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export const GameStateProvider = ({ children }: { children: ReactNode }) => {
-  const [gameState, setGameState] = useState<GameState | null>(null);
-  const [stats, setStats] = useState<Statistics>(defaultStats);
+  const [data, setData] = useState<AppStorageData>(DEFAULT_APP_STORAGE);
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [countdownMs, setCountdownMsState] = useState(
+    DEFAULT_APP_STORAGE.settings.limitTimeMs,
+  );
+  const [isCountdownActive, setIsCountdownActive] = useState(false);
 
-  // Завантажуємо дані при старті додатка
+  // 1. Гідрація (читання при старті з гарантією розблокування)
   useEffect(() => {
-    const loadData = async () => {
+    let mounted = true;
+    const initData = async () => {
       try {
-        const [savedState, savedStats] = await Promise.all([
-          AsyncStorage.getItem(STORAGE_KEYS.GAME_STATE),
-          AsyncStorage.getItem(STORAGE_KEYS.STATISTICS),
-        ]);
-
-        if (savedState) setGameState(JSON.parse(savedState));
-        if (savedStats) setStats(JSON.parse(savedStats));
-      } catch (e) {
-        console.error("Failed to load game data", e);
+        const storedData = await loadAppStorage();
+        if (mounted) {
+          setData(storedData);
+        }
+      } catch (error) {
+        console.error("Critical error during hydration:", error);
+        // Якщо сталася помилка, state залишиться DEFAULT_APP_STORAGE
+      } finally {
+        if (mounted) {
+          setIsHydrated(true); // Гарантовано знімаємо Splash Screen
+        }
       }
     };
-    loadData();
+    initData();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  const saveGame = async (state: GameState) => {
-    try {
-      setGameState(state);
-      await AsyncStorage.setItem(
-        STORAGE_KEYS.GAME_STATE,
-        JSON.stringify(state),
-      );
-    } catch (e) {
-      console.error("Failed to save game state", e);
-    }
-  };
+  // 2. Persistence Side Effect (безпечний запис)
+  useEffect(() => {
+    if (!isHydrated) return;
+    saveAppStorage(data).catch((e) => console.error("Persistence error", e));
+  }, [data, isHydrated]);
 
-  const updateStats = async (newStats: Partial<Statistics>) => {
-    try {
-      const updated = { ...stats, ...newStats };
-      setStats(updated);
-      await AsyncStorage.setItem(
-        STORAGE_KEYS.STATISTICS,
-        JSON.stringify(updated),
-      );
-    } catch (e) {
-      console.error("Failed to save stats", e);
-    }
-  };
+  // --- БАЗОВІ МУТАТОРИ ---
 
-  const resetGame = async () => {
-    setGameState(null);
-    await AsyncStorage.removeItem(STORAGE_KEYS.GAME_STATE);
-  };
+  const saveGame = useCallback((state: GameState) => {
+    setData((prev) => ({ ...prev, gameState: state }));
+  }, []);
+
+  const clearGame = useCallback(() => {
+    setData((prev) => ({ ...prev, gameState: null }));
+  }, []);
+
+  const updateSettings = useCallback((patch: Partial<GameSettings>) => {
+    setData((prev) => ({
+      ...prev,
+      settings: { ...prev.settings, ...patch },
+    }));
+  }, []);
+
+  const updateStatistics = useCallback((patch: Partial<Statistics>) => {
+    setData((prev) => ({
+      ...prev,
+      statistics: { ...prev.statistics, ...patch },
+    }));
+  }, []);
+
+  const startCountdown = useCallback((initialMs: number) => {
+    setCountdownMsState(Math.max(0, Math.round(initialMs)));
+    setIsCountdownActive(true);
+  }, []);
+
+  const setCountdownMs = useCallback((ms: number) => {
+    setCountdownMsState(Math.max(0, Math.round(ms)));
+  }, []);
+
+  const stopCountdown = useCallback(() => {
+    setIsCountdownActive(false);
+  }, []);
+
+  const resetCountdown = useCallback((initialMs: number) => {
+    setCountdownMsState(Math.max(0, Math.round(initialMs)));
+    setIsCountdownActive(false);
+  }, []);
+
+  // --- ДОМЕННІ ФУНКЦІЇ СТАТИСТИКИ ---
+
+  const recordWin = useCallback((timeMs: number, moves: number) => {
+    setData((prev) => {
+      const s = prev.statistics;
+      const isNewBestTime = s.bestTime === 0 || timeMs < s.bestTime;
+      const isNewBestMoves = s.bestMoves === 0 || moves < s.bestMoves;
+
+      return {
+        ...prev,
+        statistics: {
+          ...s,
+          gamesPlayed: s.gamesPlayed + 1,
+          gamesWon: s.gamesWon + 1,
+          bestTime: isNewBestTime ? timeMs : s.bestTime,
+          bestMoves: isNewBestMoves ? moves : s.bestMoves,
+        },
+      };
+    });
+  }, []);
+
+  const recordLoss = useCallback(() => {
+    setData((prev) => ({
+      ...prev,
+      statistics: {
+        ...prev.statistics,
+        gamesPlayed: prev.statistics.gamesPlayed + 1,
+      },
+    }));
+  }, []);
 
   return (
     <GameContext.Provider
-      value={{ gameState, stats, saveGame, updateStats, resetGame }}
+      value={{
+        isHydrated,
+        gameState: data.gameState,
+        statistics: data.statistics,
+        settings: data.settings,
+        countdownMs,
+        isCountdownActive,
+        saveGame,
+        clearGame,
+        updateSettings,
+        updateStatistics,
+        startCountdown,
+        setCountdownMs,
+        stopCountdown,
+        resetCountdown,
+        recordWin,
+        recordLoss,
+      }}
     >
       {children}
     </GameContext.Provider>

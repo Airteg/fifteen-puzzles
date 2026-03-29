@@ -1,21 +1,20 @@
-import "react-native-gesture-handler";
-// react-native-gesture-handler має бути імпортований на самому початку, до будь-яких інших імпортів, щоб уникнути проблем з жестами на Android
-
 import AppShell from "@/context/AppShell";
 import { FontProvider } from "@/context/FontProvider";
-import { LayoutMetricsProvider } from "@/context/LayoutMetricsProvider";
-
+import { LayoutSnapshotProvider } from "@/context/LayoutSnapshotProvider";
 import React from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <LayoutMetricsProvider>
-        <FontProvider>
-          <AppShell />
-        </FontProvider>
-      </LayoutMetricsProvider>
+      <SafeAreaProvider>
+        <LayoutSnapshotProvider>
+          <FontProvider>
+            <AppShell />
+          </FontProvider>
+        </LayoutSnapshotProvider>
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }

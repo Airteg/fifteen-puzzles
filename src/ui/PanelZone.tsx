@@ -1,5 +1,8 @@
 import { useSkiaFont } from "@/context/FontProvider";
-import { useLayoutMetrics } from "@/context/LayoutMetricsProvider";
+import {
+  useLayoutRenderHelpers,
+  useLayoutTokens,
+} from "@/context/LayoutSnapshotProvider";
 import { snapRect, type Rect } from "@/ui/pixel";
 import { PanelSurface } from "@/ui/skia/PanelSurface";
 import { SkiaButtonSkin } from "@/ui/skia/SkiaButtonSkin";
@@ -23,7 +26,8 @@ export function PanelZone({
   paddingDesign = 40,
   gapDesign = 24,
 }: Props) {
-  const { S, panelW, buttonW, buttonH, snap } = useLayoutMetrics();
+  const { panelW, buttonW, buttonH } = useLayoutTokens();
+  const { S, snap } = useLayoutRenderHelpers();
   const skiaFont = useSkiaFont();
   const [panelHeight, setPanelHeight] = useState<number>(0);
   const [buttonRects, setButtonRects] = useState<Record<string, Rect>>({});

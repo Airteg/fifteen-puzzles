@@ -2,7 +2,6 @@ import type { Rect as UIRect } from "@/ui/pixel";
 import { Group, Rect, Shader, Skia } from "@shopify/react-native-skia";
 import React, { useMemo } from "react";
 
-// Підключаємо наш новий шейдер
 import boardShaderSource from "./shaders/board_v1.sksl";
 
 const boardEffect = Skia.RuntimeEffect.Make(boardShaderSource);
@@ -33,24 +32,26 @@ export function BoardSkin({ rect, tintColor, S, snap }: Props) {
       u_boardSize: [rect.width, rect.height],
       u_tint: tintColor || [0.0, 0.0, 0.0, 0.0],
       u_radius: radius,
-      u_scale: S, // Передаємо S в шейдер для масштабування тіней
+      u_scale: S,
     };
   }, [canvasW, canvasH, rect.width, rect.height, tintColor, radius, S]);
 
   if (!boardEffect) return null;
 
   return (
-    <Group transform={[{ translateX: rect.x }, { translateY: rect.y }]}>
-      <Group
-        transform={[
-          { translateX: -SHADOW_MARGIN },
-          { translateY: -SHADOW_MARGIN },
-        ]}
-      >
-        <Rect x={0} y={0} width={canvasW} height={canvasH}>
-          <Shader source={boardEffect} uniforms={uniforms} />
-        </Rect>
+    <>
+      <Group transform={[{ translateX: rect.x }, { translateY: rect.y }]}>
+        <Group
+          transform={[
+            { translateX: -SHADOW_MARGIN },
+            { translateY: -SHADOW_MARGIN },
+          ]}
+        >
+          <Rect x={0} y={0} width={canvasW} height={canvasH}>
+            <Shader source={boardEffect} uniforms={uniforms} />
+          </Rect>
+        </Group>
       </Group>
-    </Group>
+    </>
   );
 }

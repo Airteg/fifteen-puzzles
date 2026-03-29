@@ -22,11 +22,11 @@
 - `GameScreenShell`
 - RN layout stack
 - усередині нього вставляються:
-  - `AppGameHeader`
-  - timer placeholder
-  - `GameBoardView`
-  - buttons placeholder
-  - CTA placeholder
+- `AppGameHeader`
+- timer placeholder
+- `GameBoardView`
+- buttons placeholder
+- CTA placeholder
 
 Це вже не підходить.
 
@@ -143,7 +143,7 @@
 - `restartButtonFrame`
 - `modeBadgeFrame`
 
-Це буде **єдине джерело layout truth** для ігрового екрану.
+**Важливо (SafeArea та Реактивність):** Цей хук повинен обов'язково розраховувати координати з урахуванням системних відступів (`useSafeAreaInsets()`), щоб header не налізав на статус-бар чи "чубчик", а нижні кнопки — на системну навігацію. Також метрики мають бути реактивними: вони повинні перераховуватися при зміні розмірів вікна або зміні орієнтації пристрою. Це буде **єдине джерело layout truth** для ігрового екрану.
 
 ---
 
@@ -162,6 +162,8 @@ Full-screen canvas, який рендерить усе.
 - `sound state`
 - інші готові дані
 
+**Важливо (Завантаження шрифтів):** Canvas має рендеритися лише після того, як шрифти (наприклад, для таймера чи тексту на кнопках) повністю завантажені, щоб уникнути помилок Skia або "стрибків" інтерфейсу (layout shifts).
+
 ---
 
 ### `src/ui/gameScene/GameSceneOverlay.tsx`
@@ -173,8 +175,9 @@ RN overlay для натискань поза дошкою:
 - restart
 - mode badge, якщо він натискальний
 
-Це дуже важливо:
-**Skia малює, overlay приймає input.**
+**Важливо (Доступність / a11y):** Оскільки Skia малює просто пікселі, ці прозорі RN-компоненти повинні мати `accessible={true}`, `accessibilityRole="button"` та відповідні `accessibilityLabel`, щоб елементи керування грою залишалися доступними для скрінрідерів (VoiceOver/TalkBack).
+
+Skia малює, overlay приймає input.
 
 ---
 
@@ -229,7 +232,7 @@ RN overlay для натискань поза дошкою:
 
 Лишається окремим RN overlay, але вже позиціонується по `boardFrame`.
 
-Тобто overlay живе не всередині `GameBoardView`, а поверх full-screen scene.
+Тобто overlay живе не всередині `GameBoardView`, а поверх full-screen scene. _Цей компонент також має враховувати базову доступність (a11y) для плиток, якщо це можливо._
 
 ---
 
@@ -382,7 +385,7 @@ Skin-компоненти не повинні містити бойову лог
 
 ### Додаткове правило
 
-Canvas сцени не повинен залежати від частих React re-render там, де можна використати shared values / derived values.
+Canvas сцени не повинен залежати від частих React re-render там, де можна використати shared values / derived values. Оновлення таймера щосекунди повинно відбуватися через `SharedValue`, щоб не викликати рендер React-дерева.
 
 ---
 
@@ -399,6 +402,7 @@ GameScreen
  │   ├─ <GameSceneCanvas ... />
  │   ├─ <BoardGestureOverlay boardFrame=... />
  │   └─ <GameSceneOverlay ... />
+
 ```
 
 А всередині `GameSceneCanvas`:
@@ -417,6 +421,7 @@ Canvas
  │   ├─ HomeButtonSkin
  │   └─ RestartButtonSkin
  └─ ModeBadgeLayer
+
 ```
 
 ---
@@ -478,6 +483,7 @@ settings змінює scene tokens, а не кожен skin окремо.
 - overlay input окремо
 - board motion на shared values
 - scene structure стабільна
+- враховано блокування рендеру до завантаження шрифтів
 
 Оце виглядає добре.
 
@@ -499,7 +505,7 @@ settings змінює scene tokens, а не кожен skin окремо.
 
 ## Крок 1
 
-Створити `GameSceneMetrics.ts` і зафіксувати всі frame-и нового екрана.
+Створити `GameSceneMetrics.ts` і зафіксувати всі frame-и нового екрана **(з обов'язковим урахуванням SafeArea та реакцією на зміну розмірів екрана)**.
 
 Без цього далі рухатися не варто.
 
@@ -518,6 +524,8 @@ settings змінює scene tokens, а не кожен skin окремо.
 - mode badge frame
 - header frame
 
+**(Також переконатися, що рендер блокується до моменту повного завантаження шрифтів у Skia).**
+
 ---
 
 ## Крок 3
@@ -525,7 +533,7 @@ settings змінює scene tokens, а не кожен skin окремо.
 Розщепити `GameBoardView` на:
 
 - `GameBoardSceneLayer`
-- `BoardGestureOverlay`
+- `BoardGestureOverlay` (з базовою a11y розміткою)
 
 Це ключовий крок.
 
@@ -549,7 +557,7 @@ settings змінює scene tokens, а не кожен skin окремо.
 
 ## Крок 6
 
-Додати `GameSceneOverlay` для:
+Додати `GameSceneOverlay` (із обов'язковою a11y розміткою: `accessible`, `accessibilityRole`, `accessibilityLabel`) для:
 
 - sound
 - home
@@ -585,11 +593,11 @@ settings змінює scene tokens, а не кожен skin окремо.
 
 Твоя нова цільова архітектура має бути такою:
 
-- **канонічний `GameScreen`**
-- **один full-screen `GameSceneCanvas`**
+- **канонічний `GameScreen**`
+- **один full-screen `GameSceneCanvas**`
 - **одна scene metrics system**
 - **дошка як scene layer, а не окремий mini-screen**
-- **overlay input окремо**
+- **overlay input окремо (з підтримкою a11y)**
 - **session logic окремо**
 - **shader-first policy як правило проекту**
 

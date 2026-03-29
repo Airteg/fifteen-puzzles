@@ -1,4 +1,4 @@
-import { useLayoutMetrics } from "@/context/LayoutMetricsProvider";
+import { useLayoutRenderHelpers } from "@/context/LayoutSnapshotProvider";
 import { Typography } from "@/theme/typography";
 import React from "react";
 import { Text, TextProps, TextStyle } from "react-native";
@@ -17,7 +17,7 @@ type Props = TextProps & {
 };
 
 export function T({ v, style, ...rest }: Props) {
-  const { S } = useLayoutMetrics();
+  const { S } = useLayoutRenderHelpers();
 
   const base =
     v === "headerTitle"

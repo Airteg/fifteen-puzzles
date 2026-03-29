@@ -4,14 +4,15 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import type { SharedValue } from "react-native-reanimated";
 import { useSharedValue } from "react-native-reanimated";
 
-import type { BoardMetrics } from "@/ui/game/boardGeometry";
+import {
+  useGameLayout,
+  useLayoutRenderHelpers,
+} from "@/context/LayoutSnapshotProvider";
+import type { SceneFrame } from "./useGameSceneMetrics";
 
 type Props = {
-  m: BoardMetrics;
-  pad: number;
-  canvasSize: number;
-
-  lockAbs: number;
+  boardFrame: SceneFrame;
+  mode: "classic" | "limitTime";
   lockRatio?: number;
 
   emptyRow: SharedValue<number>;
@@ -29,10 +30,9 @@ type Props = {
 
 export function BoardGestureOverlay(props: Props) {
   const {
-    m,
-    pad,
-    canvasSize,
-    lockAbs,
+    boardFrame,
+
+    mode,
     emptyRow: emptyRowSV,
     emptyCol: emptyColSV,
     dragActive: dragActiveSV,
@@ -43,7 +43,9 @@ export function BoardGestureOverlay(props: Props) {
     onCommitShift,
     onTapCell,
   } = props;
-
+  const m = useGameLayout(mode).board;
+  const { S, snap } = useLayoutRenderHelpers();
+  const lockAbs = snap(2 * S);
   const dragStepsSV = useSharedValue(0);
 
   const gesture = useMemo(() => {
@@ -64,6 +66,7 @@ export function BoardGestureOverlay(props: Props) {
 
     const pointToCell = (x: number, y: number) => {
       "worklet";
+      // Більше не віднімаємо pad! ev.x/ev.y вже локальні для цього View
       const localX = x - m.inset;
       const localY = y - m.inset;
       let col = Math.floor(localX / m.step);
@@ -75,20 +78,16 @@ export function BoardGestureOverlay(props: Props) {
       return { row, col };
     };
 
-    // Фізичний ліміт зсуву — завжди рівно 1 клітинка (m.step)
     const clampOffsetPx = (offsetPx: number, distToEmpty: number) => {
       "worklet";
       if (distToEmpty === 0) return 0;
-
       const sign = distToEmpty > 0 ? 1 : -1;
       const maxAllowed = sign * m.step;
-
       if (distToEmpty > 0) return Math.max(0, Math.min(offsetPx, maxAllowed));
       if (distToEmpty < 0) return Math.min(0, Math.max(offsetPx, maxAllowed));
       return 0;
     };
 
-    // Чи протягнули ми достатньо, щоб зробити хід?
     const calcCommitSteps = (offsetPx: number, distToEmpty: number) => {
       "worklet";
       const progress = Math.abs(offsetPx) / m.step;
@@ -99,8 +98,9 @@ export function BoardGestureOverlay(props: Props) {
       .minDistance(lockAbs)
       .onBegin((ev) => {
         "worklet";
-        const x = ev.x - pad;
-        const y = ev.y - pad;
+        // Математика стала простішою
+        const x = ev.x;
+        const y = ev.y;
 
         if (!inBoard(x, y)) {
           resetDrag();
@@ -124,7 +124,6 @@ export function BoardGestureOverlay(props: Props) {
         const sR = dragStartRowSV.value;
         const sC = dragStartColSV.value;
 
-        // РОЗУМНИЙ AXIS LOCK (Без подвійного порогу)
         if (dragAxisSV.value === 0) {
           let allowedAxis: "x" | "y" | "none" = "none";
           if (sR === emptyRowSV.value && sC !== emptyColSV.value)
@@ -134,7 +133,6 @@ export function BoardGestureOverlay(props: Props) {
 
           if (allowedAxis === "none") return;
 
-          // Pan вже активний, просто перевіряємо домінуючий вектор
           if (allowedAxis === "x" && Math.abs(tx) >= Math.abs(ty))
             dragAxisSV.value = 1;
           else if (allowedAxis === "y" && Math.abs(ty) >= Math.abs(tx))
@@ -143,7 +141,6 @@ export function BoardGestureOverlay(props: Props) {
           if (dragAxisSV.value === 0) return;
         }
 
-        // РУХ І ЗВ'ЯЗУВАННЯ
         if (dragAxisSV.value === 1) {
           const dist = emptyColSV.value - sC;
           dragOffsetPx.value = clampOffsetPx(tx, dist);
@@ -159,24 +156,18 @@ export function BoardGestureOverlay(props: Props) {
         const axis =
           dragAxisSV.value === 1 ? "x" : dragAxisSV.value === 2 ? "y" : null;
         const steps = dragStepsSV.value;
-
-        if (axis && steps !== 0) {
-          onCommitShift(axis, steps);
-        } else {
-          resetDrag();
-        }
+        if (axis && steps !== 0) onCommitShift(axis, steps);
+        else resetDrag();
       })
       .onFinalize(() => {
         "worklet";
-        if (dragActiveSV.value === 1 && dragAxisSV.value === 0) {
-          resetDrag();
-        }
+        if (dragActiveSV.value === 1 && dragAxisSV.value === 0) resetDrag();
       });
 
     const tap = Gesture.Tap().onEnd((ev) => {
       "worklet";
-      const x = ev.x - pad;
-      const y = ev.y - pad;
+      const x = ev.x;
+      const y = ev.y;
       if (!inBoard(x, y)) return;
 
       const { row, col } = pointToCell(x, y);
@@ -186,7 +177,6 @@ export function BoardGestureOverlay(props: Props) {
     return Gesture.Exclusive(pan, tap);
   }, [
     m,
-    pad,
     lockAbs,
     onCommitShift,
     onTapCell,
@@ -203,12 +193,17 @@ export function BoardGestureOverlay(props: Props) {
   return (
     <GestureDetector gesture={gesture}>
       <View
+        accessible={true}
+        accessibilityRole="adjustable"
+        accessibilityLabel="Ігрова дошка, проведіть пальцем або натисніть щоб перемістити плитки"
         style={{
           position: "absolute",
-          left: 0,
-          top: 0,
-          width: canvasSize,
-          height: canvasSize,
+          left: boardFrame.x,
+          top: boardFrame.y,
+          width: boardFrame.width,
+          height: boardFrame.height,
+          // Закоментуй backgroundColor коли переконаєшся, що оверлей лежить рівно над дошкою
+          // backgroundColor: "rgba(255, 0, 0, 0.899)",
         }}
       />
     </GestureDetector>
