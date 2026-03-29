@@ -1,10 +1,10 @@
+import { BoardSkin } from "@/ui/skia/BoardSkin";
 import { TileSkin } from "@/ui/skia/TileSkin";
 import { hexToShader } from "@/utils/color";
 import { Group, RoundedRect, SkFont, Text } from "@shopify/react-native-skia";
 import React from "react";
 import { SceneProps, normalizeColor } from "./SkinModal.types";
 import { useSkinLayout } from "./useSkinLayout";
-import { BoardSkin } from "@/ui/skia/BoardSkin";
 
 // --- Головний компонент ---
 export function SkinModalScene({
@@ -16,6 +16,15 @@ export function SkinModalScene({
   tileColor = "#71D4EB",
 }: SceneProps) {
   const layout = useSkinLayout(frame, S, snap);
+  // console.log("🚀 ~ layout:", layout.boardRects);
+  console.log(
+    "🚀 ~ layout:\n" +
+      JSON.stringify(
+        layout,
+        (k, v) => (typeof v === "number" ? Number(v.toFixed(1)) : v),
+        2,
+      ),
+  );
 
   const titleText = "SKIN";
   const titleX = titleFont
@@ -133,9 +142,22 @@ const PreviewBoardGroup = ({
         r={layout.previewR}
         color={boardColor}
       /> */}
-      {/* <BoardSkin /> */}
+      <Group
+        transform={[
+          { translateX: layout.previewX },
+          { translateY: layout.previewY },
+          // { scale: scale },
+        ]}
+      >
+        <BoardSkin
+          rect={{ x: 0, y: 0, width: layout.previewW, height: layout.previewW }}
+          S={S}
+          snap={snap}
+          tintColor={hexToShader(boardColor)}
+        />
+      </Group>
 
-      {/* {layout.previewTileRects.map((tile) => (
+      {layout.previewTileRects.map((tile) => (
         <Group key={`preview-${tile.label}`}>
           <Group transform={[{ translateX: tile.x }, { translateY: tile.y }]}>
             <TileSkin
@@ -144,12 +166,12 @@ const PreviewBoardGroup = ({
               font={titleFont}
               S={S}
               snap={snap}
-              tintColor={hexToShader(tileColor, 0.5)}
+              tintColor={hexToShader(tileColor)}
               textColor="#1C2833"
             />
           </Group>
         </Group>
-      ))} */}
+      ))}
     </Group>
   );
 };

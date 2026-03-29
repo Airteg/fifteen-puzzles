@@ -3,10 +3,7 @@ import { useGameState } from "@/context/GameStateProvider";
 import { Canvas, Group, Rect, RoundedRect } from "@shopify/react-native-skia";
 import React from "react";
 import { Pressable, StyleSheet, View } from "react-native";
-import {
-  SharedValue,
-  useDerivedValue,
-} from "react-native-reanimated";
+import { SharedValue, useDerivedValue } from "react-native-reanimated";
 
 import { useLayoutRenderHelpers } from "@/context/LayoutSnapshotProvider";
 import { SkinModalOverlay, SkinModalScene } from "./SkinModal";
@@ -37,6 +34,7 @@ export function SettingsModalHost({
 }: Props) {
   const { S, snap } = useLayoutRenderHelpers();
   const { settings } = useGameState();
+
   const { title: titleFont } = useSkiaFonts();
   const hasActiveModal = activeModal !== null;
 

@@ -39,7 +39,7 @@ export function useSkinLayout(
 
     const previewInset = snap(12 * S);
     const previewTileSize = snap(46 * S);
-    const previewTileGap = snap(8 * S);
+    const previewTileGap = snap(3 * S);
 
     const previewTileRects: (HitRect & { label: string })[] = [
       {

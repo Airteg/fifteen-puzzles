@@ -75,13 +75,27 @@ half4 main(float2 pos) {
     gradInner = mix(gradInner, ic3, lstep(0.3068, 0.7801, t));
     gradInner = mix(gradInner, ic4, lstep(0.7801, 0.9829, t));
 
-    // --- 4. КОМПОЗИТИНГ ---
-    half4 baseTile = mix(gradOuter, gradInner, maskInner);
+// --- 4. КОМПОЗИТИНГ ---
+    // Це "сирий" колір градієнта (зовнішня фаска або внутрішня частина)
+    half4 rawGradientColor = mix(gradOuter, gradInner, maskInner);
     
-    // Множимо на наш u_tint
-    half4 multipliedTile = half4(baseTile.rgb * u_tint.rgb, baseTile.a);
-    half4 finalTile = mix(baseTile, multipliedTile, u_tint.a);
+    // 1. Визначаємо БАЗОВИЙ шар (u_tint). Якщо його немає, база буде білою.
+    half3 baseColor = mix(half3(1.0), u_tint.rgb, u_tint.a);
+    
+    // 2. Математика витягування альфа-каналу з "білого"
+    half whiteAmount = min(rawGradientColor.r, min(rawGradientColor.g, rawGradientColor.b));
+    half overlayAlpha = 1.0 - whiteAmount;
+    
+    half3 overlayColor = half3(0.0);
+    if (overlayAlpha > 0.001) { // Захист від ділення на 0
+        overlayColor = (rawGradientColor.rgb - whiteAmount) / overlayAlpha;
+    }
+    
+    // 3. Накладаємо об'ємний градієнт поверх базового кольору
+    half3 finalTileRgb = mix(baseColor, overlayColor, overlayAlpha);
+    half4 finalTile = half4(finalTileRgb, 1.0); // Альфа-канал країв (maskMain) застосується нижче
 
+    // 4. Збираємо сцену: Тіні + Сама плитка
     half4 finalScene = half4(0.0); 
     finalScene = mix(finalScene, colorDark, maskDark);
     finalScene = mix(finalScene, colorLight, maskLight);

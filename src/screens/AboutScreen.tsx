@@ -92,7 +92,7 @@ const AboutScreen = ({ navigation }: Props<"About">) => {
                 rect={{ x: 0, y: 0, width: figureW, height: figureH }}
                 S={S}
                 snap={snap}
-                tintColor={hexToShader("#ffffff")}
+                tintColor={hexToShader("#ff00ff")}
               />
             </Group>
           </Group>
