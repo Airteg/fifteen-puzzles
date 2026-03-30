@@ -100,6 +100,18 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     return startedAtMs;
   }, [sessionIdSV]);
 
+  const invalidateGameSession = useCallback(() => {
+    const nextSessionId = sessionIdRef.current + 1;
+
+    sessionIdRef.current = nextSessionId;
+    sessionIdSV.value = nextSessionId;
+
+    sessionStartedAtMsRef.current = null;
+    sessionStartedAtIsoRef.current = null;
+    didResolveGameRef.current = true;
+    hasPendingWinRef.current = false;
+  }, [sessionIdSV]);
+
   const handleMoveCommitted = useCallback(
     ({ committedAtMs, isWinningMove, moves, sessionId }: MoveCommitEvent) => {
       if (sessionId !== sessionIdRef.current) {
@@ -135,18 +147,25 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     [clearCountdownInterval, recordWin, stopCountdown],
   );
 
-  const handleWin = useCallback(() => {
-    if (didResolveGameRef.current) {
-      return;
-    }
+  const handleWin = useCallback(
+    (sessionId: number) => {
+      if (sessionId !== sessionIdRef.current) {
+        return;
+      }
 
-    didResolveGameRef.current = true;
-    hasPendingWinRef.current = false;
-    clearCountdownInterval();
-    countdownDeadlineRef.current = null;
-    stopCountdown();
-    navigation.navigate("Win", { score: 100 });
-  }, [clearCountdownInterval, navigation, stopCountdown]);
+      if (didResolveGameRef.current) {
+        return;
+      }
+
+      didResolveGameRef.current = true;
+      hasPendingWinRef.current = false;
+      clearCountdownInterval();
+      countdownDeadlineRef.current = null;
+      stopCountdown();
+      navigation.navigate("Win", { score: 100 });
+    },
+    [clearCountdownInterval, navigation, stopCountdown],
+  );
 
   const handleLose = useCallback(() => {
     if (didResolveGameRef.current || hasPendingWinRef.current) {
@@ -231,11 +250,12 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
 
   useEffect(() => {
     return () => {
+      invalidateGameSession();
       clearCountdownInterval();
       countdownDeadlineRef.current = null;
       stopCountdown();
     };
-  }, [clearCountdownInterval, stopCountdown]);
+  }, [clearCountdownInterval, invalidateGameSession, stopCountdown]);
 
   useEffect(() => {
     if (!isReady) {
@@ -264,11 +284,12 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   ]);
 
   const handleHomePress = useCallback(() => {
+    invalidateGameSession();
     clearCountdownInterval();
     countdownDeadlineRef.current = null;
     stopCountdown();
     navigation.popToTop();
-  }, [clearCountdownInterval, navigation, stopCountdown]);
+  }, [clearCountdownInterval, invalidateGameSession, navigation, stopCountdown]);
 
   const handleRestartPress = useCallback(() => {
     boardCtrl.resetBoard(shuffleTiles());

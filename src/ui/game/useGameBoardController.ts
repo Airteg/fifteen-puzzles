@@ -65,7 +65,7 @@ export type UseGameBoardControllerResult = {
 type UseGameBoardControllerParams = {
   mode: "classic" | "limitTime";
   bootGrid?: number[];
-  onWin?: () => void;
+  onWin?: (sessionId: number) => void;
   onMoveCommitted?: (event: MoveCommitEvent) => void;
   sessionIdSV: SharedValue<number>;
 };
@@ -203,7 +203,7 @@ export function useGameBoardController({
         { duration: 150 * (1 - clampedProgress) },
         (finished) => {
           if (finished && isWin && onWin) {
-            scheduleOnRN(onWin);
+            scheduleOnRN(onWin, sessionId);
           }
         },
       );
