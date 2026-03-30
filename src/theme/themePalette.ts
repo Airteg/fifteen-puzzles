@@ -1,14 +1,14 @@
 export const THEME_PALETTE = {
   tile: [
-    "#00d0ff7e",
-    "#fbff0099",
-    "#27ff047e",
-    "#8a2be27e",
-    "#ff00ff7e",
+    "#FFFFFF",
+    "#00eaff",
+    "#fbff00",
+    "#27ff04",
+    "#8a2be27f",
+    "#ff00ff7f",
     "#ff00007f",
-    "#8080807e",
-    "#00bfff7e",
-    "#0500ff7e",
+    "#00bfff",
+    "#0000ff7f",
   ],
   board: ["#ffffff", "#71D4EB", "#ffff00", "#80FF85"],
 };

@@ -1,4 +1,5 @@
 import { RootNavigator } from "@/navigation/RootNavigator";
+import { soundManager } from "@/utils/soundManager";
 import { ensureSplashPrevented, hideSplash } from "@/utils/splash";
 import { NavigationContainer } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
@@ -31,6 +32,7 @@ function ShellContent() {
 export default function AppShell() {
   useEffect(() => {
     ensureSplashPrevented();
+    soundManager.prime();
   }, []);
 
   return (

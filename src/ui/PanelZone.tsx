@@ -1,4 +1,5 @@
 import { useSkiaFont } from "@/context/FontProvider";
+import { useGameState } from "@/context/GameStateProvider";
 import {
   useLayoutRenderHelpers,
   useLayoutTokens,
@@ -7,6 +8,7 @@ import { snapRect, type Rect } from "@/ui/pixel";
 import { PanelSurface } from "@/ui/skia/PanelSurface";
 import { SkiaButtonSkin } from "@/ui/skia/SkiaButtonSkin";
 import { SkiaIconButtonSkin } from "@/ui/skia/SkiaIconButtonSkin"; // Додаємо імпорт
+import { soundManager } from "@/utils/soundManager";
 import { Canvas } from "@shopify/react-native-skia";
 import React, { useCallback, useMemo, useState } from "react";
 import { LayoutChangeEvent, Pressable, StyleSheet, View } from "react-native";
@@ -29,6 +31,7 @@ export function PanelZone({
   const { panelW, buttonW, buttonH } = useLayoutTokens();
   const { S, snap } = useLayoutRenderHelpers();
   const skiaFont = useSkiaFont();
+  const { settings } = useGameState();
   const [panelHeight, setPanelHeight] = useState<number>(0);
   const [buttonRects, setButtonRects] = useState<Record<string, Rect>>({});
   const [pressedId, setPressedId] = useState<string | null>(null);
@@ -118,8 +121,13 @@ export function PanelZone({
             <Pressable
               key={b.id}
               onLayout={(e) => onButtonLayout(b.id, e)}
-              onPress={() => onPress(b.id)}
-              onPressIn={() => setPressedId(b.id)}
+              onPress={() => {
+                onPress(b.id);
+              }}
+              onPressIn={() => {
+                soundManager.playPressButton(settings.isSoundEnabled);
+                setPressedId(b.id);
+              }}
               onPressOut={() =>
                 setPressedId((cur) => (cur === b.id ? null : cur))
               }

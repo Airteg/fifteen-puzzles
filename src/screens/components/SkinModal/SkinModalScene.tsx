@@ -39,7 +39,7 @@ export function SkinModalScene({
           y={layout.titleY}
           text={titleText}
           font={titleFont}
-          color="#488B8F"
+          color="#216169"
         />
       )}
 
@@ -108,7 +108,9 @@ const TilePaletteGroup = ({
               width={item.width + snap(6 * S)}
               height={item.height + snap(6 * S)}
               r={snap(8 * S)}
-              color="rgba(33,97,105,0.20)"
+              style={"stroke"}
+              strokeWidth={2}
+              color="#216169"
             />
           )}
         </Group>
@@ -249,7 +251,7 @@ const BoardPaletteGroup = ({
               r={snap(9 * S)}
               style={"stroke"}
               strokeWidth={2}
-              color="#ff0000"
+              color="#216169"
             />
           )}
         </Group>
