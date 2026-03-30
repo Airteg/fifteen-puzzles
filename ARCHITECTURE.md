@@ -1,312 +1,691 @@
-# 📌 Стан Проекту (Project State)
+# Архітектура проекту Fifteen Puzzles
 
-## 1. Overview (Огляд проекту)
-
-**Назва:** Fifteen Puzzles (гра "П'ятнадцять пазлів")
-
-**Опис:**  
-Мобільна гра з кастомним рендером на базі Skia. Поточна версія реалізує класичну механіку "п'ятнашок" з числовими плитками. У майбутньому запланована заміна чисел на фрагменти зображення (камера / галерея).
-
-**Мова розробки та документації:** Українська.
+Цей файл описує **поточну** архітектуру проекту.
+Його мета — дати ШІ та розробнику єдине узгоджене розуміння того, як зараз влаштований застосунок, які джерела істини є канонічними, і де проходять межі між layout, runtime state, rendering та persistence.
 
 ---
 
-## 2. Tech Stack (Стек технологій)
+## 1. Огляд проекту
 
-- **ОС розробника:** Windows 11
-- **Пакетний менеджер:** pnpm
-- **Фреймворк:** React Native + Expo
-- **Навігація:** `@react-navigation/native-stack`
-- **Графіка:** `@shopify/react-native-skia`
-- **Анімації та жести:** `react-native-reanimated`, `react-native-gesture-handler`
-- **Шейдери:** `.sksl`, `.glsl` через налаштований `metro.config.js`
+**Fifteen Puzzles** — мобільна гра на React Native + Expo з кастомним рендером через **Skia**.
 
----
+Поточний стан проекту:
 
-## 3. Architecture (Архітектура)
+- уже є робочий navigation flow
+- є окрема layout snapshot система
+- ігрова дошка працює через shared values
+- drag / tap логіка винесена в окремий gesture layer
+- є Settings flow з окремими Skia-сценами модалок
+- є persistence для settings / statistics / game data через AsyncStorage
+- режим `limitTime` вже має countdown flow і перехід на `LoseScreen`
 
-Проект поділено на кілька окремих систем:
-
-- `src/context/`
-  - глобальні провайдери
-  - `LayoutMetricsProvider`
-  - `FontProvider`
-  - `GameStateProvider`
-
-- `src/navigation/`
-  - маршрутизація екранів
-
-- `src/ui/game/`
-  - ядро ігрової дошки
-  - gesture layer
-  - controller
-  - геометрія та модель руху плиток
-
-- `src/ui/skia/`
-  - візуальні Skia-компоненти
-  - дошка, плитки, кнопки, графічні примітиви, шейдери
-
-- `src/theme/`
-  - типографіка
-  - візуальні токени
+Проектна документація ведеться **українською мовою**.
 
 ---
 
-## 4. Rendering Model (Модель рендерингу)
+## 2. Технологічна база
 
-### Основний принцип
+Поточний стек:
 
-React Native відповідає за:
+- **Expo** `~54.0.33`
+- **React Native** `0.81.5`
+- **React** `19.1.0`
+- **@shopify/react-native-skia** `^2.4.18`
+- **react-native-reanimated** `~4.1.1`
+- **react-native-gesture-handler** `~2.28.0`
+- **react-native-worklets** `0.5.1`
+- **@react-navigation/native-stack** `^7.12.0`
+- **@react-native-async-storage/async-storage** `^2.2.0`
 
-- layout
-- структуру екрана
-- контейнеризацію
+Шейдери підключаються через кастомний Metro transformer:
 
-Skia відповідає за:
-
-- дошку
-- плитки
-- тіні
-- візуальні ефекти
-- графічний рендер гри
-
-### Головне правило
-
-Під час drag React не повинен бути джерелом позицій плиток і не повинен керувати їхнім рухом через re-render.
-
-### Поточний рендеринговий ланцюг
-
-Gesture → Reanimated shared values → Skia transform/update
-
-### Практично це означає
-
-- `GameBoardView.tsx` компонує дошку
-- `BoardTileNode.tsx` читає позиції плиток із shared values
-- `BoardGestureOverlay.tsx` обробляє tap/pan і оновлює drag-preview / commit
-- `useGameBoardController.ts` є канонічним контролером стану дошки
+- `metro.config.js`
+- `tools/skslTransformer.js`
 
 ---
 
-## 5. Canonical Board State (Канонічний стан дошки)
+## 3. Високорівнева структура системи
 
-### Джерело істини
+Проект поділено на кілька великих підсистем:
 
-Канонічний стан дошки зберігається у shared values в `useGameBoardController.ts`:
+### 3.1. App bootstrap
+
+- `App.tsx`
+- `src/context/AppShell.tsx`
+- `src/context/FontProvider.tsx`
+- `src/context/GameStateProvider.tsx`
+- `src/context/LayoutSnapshotProvider.tsx`
+
+### 3.2. Layout system
+
+- `src/layout/createAppLayoutSnapshot.ts`
+- `src/layout/types.ts`
+- layout hooks з `LayoutSnapshotProvider.tsx`
+
+### 3.3. Navigation
+
+- `src/navigation/RootNavigator.tsx`
+
+### 3.4. Game runtime
+
+- `src/screens/GameScreen.tsx`
+- `src/ui/game/*`
+- `src/ui/skia/*` для бойового рендеру
+
+### 3.5. Settings flow
+
+- `src/screens/SettingsScreen.tsx`
+- `src/screens/components/SettingsModalHost.tsx`
+- `src/screens/components/SoundModal.tsx`
+- `src/screens/components/SkinModal/*`
+
+### 3.6. Persistence
+
+- `src/storage/appStorage.ts`
+- `src/storage/appStorage.types.ts`
+- `src/storage/storageKeys.ts`
+
+---
+
+## 4. Root composition застосунку
+
+Коренева композиція виглядає так:
+
+`GestureHandlerRootView`
+→ `SafeAreaProvider`
+→ `LayoutSnapshotProvider`
+→ `FontProvider`
+→ `AppShell`
+→ `GameStateProvider`
+→ `NavigationContainer`
+→ `RootNavigator`
+
+### Що це означає практично
+
+- gesture-handler (обробник жестів) доступний глобально
+- safe area (безпечна зона) відома до побудови layout snapshot (до переобчислення компонування)
+- шрифти залежать від layout-scale (від коефіцієнта масштабування макету)
+- splash screen ховається лише тоді, коли готові:
+  - шрифти
+  - hydration storage state (відновлення збереженого стану з диска в пам’ять)
+- navigation запускається тільки після цього
+
+---
+
+## 5. Канонічні джерела істини
+
+### 5.1. Layout
+
+Канонічне джерело layout-даних:
+
+- `LayoutSnapshotProvider`
+- `createAppLayoutSnapshot.ts`
+
+Тут рахується вся базова геометрія екранів.
+
+### 5.2. Гарячий стан дошки
+
+Канонічне джерело runtime-позицій (поточних позицій) плиток:
+
+- shared values (спільні значення) у `useGameBoardController.ts`
+
+Ключові shared values:
 
 - `gridSV`
 - `emptyRow`
 - `emptyCol`
+- `dragActive`
+- `dragAxis`
+- `dragStartRow`
+- `dragStartCol`
+- `dragOffsetPx`
+- `animT`
+- `animMovedIdsSV`
+- `animAxisSV`
+- `animDirSV`
 
-### Формат стану
+### 5.3. Persisted app state (Збережений стан застосунку)
+
+Канонічне джерело persisted application state:
+
+- `GameStateProvider.tsx`
+- `storage/appStorage.ts`
+- `storage/appStorage.types.ts`
+
+### 5.4. Theme / skin colors
+
+Канонічне джерело selectable colors:
+
+- `settings` у `GameStateProvider`
+- `THEME_PALETTE` у `src/theme/themePalette.ts`
+
+---
+
+## 6. Layout architecture
+
+### 6.1. Чому layout централізований
+
+Проект уже перейшов від локальних обчислень геометрії до snapshot-підходу.
+
+Це означає:
+
+- геометрія рахується централізовано
+- screen-компоненти читають уже готові frame-и
+- базові design-формули не повинні дублюватися по екранах
+
+### 6.2. Що містить snapshot
+
+`AppLayoutSnapshot` містить:
+
+#### `device`
+
+- `screenW`
+- `screenH`
+- `safeTop`
+- `safeBottom`
+- `designW`
+- `designH`
+- `scale`
+
+#### `tokens`
+
+- `sideMarginMin`
+- `panelW`
+- `buttonW`
+- `buttonH`
+
+#### `screens.game`
+
+- `classic`
+- `limitTime`
+
+Кожен game layout містить:
+
+- `headerFrame`
+- `timerFrame`
+- `boardFrame`
+- `buttonsBlockFrame`
+- `modePanelFrame`
+- `board`
+- `homeButtonFrame`
+- `restartButtonFrame`
+
+#### `screens.settings`
+
+- `panelW`
+- `buttonW`
+- `buttonH`
+- `modalDefaultFrame`
+- `modalSoundFrame`
+
+#### `screens.shell`
+
+- rhythm-гепи для shell-екранів
+
+### 6.3. Канонічні layout hooks
+
+- `useGameLayout(mode)`
+- `useSettingsLayout()`
+- `useShellLayout()`
+- `useLayoutTokens()`
+- `useLayoutDevice()`
+- `useLayoutRenderHelpers()`
+
+### 6.4. Що більше не є каноном
+
+`LayoutMetricsProvider.tsx` ще присутній у дереві, але root-app зараз спирається на `LayoutSnapshotProvider`, а не на нього.
+
+---
+
+## 7. Navigation architecture
+
+`RootNavigator.tsx` містить один native-stack.
+
+Основні screen routes:
+
+- `Home`
+- `Settings`
+- `About`
+- `Support`
+- `NewGame`
+- `Game`
+- `Win`
+- `Lose`
+
+Окремо є modal group:
+
+- `Statistic`
+  - `presentation: "transparentModal"`
+  - `animation: "fade"`
+
+### Route params
+
+- `Game` приймає `{ mode: "classic" | "limitTime" }`
+- `Win` і `Lose` приймають `{ score: number }`
+
+---
+
+## 8. Architecture of non-game screens
+
+### 8.1. ScreenShell family
+
+Для звичайних screen-екранів використовується `ScreenShell.tsx`.
+
+Він відповідає за:
+
+- background
+- заголовок через `AppHeader`
+- animation slot
+- title slot
+- content slot
+- footer positioning
+
+### 8.2. PanelZone
+
+`PanelZone.tsx` — стандартний контейнер кнопок меню.
+
+Архітектурно він працює так:
+
+- Canvas малює `PanelSurface` і кнопки
+- RN `Pressable` дають hit-zones
+- panel height визначається через onLayout
+- geometry кнопок снапиться на піксель
+
+Це важливий повторюваний патерн проекту:
+
+**Skia малює пікселі, RN дає взаємодію.**
+
+---
+
+## 9. Канонічна архітектура GameScreen
+
+### 9.1. Поточний центр бойового екрана
+
+Головний бойовий orchestration layer зараз — це `src/screens/GameScreen.tsx`.
+
+Він:
+
+- визначає режим гри з route params
+- дістає готові frame-и сцени через `useGameSceneMetrics(...)`
+- читає шрифти через `useSkiaFonts()`
+- читає налаштування / countdown state через `useGameState()`
+- будує стартову сітку через `shuffleTiles()`
+- створює controller дошки через `useGameBoardController(...)`
+- тримає countdown interval для режиму `limitTime`
+- вирішує navigation to `Win` / `Lose`
+
+### 9.2. Game scene composition
+
+Skia-сцена гри рендериться через `GameSceneCanvas.tsx`.
+
+Вона містить:
+
+- background rect
+- `GameHeader`
+- `TimerSkin` (опційно)
+- `GameBoardSceneLayer`
+- `IconButtonSkin` для HOME / RESTART
+- `SkiaButtonSkin` для mode panel
+- RN hit-zones поверх HOME / RESTART
+
+### 9.3. Board rendering decomposition
+
+Рендер дошки розбитий так:
+
+#### `GameBoardSceneLayer.tsx`
+
+- малює `BoardSkin`
+- монтує `BoardTileNode` для всіх плиток
+
+#### `BoardTileNode.tsx`
+
+- читає позицію плитки з `gridSV`
+- додає drag-preview
+- додає finish-animation
+- віддає `TileSkin`
+
+Отже pipeline виглядає так:
+
+`GameScreen`
+→ `GameSceneCanvas`
+→ `GameBoardSceneLayer`
+→ `BoardTileNode`
+→ `TileSkin`
+
+---
+
+## 10. Канонічний board state і game model
+
+### 10.1. Формат дошки
 
 - дошка = масив із 16 елементів
-- `0` = пуста клітинка
-- `1..15` = ID плиток
+- `0` = empty cell
+- `1..15` = id плиток
 
-### Важливий принцип
+### 10.2. Контролер дошки
 
-React state не є джерелом істини для позиції плиток у hot path.
+`useGameBoardController.ts` — канонічний runtime-controller.
 
----
+Його задачі:
 
-## 6. Data Flow (Потік даних)
+- ініціалізувати board state
+- обробляти tap logic
+- обробляти drag commit
+- оновлювати empty position
+- керувати finish-animation state
+- скидати preview state
+- детектити win через `isWinningGrid(...)`
 
-### Tap
+### 10.3. Чиста модель гри
 
-Користувач натискає на клітинку  
-↓  
-`BoardGestureOverlay` визначає `row/col`  
-↓  
-`onTapCell(...)` у `useGameBoardController.ts`  
-↓  
-controller обчислює `axis` і `steps`  
-↓  
-`applyShift(...)` оновлює `gridSV`, `emptyRow`, `emptyCol`, animation shared values  
-↓  
-`BoardTileNode` перемальовується через shared values
+`gameBoardModel.ts` — pure model layer.
 
-### Drag
+Ключові функції:
 
-Користувач починає панорамний жест  
-↓  
-`BoardGestureOverlay` визначає стартову клітинку  
-↓  
-overlay визначає дозволену вісь руху  
-↓  
-overlay оновлює `dragActive`, `dragAxis`, `dragStartRow`, `dragStartCol`, `dragOffsetPx`  
-↓  
-`BoardTileNode` показує drag-preview  
-↓  
-при `onEnd` overlay викликає `onCommitShift(axis, steps)`  
-↓  
-controller виконує `applyShift(...)`  
-↓  
-Skia виконує finish-анімацію через `animT`
+- `findEmpty(grid)`
+- `commitShift(grid, empty, axis, steps)`
+- `isWinningGrid(grid)`
+- `makeDefaultGrid()`
+
+### 10.4. Семантика `steps`
+
+У поточній моделі `steps` — це не «довжина жесту в пікселях».
+
+`steps` означає напрямлений зсув від стартової плитки до empty cell:
+
+- для tap — controller рахує його напряму
+- для drag — overlay спочатку визначає допустимий commit, а controller уже виконує зсув
 
 ---
 
-## 7. Game Model (Модель гри)
+## 11. Gesture architecture
 
-- **Дошка:** сітка 4x4
-- **Плитки:** 15 плиток + 1 пуста клітинка
-- **Модель руху:** дозволено рухати одну плитку або групу плиток у межах одного рядка / стовпця в бік пустої клітинки
-- **Commit logic:** реалізована в `gameBoardModel.ts` через `commitShift(...)`
-- **Empty cell tracking:** через `findEmpty(...)`
+### 11.1. Канонічний gesture layer
 
-### Семантика `steps`
+`BoardGestureOverlay.tsx` — окремий RN layer поверх ігрової дошки.
 
-У controller `steps` означає **відстань стартової плитки до пустої клітинки**, тобто довжину групи, яка має зміститися.
+Він:
 
-Це важливо:
+- сидить точно поверх `boardFrame`
+- отримує board layout через `useGameLayout(mode)`
+- використовує RNGH gesture pipeline
+- не рендерить плитки сам
 
-- tap і drag повинні використовувати однакову семантику `steps`
-- `steps` не означає "на скільки клітинок фізично протягнули палець"
+### 11.2. Що він робить
 
----
+- визначає, чи дотик потрапив у межі дошки
+- переводить локальні координати у `row/col`
+- визначає, чи дозволений рух по `x` або `y`
+- тримає drag-preview offset у shared values
+- на `onEnd` викликає `onCommitShift(axis, steps)` або скидає drag
 
-## 8. Component Responsibilities (Відповідальність компонентів)
+### 11.3. Preview policy
 
-### `GameBoardView.tsx`
+У поточній реалізації:
 
-- композиційний вузол
-- створює board metrics
-- викликає `useGameBoardController`
-- рендерить `Canvas`
-- монтує `BoardTileNode`
-- монтує `BoardGestureOverlay`
+- preview рухається лише в межах одного кроку по вісі
+- commit може пересунути всю групу плиток до empty cell
+- finish-анімація добудовує рух через `animT`
 
-### `useGameBoardController.ts`
-
-- канонічний контролер дошки
-- створює shared values стану
-- зберігає `gridSV`, `emptyRow`, `emptyCol`
-- зберігає drag shared values
-- зберігає finish-animation shared values
-- обробляє `onTapCell`
-- обробляє `onCommitShift`
-- виконує `applyShift(...)`
-
-### `BoardGestureOverlay.tsx`
-
-- gesture layer поверх canvas
-- hit area дошки
-- tap vs pan arbitration
-- axis lock
-- drag-preview policy
-- commit / no-commit рішення на `onEnd`
-
-### `BoardTileNode.tsx`
-
-- UI-side вузол окремої плитки
-- читає поточну позицію плитки з `gridSV`
-- додає preview-зміщення через `dragOffsetPx`
-- додає finish-анімацію через:
-  - `animT`
-  - `animMovedIdsSV`
-  - `animAxisSV`
-  - `animDirSV`
-
-### `boardGeometry.ts`
-
-- математика дошки
-- метрики
-- координати клітинок
-- step / inset / gap
-- перетворення індексів у фізичні координати
-
-### `gameBoardModel.ts`
-
-- чиста модель гри
-- правила зсуву
-- формування нового стану дошки
-- без UI-залежностей
+Це важливо: preview і final move не є двома незалежними системами; вони мають бути математично узгодженими.
 
 ---
 
-## 9. Drag Policy (Політика drag)
+## 12. Animation handoff і win flow
 
-Поточна архітектурна політика drag така:
+Після коміту controller:
 
-- стартова плитка визначає, яку групу плиток буде рухати commit
-- drag-preview візуально рухає групу лише на **один крок**
-- commit відбувається лише якщо жест пройшов достатній прогрес
-- після commit controller синхронно оновлює shared values і запускає finish-анімацію
+- одразу оновлює `gridSV`
+- одразу оновлює `emptyRow` / `emptyCol`
+- запускає finish-анімацію через `animT = withTiming(...)`
 
-### Чому це важливо
+Якщо нова сітка — виграшна:
 
-Preview і final commit повинні жити за однією математикою.  
-Не можна дозволяти preview на 2–3 клітинки, якщо commit-модель рухає групу лише на один крок у сторону empty.
+- `useGameBoardController.ts` не навігує сам напряму
+- він викликає `onWin` через `scheduleOnRN(...)`
+- це відбувається **після завершення анімації**
 
----
-
-## 10. Layout System (Система верстки)
-
-- Усі габарити мають спиратися на `LayoutMetricsProvider`
-- Базова формула: `snap(value * S)`
-- `S` = screen scale factor
-- Мета:
-  - pixel-perfect верстка
-  - стабільна геометрія на різних екранах
-  - однакова візуальна пропорція UI
+Отже navigation decision живе у `GameScreen.tsx`, а не в model-layer.
 
 ---
 
-## 11. Shader System (Система шейдерів)
+## 13. Timer architecture
 
-- Шейдери розташовані в `src/ui/skia/shaders/`
-- Використовуються для світла, матеріалу, тіней і глибини плиток
-- Компіляція проходить через кастомний `metro.config.js`
-- `Skia.RuntimeEffect.Make()` повинен виконуватися один раз на рівні модуля, а не під час рендеру
+### 13.1. Де живе countdown state
 
----
+Runtime countdown state експонується з `GameStateProvider`:
 
-## 12. Performance Rules (Правила продуктивності)
+- `countdownMs`
+- `isCountdownActive`
+- `startCountdown(...)`
+- `setCountdownMs(...)`
+- `stopCountdown()`
+- `resetCountdown(...)`
 
-- Не допускати React re-render у hot path drag
-- Не переносити бойову логіку руху плиток назад у React state
-- Обробка жестів повинна жити в Reanimated/worklet pipeline
-- Skia використовується для всього візуального рендеру гри
-- Не використовувати RN shadow / borderRadius / animated wrappers для ігрових плиток замість Skia-підходу
-- Математика drag, preview і finish-анімації повинна бути узгодженою між overlay, controller і tile-node
+### 13.2. Де живе timer loop
 
----
+Сам interval loop зараз знаходиться у `GameScreen.tsx`.
 
-## 13. Current Status (Поточний статус)
+Тобто:
 
-- [x] Налаштовано базову інфраструктуру проєкту
-- [x] Підключено Skia, Reanimated, Gesture Handler
-- [x] Реалізовано pixel-perfect layout через `LayoutMetricsProvider`
-- [x] Реалізовано канонічний board controller на shared values
-- [x] Прибрано React із hot path позиціонування плиток
-- [x] Реалізовано tap logic
-- [x] Реалізовано drag-preview і finish-анімацію
-- [x] Рендер плиток переведено на UI-first модель через `BoardTileNode`
-- [x] Підготовлено основу для майбутньої заміни цифр на image tiles
+- provider дає API і shared app state
+- `GameScreen` вирішує, коли стартує / зупиняється countdown
+- `GameScreen` вирішує, коли перейти на `LoseScreen`
 
-### Поточна зона роботи
+### 13.3. Режими
 
-- стабілізація UX drag
-- перевірка на реальному пристрої
-- подальша поліровка gesture thresholds тільки малими змінами
+- `classic` — таймер не тікає
+- `limitTime` — запускається countdown від `settings.limitTimeMs`
+
+### 13.4. Відображення таймера
+
+Skia-візуал таймера робить `TimerSkin.tsx`.
 
 ---
 
-## 14. Current Work Session (Поточна робоча сесія)
+## 14. Persistence architecture
 
-Коли починається новий чат по проекту, потрібно передавати:
+### 14.1. Storage schema
 
-- **Задача:** що саме робимо в цій сесії
-- **Файли в роботі:** які файли є канонічними для цього етапу
-- **Проблема / контекст:** на чому зупинилися раніше
-- **Поточна стабільна база:** яка версія вважається безпечною для продовження
+`AppStorageData` містить:
+
+- `settings`
+- `statistics`
+- `gameState`
+- `bestGames`
+
+### 14.2. Hydration flow
+
+`GameStateProvider` при старті:
+
+1. читає AsyncStorage через `loadAppStorage()`
+2. зливає з defaults
+3. виставляє `isHydrated = true`
+4. тільки після цього `AppShell` дозволяє ховати splash
+
+### 14.3. Save flow
+
+Після hydration кожна зміна `data` тригерить `saveAppStorage(data)`.
+
+### 14.4. Domain actions
+
+Provider уже має domain helpers:
+
+- `saveGame(...)`
+- `clearGame()`
+- `updateSettings(...)`
+- `updateStatistics(...)`
+- `recordWin(...)`
+- `recordLoss()`
 
 ---
 
-## 15. Roadmap (Плани на майбутнє)
+## 15. Settings architecture
 
-- image tiles замість цифр
-- інтеграція з камерою
-- інтеграція з галереєю
-- нові візуальні теми / скіни плиток
-- поліровка звуку, ефектів і реакцій UI
-- подальше посилення drag UX без втрати UI-first архітектури
+### 15.1. SettingsScreen
+
+`SettingsScreen.tsx` не малює модалки безпосередньо всередині кнопок.
+
+Він:
+
+- тримає `activeModal`
+- тримає `modalOpacity` як reanimated shared value
+- блокує повторне відкриття під час анімації
+- передає layout frame-и у `SettingsModalHost`
+
+### 15.2. SettingsModalHost
+
+`SettingsModalHost.tsx` — окремий композиційний вузол поверх екрана.
+
+Він:
+
+- малює backdrop у Canvas
+- малює Sound / Skin modal scenes у Canvas
+- керує opacity через derived values
+- поверх цього дає RN `Pressable` hit-zones
+
+### 15.3. Split Scene / Overlay pattern
+
+Для модалок використовується явний split:
+
+- `Scene` = тільки Skia-візуал
+- `Overlay` = тільки RN interaction layer
+
+Цей патерн видно в:
+
+- `SoundModalScene` / `SoundModalOverlay`
+- `SkinModalScene` / `SkinModalOverlay`
+
+Це хороший канон для майбутніх складних модалок.
+
+---
+
+## 16. Skia / shader architecture
+
+### 16.1. Ключовий принцип
+
+Skia відповідає за бойовий візуальний рендер.
+RN відповідає за структуру, hit-zones і загальні оболонки.
+
+### 16.2. Shader-backed components
+
+Поточні ключові shader-backed surface-и:
+
+- `BoardSkin.tsx`
+- `TileSkin.tsx`
+- `TimerSkin.tsx`
+- `SkiaButtonSkin.tsx`
+
+### 16.3. Shader compilation rule
+
+`Skia.RuntimeEffect.Make(...)` виконується на рівні модуля, а не всередині рендера.
+
+### 16.4. Tinting
+
+Кольори з UI/state переводяться в shader uniforms через `hexToShader(...)`.
+
+---
+
+## 17. Файли, які існують, але не повинні вводити в оману
+
+У проекті ще є кілька історичних або допоміжних файлів:
+
+### Не-root layout
+
+- `src/context/LayoutMetricsProvider.tsx`
+
+### Не-канонічний game shell
+
+- `src/ui/shell/GameScreenShell.tsx`
+
+### Альтернативні / старі варіанти surface-ів
+
+- `src/ui/skia/BoardSkin1.tsx`
+- `src/ui/skia/TileSkin1.tsx`
+
+### Sandbox / test
+
+- `src/screens/AboutScreen.tsx`
+- `src/test/RnghSmoke.tsx`
+
+Під час нових архітектурних рішень не треба брати їх як перше джерело істини.
+
+---
+
+## 18. Поточний стан реалізації
+
+### Уже реалізовано
+
+- root provider stack
+- централізований layout snapshot
+- font loading + splash gating
+- basic navigation flow
+- game scene через єдиний Canvas
+- board runtime на shared values
+- tap / drag pipeline
+- finish-анімація після коміту
+- win detection
+- countdown flow для `limitTime`
+- Settings модалки з Scene/Overlay split
+- AsyncStorage persistence для settings / statistics / game state / best games
+
+### Частково готово або ще полірується
+
+- drag UX tuning
+- реальна shuffle-логіка (замість debug-grid)
+- повноцінна статистика
+- Support flow
+- повна стилістична єдність усіх модалок та екранів
+- завершений sound integration по всьому app flow
+
+---
+
+## 19. Короткий канон для майбутніх змін
+
+Коли пропонується нова зміна, базовий порядок перевірки такий:
+
+### Якщо зміна про layout
+
+дивитися:
+
+1. `LayoutSnapshotProvider.tsx`
+2. `createAppLayoutSnapshot.ts`
+3. конкретний screen consumer
+
+### Якщо зміна про рух плиток
+
+дивитися:
+
+1. `BoardGestureOverlay.tsx`
+2. `useGameBoardController.ts`
+3. `BoardTileNode.tsx`
+4. `gameBoardModel.ts`
+
+### Якщо зміна про scene rendering
+
+дивитися:
+
+1. `GameSceneCanvas.tsx`
+2. `GameBoardSceneLayer.tsx`
+3. потрібний Skia skin
+
+### Якщо зміна про settings
+
+дивитися:
+
+1. `SettingsScreen.tsx`
+2. `SettingsModalHost.tsx`
+3. відповідну modal scene/overlay пару
+
+---
+
+## 20. Підсумок
+
+Поточна архітектура проекту тримається на чотирьох опорах:
+
+1. **централізований layout snapshot**
+2. **hot path дошки на shared values**
+3. **Skia як основний бойовий renderer**
+4. **RN overlays для interaction і screen orchestration**
+
+Саме навколо цього треба будувати всі подальші зміни, не повертаючи геометрію або runtime board-state назад у розпорошені локальні обчислення чи React state hot path.

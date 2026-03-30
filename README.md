@@ -1,611 +1,362 @@
-# Архітектура GameScreen
+# Fifteen Puzzles
 
-`GameScreen.tsx` збирає екран, `GameScreenShell.tsx` відповідає за layout, а `GameBoardView.tsx` містить основний Canvas + стан дошки + анімацію + інтеграцію з gesture overlay.
+**Fifteen Puzzles** — це мобільна гра на **React Native + Expo** з кастомним рендером через **Skia**.
+Проєкт сфокусований на точній геометрії, високій продуктивності під час drag, централізованому layout та чітко розділених ролях між React Native, Reanimated і Skia.
 
-На цей момент картина така:
-
-`GameScreen.tsx` — це вхідна точка екрана.
-`GameScreenShell.tsx` — layout-рівень: збирає header, board-зону, нижні кнопки/панелі.
-`GameBoardView.tsx` — найважчий вузол: тут, імовірно, одночасно живуть render, gesture-логіка, drag-preview, tile mapping, game state glue.
-`BoardGestureOverlay.tsx` — окремий input-шар поверх Canvas: він не малює, а тільки інтерпретує pan/tap та віддає commit/tap назовні.
-`boardGeometry.ts` — чистий math/geometry-модуль: метрики дошки, cell rect/origin/center, axis lock, snapSteps. Це хороший знак: геометрія не змішана з UI.
-`gameMetrics.ts` — канонічні design-константи для дошки.
-`LayoutMetricsProvider.tsx` — глобальний adaptive scaling layer: дає `S`, `snap()`, ширини панелей і кнопок. Тобто вся сцена повинна масштабуватись через нього.
-`GameStateProvider.tsx` — persistence/state-рівень через AsyncStorage, але поки це виглядає як окремий application state, а не rendering state для drag/render loop.
-
-### Що вже можна сказати про архітектуру
-
-Тут проглядається нормальний поділ на 4 рівні:
-
-1. **Screen composition**
-   - `GameScreen.tsx`
-   - `GameScreenShell.tsx`
-
-2. **Adaptive layout system**
-   - `LayoutMetricsProvider.tsx`
-   - `gameMetrics.ts`
-
-3. **Board rendering + board interaction**
-   - `GameBoardView.tsx`
-   - `BoardGestureOverlay.tsx`
-   - `boardGeometry.ts`
-
-4. **Persistent app/game state**
-   - `GameStateProvider.tsx`
-
-Це вже достатньо хороша база. Найважливіше: `BoardGestureOverlay` і `boardGeometry` винесені окремо, а значить файл `GameBoardView.tsx` потенційно можна ще далі “сушити”, а не тримати в ньому все підряд.
-
-### Але де поки що головна невидимість
-
-Щоб реально розібрати **архітектуру GameScreen**, а не лише її оболонку, мені ще бракує тих частин, через які проходить **render pipeline** і **scene composition**.
-
-Найважливіше додати далі:
-
-- `BoardSkin.tsx`
-- `TileSkin.tsx`
-- `FontProvider.tsx`
-
-Бо саме вони покажуть:
-
-- як Canvas-сцена реально збирається,
-- чи є розділення між background / tiles / preview / overlays,
-- чи не сидять зайві обчислення прямо в render,
-- як передаються розміри в skia-компоненти,
-- чи дотримується канонічна система масштабування.
-
-### Що ще дуже бажано
-
-- `AppGameHeader.tsx`
-- файл з типами маршруту / screen params, якщо є
-- якщо існує окремий модуль логіки на кшталт:
-  - `gameLogic.ts`
-  - `boardState.ts`
-  - `shuffle.ts`
-  - `moves.ts`
-  - `solved.ts`
-
-Бо зараз я бачу persistence-state, але ще не бачу чітко, **де живе доменна логіка гри**:
-
-- перевірка допустимого ходу,
-- multi-shift,
-- shuffle,
-- solved-state,
-- move counter,
-- timer orchestration.
-
-### Попередній висновок по якості архітектури
-
-Архітектура **не хаотична**, а вже має добрий напрямок:
-
-- **layout** відділений,
-- **geometry** відділена,
-- **gesture layer** відділений,
-- **persistent state** відділений.
-
-Найімовірніше, головний ризик зараз не в `GameScreen.tsx`, а саме в тому, що **`GameBoardView.tsx` може бути “god-file”**, якщо в ньому сидять одночасно:
-
-- mapping tiles,
-- Skia scene,
-- animation state,
-- gesture integration,
-- move commit logic,
-- tap logic,
-- solved detection.
-
-Саме його нам далі треба буде розкласти по шарах.
+Поточна версія вже має:
+- головне меню та навігацію між екранами
+- два режими гри: `classic` і `limitTime`
+- ігрову дошку на shared values
+- Skia-рендер для дошки, плиток, таймера та кнопок
+- settings flow з окремими Skia-модалками
+- persistence для settings / statistics / game data через AsyncStorage
 
 ---
 
-### Як зараз виглядає архітектура
+## 1. Технології
 
-**1. Screen-рівень**
+- **Expo** `~54.0.33`
+- **React Native** `0.81.5`
+- **React** `19.1.0`
+- **@shopify/react-native-skia** `^2.4.18`
+- **react-native-reanimated** `~4.1.1`
+- **react-native-gesture-handler** `~2.28.0`
+- **react-native-worklets** `0.5.1`
+- **@react-navigation/native-stack** `^7.12.0`
+- **@react-native-async-storage/async-storage** `^2.2.0`
 
-- `GameScreen.tsx` — точка входу екрана.
-- `GameScreenShell.tsx` — композиція великих зон екрана: header, board area, нижні control-блоки.
-
-Це правильний рівень: shell має знати **що стоїть на екрані**, але не повинен знати деталі drag/render/game math.
-
-**2. Система масштабування**
-
-- `LayoutMetricsProvider.tsx` — головне джерело адаптивних метрик: `S`, `snap`, ширини, висоти, safe layout-рішення.
-- `gameMetrics.ts` — канонічні дизайн-розміри/константи гри.
-- `FontProvider.tsx` — окремий шар для шрифтів, який спирається на `LayoutMetricsProvider` і будує Skia fonts уже через `S` та `snap`. Це дуже хороший знак: шрифти входять у ту саму scaling-систему, а не живуть окремо.
-
-**3. Board interaction + geometry**
-
-- `BoardGestureOverlay.tsx` — input-only шар поверх канваса.
-- `boardGeometry.ts` — чиста математика дошки, координат, cell/grid logic.
-
-Це один із найкращих моментів усієї архітектури: геометрія і жести не змішані з малюванням.
-
-**4. Render-шар Skia**
-
-- `BoardSkin.tsx` — окремий візуальний skin для самої дошки. Він отримує вже готовий `rect`, `radius`, blur-и, `S`, `snap` і просто малює. Тобто це **presentation-компонент без логіки гри**. Саме так і треба.
-- `TileSkin.tsx` — окремий візуальний skin плитки. Тут уже є shader, текст, uniforms і GPU-рендер. Важливо, що `RuntimeEffect` компілюється один раз на модульному рівні, а uniforms мемоізуються. Це дуже правильний підхід для FPS.
-
-**5. App/UI shell elements**
-
-- `AppGameHeader.tsx` — окремий header-компонент, але він зараз більш “самостійний”, ніж хотілося б: сам вантажить png, сам вантажить skia-font, сам тримає `isMuted`, сам малює canvas. Тобто він уже не чисто dumb/presentational, а маленький self-contained widget.
-
-**6. Persistence / app state**
-
-- `GameStateProvider.tsx` — окремий application-state/persistence-рівень.
+Шейдери підключені через кастомний Metro transformer:
+- `metro.config.js`
+- `tools/skslTransformer.js`
 
 ---
 
-## Головна ідея поточної архітектури
+## 2. Швидкий запуск
 
-**Shell → Metrics → Geometry/Input → Skia Presentation → Persistent State**
+### Вимоги
 
-Це не хаос. Це вже схоже на систему.
+- **Node.js** сумісної версії для Expo SDK 54
+- **pnpm**
+- **Android Studio** або **Xcode**
+- налаштований native toolchain для Expo development build
 
----
+### Встановлення
 
-## Де зараз, найімовірніше, вузьке місце
+```bash
+pnpm install
+```
 
-Найризикованіший файл у цій архітектурі майже напевно — **`GameBoardView.tsx`**.
+### Основні команди
 
-Бо всі інші частини вже більш-менш розкладені:
+```bash
+pnpm start
+pnpm dev
+pnpm dev:all
+pnpm android
+pnpm ios
+pnpm android:start
+pnpm ios:start
+pnpm web
+pnpm lint
+```
 
-- layout винесений,
-- scaling винесений,
-- geometry винесена,
-- gesture overlay винесений,
-- skins винесені,
-- fonts винесені.
+### Практичний dev-flow
 
-Отже, якщо десь і накопичується “god-object”, то саме в `GameBoardView.tsx`, бо там, скоріш за все, сходяться:
+1. Перший native build:
 
-- render tree,
-- tile mapping,
-- drag state,
-- active tile / preview tile,
-- зв’язок з overlay,
-- move commit,
-- solved check,
-- animation orchestration,
-- можливо, derived layout for board.
+```bash
+pnpm android
+```
 
-Тобто архітектурно екран уже хороший, але **центр тяжіння системи, ймовірно, занадто сконцентрований в одному файлі**.
+або
 
----
+```bash
+pnpm ios
+```
 
-## Що в архітектурі вже добре
+2. Далі запуск Metro для dev client:
 
-### 1. Масштабування проведене послідовно
+```bash
+pnpm dev
+```
 
-`FontProvider`, `BoardSkin`, `TileSkin`, `AppGameHeader` працюють через `S` і `snap`. Це означає, що формується єдина система координат і розмірів, а не набір випадкових пікселів.
+3. Якщо треба одночасно зробити `adb reverse` і очистити кеш:
 
-### 2. Skin-компоненти не перевантажені логікою
-
-`BoardSkin` і `TileSkin` не вирішують, **яка плитка куди рухається**. Вони тільки малюють. Це правильна межа відповідальності.
-
-### 3. Шейдерна частина оформлена грамотно
-
-У `TileSkin` добре, що:
-
-- runtime effect компілюється один раз,
-- uniforms обгорнуті в `useMemo`,
-- текст відокремлений від shader canvas,
-- geometry плитки передається через props.
-
-### 4. Font system уже схожа на сервіс
-
-`FontProvider` — це хороший сервісний шар: UI і Canvas не повинні кожного разу самі знати, як саме піднімати шрифти.
+```bash
+pnpm dev:all
+```
 
 ---
 
-## Що я б вважав слабшими місцями
+## 3. Поточна структура проєкту
 
-### 1. `AppGameHeader.tsx` поки що стоїть трохи осторонь системи
+```text
+src/
+  context/        root providers, hydration, fonts, global app state
+  layout/         layout snapshot builder + types
+  navigation/     root navigator
+  screens/        screen-level orchestration
+  storage/        AsyncStorage persistence layer
+  theme/          typography + selectable color palette
+  ui/
+    animation/    placeholder animations
+    game/         board runtime, controller, gestures, scene composition
+    header/       shell/header UI
+    shell/        shared screen shells
+    skia/         Skia skins, shaders, vector graphics
+```
 
-Він не використовує `FontProvider`, а сам викликає `useFont`.
-Тобто для board-сцени в тебе вже є централізований font layer, а header живе окремо.
-
-Це не критична помилка, але це вже **архітектурний розсинхрон**:
-
-- або всі skia-шрифти проходять через provider,
-- або дозволяємо локальні isolated fonts тільки для truly local widget.
-
-На практиці краще або:
-
-- винести header-font у `FontProvider`,
-- або чітко прийняти правило: `FontProvider` тільки для game canvas, а header автономний.
-
-Зараз це посередині.
-
-### 2. `AppGameHeader.tsx` змішує presentation і local feature state
-
-`isMuted` живе прямо в header.
-
-Це ок, якщо це чисто демо-перемикач UI.
-Але якщо звук у грі реальний, то mute-state не повинен жити в header-компоненті. Його місце:
-
-- або в audio/store layer,
-- або в game UI controller/state.
-
-Інакше header стає джерелом доменної поведінки.
-
-### 3. `TileSkin.tsx` уже хороший, але це компонент “дорогого рендера”
-
-Архітектурно він чистий, але саме він потенційно буде найчутливішим до:
-
-- зайвих нових `rect` об’єктів на кожному render,
-- зайвих `baseColor` масивів,
-- нестабільних `label/font` props,
-- повторного remount при drag.
-
-Тобто проблема тут не в самому файлі, а в тому, **як `GameBoardView` його годує даними**.
+Ключові кореневі файли:
+- `App.tsx`
+- `src/context/AppShell.tsx`
+- `src/navigation/RootNavigator.tsx`
 
 ---
 
-**Моя поточна карта відповідальностей**
+## 4. Архітектурний принцип проєкту
 
-Я б сформулював так:
+### React Native відповідає за:
+- структуру екрана
+- навігацію
+- hit-zones / accessibility overlays
+- persistence / hydration / global app state
 
-- **`GameScreen.tsx`** — вхідна точка екрану/маршруту (route/screen entry)
-- **`GameScreenShell.tsx`** — композиція макету (layout composition)
-- **`LayoutMetricsProvider.tsx`** — сервіс адаптивних метрик (adaptive metrics service)
-- **`FontProvider.tsx`** — сервіс шрифтів для рендерингу Skia/тексту (font service for skia/text rendering)
-- **`boardGeometry.ts`** — чиста математика (pure math)
-- **`BoardGestureOverlay.tsx`** — інтерпретація сенсорних жестів (touch interpretation)
-- **`BoardSkin.tsx`** — візуальне представлення дошки (board presentation)
-- **`TileSkin.tsx`** — візуальне представлення плитки/клітинки (tile presentation)
-- **`AppGameHeader.tsx`** — віджет заголовка (header widget)
-- **`GameStateProvider.tsx`** — провайдер збереженого (персистентного) стану застосунку/гри (persisted app/game state)
-- **`GameBoardView.tsx`** — оркестраційний шар між математикою, обробкою вводу, рендерингом і станом гри (orchestration layer між math, input, render і game state)
+### Skia відповідає за:
+- дошку
+- плитки
+- таймер
+- кнопки ігрової сцени
+- декоративні поверхні, тіні, шейдери та матеріали
 
-І саме останній пункт зараз найважливіший для подальшого розкладання.
-
----
-
-## Який ідеальний стан архітектури я бачу далі
-
-`GameBoardView.tsx` варто довести до ролі **scene orchestrator**, а не “файлу, де живе все”.
-
-Тобто в ідеалі він має:
-
-- взяти layout metrics,
-- взяти board geometry,
-- взяти current board state,
-- взяти gestures,
-- зібрати scene з `BoardSkin`, `TileLayer`, `DragPreviewLayer`, `EffectsLayer`,
-- передати commit callbacks назовні.
-
-А ось це краще тримати **не в ньому**:
-
-- низькорівневу геометрію,
-- shader-specific details,
-- font loading,
-- persistent storage,
-- mute/audio logic,
-- константи дизайну.
-
-Частина цього вже винесена. Це добре.
+### Reanimated / Shared Values відповідають за:
+- гарячий runtime-stan дошки
+- drag-preview
+- finish-анімацію після commit
+- gesture-adjacent pipeline без React re-render у hot path
 
 ---
 
-**Архітектура в цілому правильна, але `GameBoardView.tsx` справді є центральним orchestration-файлом, у якому зійшлося забагато відповідальностей**.
+## 5. Канонічні джерела істини
 
-## Що саме робить `GameBoardView.tsx`
+### Layout
+Канонічний layout живе тут:
+- `src/context/LayoutSnapshotProvider.tsx`
+- `src/layout/createAppLayoutSnapshot.ts`
+- `src/layout/types.ts`
 
-У цьому файлі зараз одночасно живуть 6 ролей:
+Усі базові frame-розрахунки мають спиратися саме на `AppLayoutSnapshot`.
 
-1. **Локальний state дошки**
-   - `grid`
-   - `empty`
-   - `tiles`
+### Runtime board state
+Канонічний гарячий стан дошки живе тут:
+- `src/ui/game/useGameBoardController.ts`
 
-2. **Доменна логіка переміщення**
-   - `makeDefaultGrid`
-   - `findEmpty`
-   - `tilesFromGrid`
-   - `commitShift`
+Ключові shared values:
+- `gridSV`
+- `emptyRow`
+- `emptyCol`
+- `dragActive`
+- `dragAxis`
+- `dragStartRow`
+- `dragStartCol`
+- `dragOffsetPx`
+- `animT`
+- `animMovedIdsSV`
+- `animAxisSV`
+- `animDirSV`
 
-3. **Анімаційний orchestration**
-   - `animT`
-   - `animMovedIds`
-   - `animAxis`
-   - `animDir`
-
-4. **Drag-preview state через shared values**
-   - `dragActive`
-   - `dragAxis`
-   - `dragSteps`
-   - `dragLine`
-   - `emptyRow`
-   - `emptyCol`
-
-5. **Scene composition**
-   - `Canvas`
-   - `BoardSkin`
-   - map по `TileNode`
-   - `BoardGestureOverlay`
-
-6. **Input → state transition**
-   - `onTapCell`
-   - `onCommitShift`
-
-Усе це прямо видно в одному файлі.
+### Persisted app state
+Канонічний persistence layer:
+- `src/context/GameStateProvider.tsx`
+- `src/storage/appStorage.ts`
+- `src/storage/appStorage.types.ts`
+- `src/storage/storageKeys.ts`
 
 ---
 
-# Мій головний висновок
+## 6. Ігровий runtime: що читати в першу чергу
 
-**`GameBoardView.tsx` не є хаотичним файлом, але він уже став “вузлом усього”.**
-Тобто він ще не зламаний архітектурно, але вже стоїть на межі, після якої будь-яке нове ускладнення почне його “протухати”.
+### 1) `src/screens/GameScreen.tsx`
+Головний orchestration layer ігрового процесу.
 
-Інакше кажучи:
+Тут:
+- вибирається режим `classic` / `limitTime`
+- створюється `bootGrid`
+- ініціалізується controller
+- запускається countdown flow
+- вирішуються переходи на `Win` / `Lose`
+- монтуються `GameSceneCanvas` і `BoardGestureOverlay`
 
-- зараз файл ще читається,
-- логіка ще не розповзлася повністю,
-- але наступні фічі типу shuffle / timer / solved / move counter / persistence / sound / win animation дуже швидко зроблять його перевантаженим.
+### 2) `src/ui/game/GameSceneCanvas.tsx`
+Композиція всієї Skia-сцени гри.
 
----
+### 3) `src/ui/game/GameBoardSceneLayer.tsx`
+Skia-рівень самої дошки.
 
-# Що тут добре
+### 4) `src/ui/game/useGameBoardController.ts`
+Канонічний controller дошки.
 
-## 1. Є хороший поділ між input, geometry і skin
+### 5) `src/ui/game/BoardGestureOverlay.tsx`
+Gesture layer: tap / pan arbitration, axis lock, drag preview, commit.
 
-`BoardGestureOverlay` не малює, а лише інтерпретує жести.
-`BoardSkin` і `TileSkin` лише малюють.
-`boardGeometry` винесена окремо.
-Це правильний фундамент. `GameBoardView` використовує ці шари як orchestrator.
+### 6) `src/ui/game/BoardTileNode.tsx`
+UI-side вузол окремої плитки, що читає позицію з shared values.
 
-## 2. `TileNode` — правильна локальна ізоляція
-
-Те, що окремий `TileNode` винесений через `memo`, — добре.
-Особливо добре, що transform рахується через `useDerivedValue`, а не через React-state на кожен drag tick.
-
-## 3. Анімація зроблена просто і зрозуміло
-
-Після `commitShift`:
-
-- визначаються `movedIds`,
-- одразу оновлюється `grid`,
-- анімація доганяє це через `animT`.
-
-Це хороший підхід для sliding puzzle, бо візуально він працює як “state already committed, animation visually catches up”.
+### 7) `src/ui/game/gameBoardModel.ts`
+Чиста модель гри без UI-залежностей.
 
 ---
 
-# Де головні архітектурні проблеми
+## 7. Flow гри
 
-## 1. Доменна логіка гри сидить прямо в view-файлі
+### Tap
+`BoardGestureOverlay` → `onTapCell(...)` → `useGameBoardController.ts` → `commitShift(...)` → оновлення `gridSV` → `BoardTileNode` перемальовується через shared values.
 
-Ось це найважливіше.
+### Drag
+`BoardGestureOverlay` визначає стартову клітинку і вісь → оновлює preview через `dragOffsetPx` → на `onEnd` викликає `onCommitShift(...)` → controller комітить хід → запускається finish-анімація через `animT`.
 
-У `GameBoardView.tsx` зараз живуть:
-
-- `makeDefaultGrid`
-- `idx`
-- `findEmpty`
-- `tilesFromGrid`
-- `commitShift`
-
-Це вже не view-рівень. Це **board domain logic**.
-
-Тобто файл, який має бути scene-orchestrator, зараз одночасно є ще й частиною game engine.
-
-Це не страшно для демо-версії. Але для реального екрану гри це треба виносити.
-
-Я б виніс у щось на кшталт:
-
-- `gameBoardModel.ts`
-  або
-- `boardState.ts`
-  або
-- `gameEngine.ts`
-
-Туди:
-
-- `makeDefaultGrid`
-- `findEmpty`
-- `tilesFromGrid`
-- `commitShift`
-- пізніше `isSolved`
-- `shuffleGrid`
-- `canMove`
-- `serializeGrid` / `deserializeGrid`
-
-Тоді `GameBoardView` не вирішуватиме, **як рухаються плитки**, а лише використовуватиме готові правила.
+### Countdown (`limitTime`)
+`GameScreen.tsx` керує deadline-based countdown через `GameStateProvider`. Після досягнення нуля відбувається перехід на `LoseScreen`.
 
 ---
 
-## 2. `GameBoardView` змішує state model і scene composition
+## 8. Settings architecture
 
-Файл одночасно:
+Settings flow побудований окремо від game runtime.
 
-- зберігає grid-state,
-- керує анімацією,
-- збирає Canvas tree.
+Ключові файли:
+- `src/screens/SettingsScreen.tsx`
+- `src/screens/components/SettingsModalHost.tsx`
+- `src/screens/components/SoundModal.tsx`
+- `src/screens/components/SkinModal/*`
 
-Це означає, що він є і model-controller, і render-controller одразу.
+Поточний патерн:
+- **Scene** малює Skia-пікселі
+- **Overlay** дає RN hit-zones і взаємодію
 
-Краще мати таку межу:
-
-- **hook/model layer**
-  - `useGameBoardState()`
-
-- **scene layer**
-  - `GameBoardView`
-
-Тоді hook повертає:
-
-- `tiles`
-- `boardMetrics`
-- `empty`
-- `gesture shared values`
-- `handlers`
-- `animation state`
-
-А `GameBoardView` просто збирає сцену.
+Це та сама базова ідея, що й у game scene:
+**Skia малює, RN взаємодіє.**
 
 ---
 
-## 3. `animMovedIds.includes(t.id)` — маленьке, але показове місце
+## 9. Persistence
 
-У render map кожної плитки є:
+Проєкт уже має persistence для:
+- settings
+- statistics
+- gameState
+- bestGames
 
-`animMoved={animMovedIds.includes(t.id)}`
+Формат описано в:
+- `src/storage/appStorage.types.ts`
 
-Для 15 плиток це дрібниця. Але архітектурно це маркер, що анімаційний state подається трохи “на льоту”, а не у вже підготовленому вигляді.
-
-Краще:
-
-- або `Set<number>` через `useMemo`,
-- або derived map.
-
-Не тому що зараз повільно, а тому що це робить намір яснішим.
-
----
-
-## 4. Подвійність між React state і Shared Values вже починає ускладнювати картину
-
-У тебе є:
-
-- React `grid`
-- React `animMovedIds`, `animAxis`, `animDir`
-- Reanimated `emptyRow`, `emptyCol`, `dragActive`, `dragAxis`, `dragSteps`, `dragLine`, `animT`
-
-Це нормально для такого типу сцени, але вже вимагає дисципліни.
-
-Проблема не в самому факті подвійності, а в тому, що файл починає бути місцем синхронізації всіх цих шарів одразу.
-
-Тобто `GameBoardView` уже не просто “view”, а “sync hub”.
+Default values:
+- sound увімкнений
+- дефолтні кольори дошки й плиток задані в `DEFAULT_SETTINGS`
+- `DEFAULT_LIMIT_TIME_MS = 120000`
 
 ---
 
-# Що я вважаю дуже важливим спостереженням
+## 10. Документація для ШІ та архітектурного аналізу
 
-## `TileNode` логічно хороший, але його краще винести в окремий файл
+У репозиторії є службові файли, які треба читати разом:
+- `AI_RULES.md`
+- `AI_INDEX.md`
+- `ARCHITECTURE.md`
 
-Зараз `TileNode` — внутрішній memo-компонент усередині `GameBoardView.tsx`.
-Технічно це нормально. Але архітектурно це вже самостійний scene-node.
+Ролі документів:
+- `AI_RULES.md` — проектний канон і правила рішень
+- `AI_INDEX.md` — швидка карта файлів і точок входу
+- `ARCHITECTURE.md` — детальний опис поточної архітектури
 
-Він має:
-
-- власні пропси,
-- власну animation logic,
-- власний derived transform,
-- окрему роль у render tree.
-
-Я б виніс його в:
-
-- `GameBoardTileNode.tsx`
-  або
-- `BoardTileNode.tsx`
-
-Причина не в “модності”, а в тому, що це вже окремий елемент сцени.
+Якщо документація суперечить свіжому коду, пріоритет має **актуальний канонічний код**.
 
 ---
 
-# Як я бачу правильний поділ після рефакторингу
+## 11. Поточний стан проєкту
 
-## Варіант цільової структури
+Уже є:
+- базовий bootstrap застосунку
+- navigation flow
+- shell-екрани
+- game scene на Skia
+- tap logic
+- drag-preview і finish-анімація
+- countdown для `limitTime`
+- win / lose navigation flow
+- sound / skin settings flow
+- AsyncStorage persistence
 
-### 1. `gameBoardModel.ts`
-
-Чиста логіка:
-
-- `makeDefaultGrid`
-- `findEmpty`
-- `tilesFromGrid`
-- `commitShift`
-- `isSolved`
-- `shuffleGrid`
-
-### 2. `useGameBoardController.ts`
-
-Hook orchestration:
-
-- `grid`
-- `tiles`
-- `empty`
-- `anim state`
-- shared values
-- `onTapCell`
-- `onCommitShift`
-
-### 3. `GameBoardView.tsx`
-
-Тільки scene composition:
-
-- outer container
-- canvas
-- board skin
-- tile nodes
-- overlay
-
-### 4. `BoardTileNode.tsx`
-
-Окрема плитка:
-
-- `useDerivedValue`
-- `TileSkin`
-- visual transform logic
+Ще не завершено або тимчасово спрощено:
+- частина екранів ще є placeholder-реалізаціями
+- статистика ще не переведена в фінальний Skia-стиль
+- `shuffleTiles.ts` зараз повертає **debug-grid**, а не справжнє випадкове solvable shuffle
+- є legacy-файли, які залишились у дереві, але не повинні вважатися опорними для нових рішень
 
 ---
 
-# Який зараз реальний статус файлу
+## 12. Важливі обмеження для нових змін
 
-Я б оцінив так:
+### Не ламати канон layout
+Не дублювати базові frame-формули по екранах. Нові рішення мають спиратися на `LayoutSnapshotProvider`.
 
-### Архітектурно:
+### Не повертати дошку в React state
+Позиції плиток у hot path не повинні знову залежати від React re-render.
 
-**7.5/10**
+### Не переносити бойовий рендер зі Skia назад у RN Views
+RN використовується для shell, overlays і взаємодії, але не для бойового рендеру дошки.
 
-Чому не нижче:
-
-- логіка не хаотична,
-- ролі в цілому читаються,
-- розділення зі skin/gesture/geometry уже є.
-
-Чому не вище:
-
-- view-файл уже містить domain logic,
-- state orchestration і rendering сидять разом,
-- він стане вузьким місцем при наступному рості.
+### Не змішувати layout і runtime-state
+Layout snapshot — це стабільна геометрія. Drag, timer tick, animation state і press state не повинні жити в ньому.
 
 ---
 
-# Що б я зробив першим?
+## 13. Які файли вважати неканонічними або перехідними
 
-Ось порядок, який дасть найбільшу користь.
-
-## Крок 1
-
-Винести з `GameBoardView.tsx` у окремий файл:
-
-- `makeDefaultGrid`
-- `idx`
-- `findEmpty`
-- `tilesFromGrid`
-- `commitShift`
-
-Це найважливіше.
-
-## Крок 2
-
-Винести `TileNode` в окремий файл.
-
-## Крок 3
-
-Створити hook типу `useGameBoardController`.
-
-Тільки після цього вже думати про:
-
-- solved-state
-- shuffle
-- persistence bridge
-- move counter
-- sound
-- win animation
+Ці файли можуть бути корисні для історії чи окремих експериментів, але не повинні ставати базою нової архітектури без окремого рішення:
+- `src/context/LayoutMetricsProvider.tsx`
+- `src/ui/game/GameScreenShell.tsx`
+- `src/ui/skia/BoardSkin1.tsx`
+- `src/ui/skia/TileSkin1.tsx`
+- `src/screens/AboutScreen.tsx` як sandbox
 
 ---
 
-# Підсумок одним реченням
+## 14. Рекомендований порядок читання коду для нового чату або нового розробника
 
-**`GameBoardView.tsx` зараз виконує роль хорошого scene orchestrator, але вже несе на собі зайву доменну логіку гри, і саме її треба винести першою, щоб файл не перетворився на god-file.**
+1. `AI_RULES.md`
+2. `AI_INDEX.md`
+3. `ARCHITECTURE.md`
+4. `App.tsx`
+5. `src/context/AppShell.tsx`
+6. `src/screens/GameScreen.tsx`
+7. `src/ui/game/useGameBoardController.ts`
+8. `src/ui/game/BoardGestureOverlay.tsx`
+9. `src/ui/game/BoardTileNode.tsx`
+10. `src/ui/game/gameBoardModel.ts`
+11. `src/context/GameStateProvider.tsx`
+12. `src/layout/createAppLayoutSnapshot.ts`
 
-Наступним кроком я б уже не просто аналізував, а дав тобі **конкретну цільову схему файлів і готовий план рефакторингу для `GameBoardView` без зміни поведінки**.
+---
+
+## 15. Плани розвитку
+
+Найближчі стратегічні напрямки:
+- стабілізація drag UX
+- повернення справжнього solvable shuffle
+- поліровка Win / Lose / Statistics UX
+- розвиток sound system
+- image tiles замість numeric tiles
+- інтеграція з камерою та галереєю
+- нові скіни та теми
+
+---
+
+## 16. Коротко
+
+Fifteen Puzzles — це не просто 15-puzzle на React Native, а проєкт із чітким архітектурним фокусом:
+- **Skia для пікселів**
+- **Shared Values для hot path**
+- **React Native для структури та взаємодії**
+- **централізований layout snapshot**
+- **мінімальна магія і одне джерело істини для кожного шару**
+
