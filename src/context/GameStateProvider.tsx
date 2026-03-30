@@ -1,8 +1,13 @@
-import { loadAppStorage, saveAppStorage } from "@/storage/appStorage";
+import {
+  insertBestGame,
+  loadAppStorage,
+  saveAppStorage,
+} from "@/storage/appStorage";
 import {
   AppStorageData,
   DEFAULT_APP_STORAGE,
   GameSettings,
+  GameResult,
   GameState,
   Statistics,
 } from "@/storage/appStorage.types";
@@ -15,12 +20,15 @@ import React, {
   useState,
 } from "react";
 
+type CompletedGameResult = Omit<GameResult, "id">;
+
 interface GameContextType {
   isHydrated: boolean;
 
   gameState: GameState | null;
   statistics: Statistics;
   settings: GameSettings;
+  bestGames: GameResult[];
   countdownMs: number;
   isCountdownActive: boolean;
 
@@ -33,11 +41,15 @@ interface GameContextType {
   stopCountdown: () => void;
   resetCountdown: (initialMs: number) => void;
 
-  recordWin: (timeMs: number, moves: number) => void;
+  recordWin: (result: CompletedGameResult) => void;
   recordLoss: () => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
+
+function createGameResultId(result: CompletedGameResult): string {
+  return `${result.startedAt}_${result.durationMs}_${result.moves}`;
+}
 
 export const GameStateProvider = ({ children }: { children: ReactNode }) => {
   const [data, setData] = useState<AppStorageData>(DEFAULT_APP_STORAGE);
@@ -121,11 +133,17 @@ export const GameStateProvider = ({ children }: { children: ReactNode }) => {
 
   // --- ДОМЕННІ ФУНКЦІЇ СТАТИСТИКИ ---
 
-  const recordWin = useCallback((timeMs: number, moves: number) => {
+  const recordWin = useCallback((result: CompletedGameResult) => {
     setData((prev) => {
       const s = prev.statistics;
-      const isNewBestTime = s.bestTime === 0 || timeMs < s.bestTime;
-      const isNewBestMoves = s.bestMoves === 0 || moves < s.bestMoves;
+      const isNewBestTime =
+        s.bestTime === 0 || result.durationMs < s.bestTime;
+      const isNewBestMoves =
+        s.bestMoves === 0 || result.moves < s.bestMoves;
+      const nextBestGames = insertBestGame(prev.bestGames, {
+        id: createGameResultId(result),
+        ...result,
+      });
 
       return {
         ...prev,
@@ -133,9 +151,10 @@ export const GameStateProvider = ({ children }: { children: ReactNode }) => {
           ...s,
           gamesPlayed: s.gamesPlayed + 1,
           gamesWon: s.gamesWon + 1,
-          bestTime: isNewBestTime ? timeMs : s.bestTime,
-          bestMoves: isNewBestMoves ? moves : s.bestMoves,
+          bestTime: isNewBestTime ? result.durationMs : s.bestTime,
+          bestMoves: isNewBestMoves ? result.moves : s.bestMoves,
         },
+        bestGames: nextBestGames,
       };
     });
   }, []);
@@ -157,6 +176,7 @@ export const GameStateProvider = ({ children }: { children: ReactNode }) => {
         gameState: data.gameState,
         statistics: data.statistics,
         settings: data.settings,
+        bestGames: data.bestGames,
         countdownMs,
         isCountdownActive,
         saveGame,

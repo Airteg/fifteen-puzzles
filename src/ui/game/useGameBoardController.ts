@@ -16,6 +16,12 @@ export type BoardTileDescriptor = {
   label: string;
 };
 
+export type MoveCommitEvent = {
+  committedAtMs: number;
+  isWinningMove: boolean;
+  moves: number;
+};
+
 const STATIC_TILES: readonly BoardTileDescriptor[] = Array.from(
   { length: 15 },
   (_, index) => {
@@ -47,12 +53,15 @@ export type UseGameBoardControllerResult = {
 
   // Explicit reset-path for future RESTART / NEW GAME.
   resetBoard: (nextGrid: number[]) => void;
+
+  movesSV: ReturnType<typeof useSharedValue<number>>;
 };
 
 type UseGameBoardControllerParams = {
   mode: "classic" | "limitTime";
   bootGrid?: number[];
   onWin?: () => void;
+  onMoveCommitted?: (event: MoveCommitEvent) => void;
 };
 
 const resolveBootGrid = (bootGrid?: number[]) => {
@@ -66,10 +75,13 @@ export function useGameBoardController({
   mode,
   bootGrid,
   onWin,
+  onMoveCommitted,
 }: UseGameBoardControllerParams): UseGameBoardControllerResult {
   const stepPx = useGameLayout(mode).board.step;
   const resolvedBootGrid = resolveBootGrid(bootGrid);
   const bootEmpty = findEmpty(resolvedBootGrid);
+
+  const movesSV = useSharedValue(0);
 
   const gridSV = useSharedValue<number[]>(resolvedBootGrid);
   const emptyRow = useSharedValue(bootEmpty.row);
@@ -103,6 +115,8 @@ export function useGameBoardController({
         nextGrid.length === 16 ? nextGrid.slice() : makeDefaultGrid();
       const nextEmpty = findEmpty(safeGrid);
 
+      movesSV.value = 0;
+
       resetDragPreview();
 
       gridSV.value = safeGrid;
@@ -123,6 +137,7 @@ export function useGameBoardController({
       animAxisSV,
       animDirSV,
       animT,
+      movesSV,
     ],
   );
 
@@ -148,6 +163,7 @@ export function useGameBoardController({
       }
 
       const clampedProgress = Math.max(0, Math.min(1, progress));
+      const committedAtMs = Date.now();
       const isWin = isWinningGrid(res.nextGrid); // ДОДАНО
 
       resetDragPreview();
@@ -160,8 +176,19 @@ export function useGameBoardController({
       emptyRow.value = newEmpty.row;
       emptyCol.value = newEmpty.col;
 
+      const nextMoves = movesSV.value + 1;
+      movesSV.value = nextMoves;
+
+      if (onMoveCommitted) {
+        scheduleOnRN(onMoveCommitted, {
+          committedAtMs,
+          isWinningMove: isWin,
+          moves: nextMoves,
+        });
+      }
+
       animT.value = clampedProgress;
-      // ОНОВЛЕНО: додаємо callback для withTiming та scheduleOnRN
+
       animT.value = withTiming(
         1,
         { duration: 150 * (1 - clampedProgress) },
@@ -181,7 +208,9 @@ export function useGameBoardController({
       animAxisSV,
       animDirSV,
       resetDragPreview,
-      onWin, // ДОДАНО
+      onWin,
+      onMoveCommitted,
+      movesSV,
     ],
   );
 
@@ -236,5 +265,6 @@ export function useGameBoardController({
     onTapCell,
     onCommitShift,
     resetBoard,
+    movesSV,
   };
 }

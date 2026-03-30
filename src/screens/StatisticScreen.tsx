@@ -1,17 +1,26 @@
-import React from "react";
-import { StyleSheet, Text, View, Pressable } from "react-native";
+import { useGameState } from "@/context/GameStateProvider";
+import React, { useMemo } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Props } from "../types/types";
 import { styles as globalStyles } from "../styles/globalStyles"; // Якщо хочеш перевикористати стилі кнопок
 
+function formatDuration(durationMs: number) {
+  const totalSeconds = Math.max(0, Math.round(durationMs / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
 const StatisticScreen = ({ navigation }: Props<"Statistic">) => {
-  // Фейкові дані для прикладу
-  const stats = [
-    { id: 1, name: "Master", score: 1200 },
-    { id: 2, name: "Vadym", score: 950 },
-    { id: 3, name: "Player 1", score: 800 },
-    { id: 4, name: "Noob", score: 100 },
-    { id: 5, name: "Test", score: 50 },
-  ];
+  const { bestGames } = useGameState();
+  const stats = useMemo(
+    () =>
+      [...bestGames].sort(
+        (a, b) => a.durationMs - b.durationMs || a.moves - b.moves,
+      ),
+    [bestGames],
+  );
 
   return (
     // 1. Оверлей (Темний фон на весь екран)
@@ -25,13 +34,25 @@ const StatisticScreen = ({ navigation }: Props<"Statistic">) => {
 
         {/* Список (ScrollView, якщо список довгий) */}
         <View style={styles.listContainer}>
-          {stats.map((item, index) => (
-            <View key={item.id} style={styles.row}>
-              <Text style={styles.rank}>#{index + 1}</Text>
-              <Text style={styles.name}>{item.name}</Text>
-              <Text style={styles.score}>{item.score}</Text>
-            </View>
-          ))}
+          {stats.length === 0 ? (
+            <Text style={styles.emptyText}>Ще немає жодного результату.</Text>
+          ) : (
+            stats.map((item, index) => (
+              <View key={item.id} style={styles.row}>
+                <Text style={styles.rank}>#{index + 1}</Text>
+                <View style={styles.resultBody}>
+                  <Text style={styles.metaLabel}>Start</Text>
+                  <Text style={styles.metaValue}>{item.startedAt}</Text>
+                  <Text style={styles.metaLabel}>Duration</Text>
+                  <Text style={styles.metaValue}>
+                    {formatDuration(item.durationMs)}
+                  </Text>
+                  <Text style={styles.metaLabel}>Moves</Text>
+                  <Text style={styles.metaValue}>{item.moves}</Text>
+                </View>
+              </View>
+            ))
+          )}
         </View>
 
         {/* Кнопка Закрити */}
@@ -82,26 +103,43 @@ const styles = StyleSheet.create({
   listContainer: {
     width: "100%",
     marginBottom: 20,
+    gap: 12,
   },
   row: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 8,
+    alignItems: "flex-start",
+    gap: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
+    backgroundColor: "#f8fbff",
+    borderRadius: 14,
   },
   rank: {
     fontWeight: "bold",
-    color: "#888",
-    width: 30,
+    color: "#2f6ea2",
+    width: 34,
+    fontSize: 16,
   },
-  name: {
+  resultBody: {
     flex: 1,
+    gap: 2,
+  },
+  metaLabel: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#6b7c8d",
+    textTransform: "uppercase",
+  },
+  metaValue: {
+    fontSize: 14,
     color: "#333",
   },
-  score: {
-    fontWeight: "bold",
-    color: "#2196f3",
+  emptyText: {
+    textAlign: "center",
+    color: "#667085",
+    paddingVertical: 16,
   },
   closeButton: {
     marginTop: 10,

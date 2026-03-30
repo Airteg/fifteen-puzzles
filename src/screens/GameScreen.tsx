@@ -1,12 +1,21 @@
 import { RootStackParamList } from "@/types/types";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { View } from "react-native";
 
 // Хуки та провайдери
 import { useSkiaFonts } from "@/context/FontProvider";
 import { useGameState } from "@/context/GameStateProvider";
-import { useGameBoardController } from "@/ui/game/useGameBoardController";
+import {
+  MoveCommitEvent,
+  useGameBoardController,
+} from "@/ui/game/useGameBoardController";
 import { useGameSceneMetrics } from "@/ui/game/useGameSceneMetrics";
 
 // UI Компоненти:
@@ -47,6 +56,8 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     setCountdownMs,
     stopCountdown,
     resetCountdown,
+    recordWin,
+    recordLoss,
   } = useGameState();
 
   const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
@@ -54,6 +65,10 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   );
   const countdownDeadlineRef = useRef<number | null>(null);
   const didResolveGameRef = useRef(false);
+  const didPersistGameResultRef = useRef(false);
+  const hasPendingWinRef = useRef(false);
+  const sessionStartedAtMsRef = useRef<number | null>(null);
+  const sessionStartedAtIsoRef = useRef<string | null>(null);
 
   // 4. Генерація початкового положення плиток
   const bootGrid = useMemo(() => shuffleTiles(), []);
@@ -65,12 +80,56 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     }
   }, []);
 
+  const beginGameSession = useCallback(() => {
+    const startedAtMs = Date.now();
+
+    sessionStartedAtMsRef.current = startedAtMs;
+    sessionStartedAtIsoRef.current = new Date(startedAtMs).toISOString();
+    didResolveGameRef.current = false;
+    didPersistGameResultRef.current = false;
+    hasPendingWinRef.current = false;
+
+    return startedAtMs;
+  }, []);
+
+  const handleMoveCommitted = useCallback(
+    ({ committedAtMs, isWinningMove, moves }: MoveCommitEvent) => {
+      if (!isWinningMove) {
+        return;
+      }
+
+      hasPendingWinRef.current = true;
+      clearCountdownInterval();
+      countdownDeadlineRef.current = null;
+      stopCountdown();
+
+      if (didPersistGameResultRef.current) {
+        return;
+      }
+
+      const startedAtMs = sessionStartedAtMsRef.current;
+      const startedAt = sessionStartedAtIsoRef.current;
+      if (startedAtMs === null || startedAt === null) {
+        return;
+      }
+
+      didPersistGameResultRef.current = true;
+      recordWin({
+        startedAt,
+        durationMs: Math.max(0, Math.round(committedAtMs - startedAtMs)),
+        moves,
+      });
+    },
+    [clearCountdownInterval, recordWin, stopCountdown],
+  );
+
   const handleWin = useCallback(() => {
     if (didResolveGameRef.current) {
       return;
     }
 
     didResolveGameRef.current = true;
+    hasPendingWinRef.current = false;
     clearCountdownInterval();
     countdownDeadlineRef.current = null;
     stopCountdown();
@@ -78,22 +137,27 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   }, [clearCountdownInterval, navigation, stopCountdown]);
 
   const handleLose = useCallback(() => {
-    if (didResolveGameRef.current) {
+    if (didResolveGameRef.current || hasPendingWinRef.current) {
       return;
     }
 
     didResolveGameRef.current = true;
+    if (!didPersistGameResultRef.current) {
+      didPersistGameResultRef.current = true;
+      recordLoss();
+    }
     clearCountdownInterval();
     countdownDeadlineRef.current = null;
     stopCountdown();
     navigation.navigate("Lose", { score: 0 });
-  }, [clearCountdownInterval, navigation, stopCountdown]);
+  }, [clearCountdownInterval, navigation, recordLoss, stopCountdown]);
 
   // 5. Ігровий контролер
   const boardCtrl = useGameBoardController({
     mode: gameMode,
     bootGrid: bootGrid,
     onWin: handleWin,
+    onMoveCommitted: handleMoveCommitted,
   });
 
   // 6. Стан готовності (анімація навігації)
@@ -113,10 +177,10 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   const beginCountdown = useCallback(
     (initialMs: number) => {
       const safeInitialMs = Math.max(0, Math.round(initialMs));
+      const startedAtMs = beginGameSession();
 
       clearCountdownInterval();
-      countdownDeadlineRef.current = Date.now() + safeInitialMs;
-      didResolveGameRef.current = false;
+      countdownDeadlineRef.current = startedAtMs + safeInitialMs;
       resetCountdown(safeInitialMs);
       startCountdown(safeInitialMs);
 
@@ -143,6 +207,7 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     },
     [
       clearCountdownInterval,
+      beginGameSession,
       handleLose,
       resetCountdown,
       setCountdownMs,
@@ -167,6 +232,7 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     if (!hasTimer) {
       clearCountdownInterval();
       countdownDeadlineRef.current = null;
+      beginGameSession();
       resetCountdown(settings.limitTimeMs);
       stopCountdown();
       return;
@@ -175,6 +241,7 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     beginCountdown(settings.limitTimeMs);
   }, [
     beginCountdown,
+    beginGameSession,
     clearCountdownInterval,
     hasTimer,
     isReady,
@@ -196,6 +263,7 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     if (!hasTimer) {
       clearCountdownInterval();
       countdownDeadlineRef.current = null;
+      beginGameSession();
       resetCountdown(settings.limitTimeMs);
       stopCountdown();
       return;
@@ -204,6 +272,7 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     beginCountdown(settings.limitTimeMs);
   }, [
     beginCountdown,
+    beginGameSession,
     boardCtrl,
     clearCountdownInterval,
     hasTimer,

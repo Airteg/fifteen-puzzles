@@ -7,17 +7,78 @@ import {
 } from "./appStorage.types";
 import { STORAGE_KEYS } from "./storageKeys";
 
-function normalizeBestGames(bestGames: GameResult[]): GameResult[] {
-  return [...bestGames]
-    .filter(
-      (item) =>
-        typeof item.id === "string" &&
-        typeof item.durationMs === "number" &&
-        Number.isFinite(item.durationMs) &&
-        typeof item.playedAt === "string",
-    )
+const MAX_BEST_GAMES = 10;
+
+type StoredGameResult = Partial<GameResult> & {
+  playedAt?: unknown;
+};
+
+function normalizeGameResult(item: StoredGameResult): GameResult | null {
+  const startedAt =
+    typeof item.startedAt === "string"
+      ? item.startedAt
+      : typeof item.playedAt === "string"
+        ? item.playedAt
+        : null;
+
+  if (
+    typeof item.id !== "string" ||
+    item.id.length === 0 ||
+    typeof item.durationMs !== "number" ||
+    !Number.isFinite(item.durationMs) ||
+    item.durationMs < 0 ||
+    typeof item.moves !== "number" ||
+    !Number.isFinite(item.moves) ||
+    item.moves < 0 ||
+    startedAt === null
+  ) {
+    return null;
+  }
+
+  return {
+    id: item.id,
+    startedAt,
+    durationMs: Math.max(0, Math.round(item.durationMs)),
+    moves: Math.max(0, Math.round(item.moves)),
+  };
+}
+
+export function normalizeBestGames(bestGames: unknown): GameResult[] {
+  if (!Array.isArray(bestGames)) {
+    return [];
+  }
+
+  return bestGames
+    .map((item) => normalizeGameResult(item as StoredGameResult))
+    .filter((item): item is GameResult => item !== null)
     .sort((a, b) => a.durationMs - b.durationMs)
-    .slice(0, 10);
+    .slice(0, MAX_BEST_GAMES);
+}
+
+export function insertBestGame(
+  bestGames: GameResult[],
+  candidate: GameResult,
+): GameResult[] {
+  const normalizedBestGames = normalizeBestGames(bestGames);
+  const normalizedCandidate = normalizeGameResult(candidate);
+
+  if (normalizedCandidate === null) {
+    return normalizedBestGames;
+  }
+
+  if (normalizedBestGames.length < MAX_BEST_GAMES) {
+    return normalizeBestGames([...normalizedBestGames, normalizedCandidate]);
+  }
+
+  const worstGame = normalizedBestGames[normalizedBestGames.length - 1];
+  if (normalizedCandidate.durationMs >= worstGame.durationMs) {
+    return normalizedBestGames;
+  }
+
+  return normalizeBestGames([
+    ...normalizedBestGames.slice(0, -1),
+    normalizedCandidate,
+  ]);
 }
 
 function mergeWithDefaults(
@@ -30,7 +91,7 @@ function mergeWithDefaults(
       ...(parsed?.statistics ?? {}),
     },
     gameState: parsed?.gameState ?? null,
-    bestGames: normalizeBestGames(parsed?.bestGames ?? []),
+    bestGames: normalizeBestGames(parsed?.bestGames),
   };
 }
 

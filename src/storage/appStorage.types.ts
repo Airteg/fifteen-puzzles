@@ -24,8 +24,9 @@ export interface Statistics {
 
 export type GameResult = {
   id: string;
+  startedAt: string; // ISO string
   durationMs: number;
-  playedAt: string; // ISO string
+  moves: number;
 };
 
 export type AppStorageData = {
