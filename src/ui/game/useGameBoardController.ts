@@ -1,6 +1,10 @@
 import { useCallback } from "react";
-import { useSharedValue, withTiming } from "react-native-reanimated";
-import { scheduleOnRN } from "react-native-worklets"; // ДОДАНО
+import {
+  SharedValue,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
+import { scheduleOnRN } from "react-native-worklets";
 
 import { useGameLayout } from "@/context/LayoutSnapshotProvider";
 import type { BoardAxis } from "./gameBoardModel";
@@ -20,6 +24,7 @@ export type MoveCommitEvent = {
   committedAtMs: number;
   isWinningMove: boolean;
   moves: number;
+  sessionId: number;
 };
 
 const STATIC_TILES: readonly BoardTileDescriptor[] = Array.from(
@@ -62,6 +67,7 @@ type UseGameBoardControllerParams = {
   bootGrid?: number[];
   onWin?: () => void;
   onMoveCommitted?: (event: MoveCommitEvent) => void;
+  sessionIdSV: SharedValue<number>;
 };
 
 const resolveBootGrid = (bootGrid?: number[]) => {
@@ -76,6 +82,7 @@ export function useGameBoardController({
   bootGrid,
   onWin,
   onMoveCommitted,
+  sessionIdSV,
 }: UseGameBoardControllerParams): UseGameBoardControllerResult {
   const stepPx = useGameLayout(mode).board.step;
   const resolvedBootGrid = resolveBootGrid(bootGrid);
@@ -179,11 +186,13 @@ export function useGameBoardController({
       const nextMoves = movesSV.value + 1;
       movesSV.value = nextMoves;
 
+      const sessionId = sessionIdSV.value;
       if (onMoveCommitted) {
         scheduleOnRN(onMoveCommitted, {
           committedAtMs,
           isWinningMove: isWin,
           moves: nextMoves,
+          sessionId,
         });
       }
 
@@ -211,6 +220,7 @@ export function useGameBoardController({
       onWin,
       onMoveCommitted,
       movesSV,
+      sessionIdSV,
     ],
   );
 

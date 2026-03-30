@@ -26,6 +26,7 @@ import { GameSceneCanvas } from "@/ui/game/GameSceneCanvas";
 
 // Функція для генерації початкового положення плиток
 import { shuffleTiles } from "@/ui/game/gameEngine/shuffleTiles";
+import { useSharedValue } from "react-native-reanimated";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Game">;
 const COUNTDOWN_TICK_MS = 250;
@@ -69,6 +70,8 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   const hasPendingWinRef = useRef(false);
   const sessionStartedAtMsRef = useRef<number | null>(null);
   const sessionStartedAtIsoRef = useRef<string | null>(null);
+  const sessionIdRef = useRef(0);
+  const sessionIdSV = useSharedValue(0);
 
   // 4. Генерація початкового положення плиток
   const bootGrid = useMemo(() => shuffleTiles(), []);
@@ -82,18 +85,27 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
 
   const beginGameSession = useCallback(() => {
     const startedAtMs = Date.now();
+    const nextSessionId = sessionIdRef.current + 1;
+
+    sessionIdRef.current = nextSessionId;
+    sessionIdSV.value = nextSessionId;
 
     sessionStartedAtMsRef.current = startedAtMs;
     sessionStartedAtIsoRef.current = new Date(startedAtMs).toISOString();
+
     didResolveGameRef.current = false;
     didPersistGameResultRef.current = false;
     hasPendingWinRef.current = false;
 
     return startedAtMs;
-  }, []);
+  }, [sessionIdSV]);
 
   const handleMoveCommitted = useCallback(
-    ({ committedAtMs, isWinningMove, moves }: MoveCommitEvent) => {
+    ({ committedAtMs, isWinningMove, moves, sessionId }: MoveCommitEvent) => {
+      if (sessionId !== sessionIdRef.current) {
+        return;
+      }
+
       if (!isWinningMove) {
         return;
       }
@@ -155,9 +167,10 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   // 5. Ігровий контролер
   const boardCtrl = useGameBoardController({
     mode: gameMode,
-    bootGrid: bootGrid,
+    bootGrid,
     onWin: handleWin,
     onMoveCommitted: handleMoveCommitted,
+    sessionIdSV,
   });
 
   // 6. Стан готовності (анімація навігації)
