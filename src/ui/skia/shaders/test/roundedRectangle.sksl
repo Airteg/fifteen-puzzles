@@ -1,0 +1,55 @@
+// kind=shader
+uniform float2 u_canvasSize;
+uniform float2 u_figureSize;
+uniform vec4   u_tint;
+
+// uv - поточна координата відносно центру
+// halfSize - половина ширини та висоти нашого прямокутника
+// r - радіус закруглення кутів
+float sdRoundRect(vec2 uv, vec2 halfSize, float r) {
+    // 1. Симетрія (працюємо лише з одним "універсальним" кутом) і зменшення розміру на r
+    vec2 d = abs(uv) - (halfSize - r);
+
+    // 2. Рахуємо відстань зовні (max обрізає від'ємні значення, залишаючи лише те, що "вилізло")
+    float outsideDist = length(max(d, 0.0));
+
+    // 3. Рахуємо відстань всередині (якщо ми глибоко в фігурі, беремо найближчий край)
+    float insideDist = min(max(d.x, d.y), 0.0);
+
+    // 4. Додаємо їх і віднімаємо радіус, щоб "надути" фігуру і закруглити кути
+    return outsideDist + insideDist - r;
+}
+
+vec4 main(float2 curP) {
+  vec2  uv          = curP - u_canvasSize * 0.5;
+  float t           = 3.0;                        // товщина обвідки
+  float R           = u_figureSize.x * 0.5 - t;   // радіус бублика
+  float aa          = 2.0;                        // згладжування країв
+  float cornerRadius = 30.0;                      // Наскільки круглими будуть кути
+
+  float shadowBlur  = 25.0;                       // ← розмиття тіні
+  float shadowSize  = 0.5*(u_canvasSize.x-u_figureSize.x)-shadowBlur;  // ← розмір тіні
+
+  // float dist = length(uv);
+  float dist = sdRoundRect(uv, (0.5*u_figureSize), cornerRadius);
+  // 1. Відстань до обвідки (для бублика)
+  float distanceToBorder = abs(dist) - t * 0.5;
+  // float distanceToBorder = abs(dist - u_figureSize.x * 0.5 - t + 6.0 * sin(8.0 * atan(uv.y, uv.x))) - t * 0.5;
+  float ringMask = 1.0 - smoothstep(0.0, aa, distanceToBorder);
+
+  // 2. Відстань до тіні (тільки зовні бублика)
+  float shadowDistance = distanceToBorder - shadowSize;
+  float shadowMask     = 1.0 - smoothstep(0.0, shadowBlur, shadowDistance);
+
+  // 3. Кольори
+  vec4 ringColor   = u_tint * ringMask;               // червоний бублик
+  vec4 shadowColor = vec4(0.0, 0.0, 0.0, 0.5);        // чорна тінь (alpha можна міняти)
+
+  // 4. Комбінуємо: спочатку тінь, потім зверху бублик
+  vec4 finalColor = mix(shadowColor, ringColor, ringMask);
+
+  // 5. Обмежуємо тінь тільки зовні (ключовий рядок!)
+  finalColor.a *= max(shadowMask, ringMask);
+
+  return finalColor;
+}

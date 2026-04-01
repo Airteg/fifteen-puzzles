@@ -1,0 +1,16 @@
+// kind=shader
+uniform float2 u_canvasSize; 
+uniform float2 u_figureSize;   
+uniform vec4 u_tint; 
+
+vec4 main(float2 curP) {
+  vec2 uv = curP - u_canvasSize * 0.5;
+  float R = u_figureSize.x * 0.5;
+  float rSquared = R * R;
+  float xSquared = uv.x * uv.x;
+  float underRoot = max(0.0, rSquared - xSquared);
+  float waveY = sqrt(underRoot);
+  float mask = step(abs(uv.y), waveY);
+
+  return u_tint * mask;
+}

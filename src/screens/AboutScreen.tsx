@@ -1,10 +1,4 @@
-import {
-  Canvas,
-  Group,
-  Rect,
-  useFont,
-  useImage,
-} from "@shopify/react-native-skia";
+import { Canvas, Group, Rect, useFont } from "@shopify/react-native-skia";
 import React, { useState } from "react";
 import { Button, StyleSheet, Text, View } from "react-native";
 import { styles as globalStyles } from "../styles/globalStyles";
@@ -14,20 +8,35 @@ import type { Props } from "../types/types";
 import { useLayoutRenderHelpers } from "@/context/LayoutSnapshotProvider";
 import { BoardSkin } from "@/ui/skia/BoardSkin";
 import { hexToShader } from "@/utils/color";
+import { Test } from "@/ui/skia/Test";
 
-const cW = 350;
-const cH = 550;
+const cW = 350; // ширина Canvas
+const cH = 550; // висота Canvas
 
 const AboutScreen = ({ navigation }: Props<"About">) => {
   const { S, snap } = useLayoutRenderHelpers();
   const [scale, setScale] = useState(1);
-  const fiveImage = useImage(require("../../assets/images/logo5.png"));
+  // const fiveImage = useImage(require("../../assets/images/logo5.png"));
+  console.log("--------------------------------");
+  console.log("Canvas: ", cW, "X", cH);
+  console.log("Масштаб:", scale);
 
-  const figureW = 324;
-  const figureH = 324;
+  // ===========================
+  // Геометрія фігури, яку ми будемо масштабувати.
+  // Вона не залежить від масштабу, бо ми трансформуватимемо всю групу цілком.
+  const figureW = 300;
+  const figureH = 300;
+  const fW = figureW * scale;
+  const fH = figureH * scale;
+  // ===========================
+
+  console.log("Розмір фігури:", figureW, "X", figureH);
+  console.log("Масштабована фігура:", figureW * scale, "X", figureH * scale);
+
   // Ділимо на 2, бо потім масштабуватимемо всю групу, а не окремі елементи.
-  const figureX = (cW - figureW) / (2 * scale);
-  const figureY = (cH - figureH) / (2 * scale);
+  const fX = cW / 2 - fW / 2;
+  const fY = cH / 2 - fH / 2;
+  console.log("Початкова координата. X:", fX, "Y: ", fY);
 
   // Шрифт:
   const font = useFont(
@@ -38,13 +47,8 @@ const AboutScreen = ({ navigation }: Props<"About">) => {
   const handleZoomIn = () => setScale((s) => Math.min(cW / figureW, s + 0.5));
   const handleZoomOut = () => setScale((s) => Math.max(0.5, s - 0.5));
   const handleReset = () => setScale(1);
-  // console.log("scale", scale);
-  // console.log("(figureW * scale) / 2 = ", (figureW * scale) / 2);
-  // console.log(
-  //   "cW / 2 - (figureW * scale) / 2 = ",
-  //   cW / 2 - (figureW * scale) / 2,
-  // );
-  if (!fiveImage) return null;
+
+  // if (!fiveImage) return null;
 
   return (
     <View style={[globalStyles.container, localStyles.container]}>
@@ -64,6 +68,9 @@ const AboutScreen = ({ navigation }: Props<"About">) => {
             height: cH,
           }}
         >
+          {/* Прямокутник, що окреслює межі Canvas для візуалізації координатної системи Skia. 
+          Він не масштабуватиметься разом з фігурою, 
+          оскільки знаходиться поза групою, яка трансформується. */}
           <Rect
             x={0}
             y={0}
@@ -73,28 +80,8 @@ const AboutScreen = ({ navigation }: Props<"About">) => {
             style="stroke"
             strokeWidth={2}
           />
-          <Group
-            transform={[
-              { translateX: cW / 2 - (figureW * scale) / 2 },
-              { translateY: cH / 2 - (figureH * scale) / 2 },
-              // { translateX: cW / 2 - (figureW * scale) / 2 },
-              // { translateX: cH / 2 - (figureH * scale) / 2 },
-            ]}
-          >
-            <Group
-              transform={[
-                { translateX: cW / 2 - (figureW * scale) / 2 },
-                { translateY: cH / 2 - (figureH * scale) / 2 },
-                // { scale: scale },
-              ]}
-            >
-              <BoardSkin
-                rect={{ x: 0, y: 0, width: figureW, height: figureH }}
-                S={S}
-                snap={snap}
-                tintColor={hexToShader("#ff00ff")}
-              />
-            </Group>
+          <Group transform={[{ translateX: fX }, { translateY: fY }]}>
+            <Test w={fW} h={fH} />
           </Group>
         </Canvas>
       </View>
@@ -108,7 +95,7 @@ const AboutScreen = ({ navigation }: Props<"About">) => {
 
 const localStyles = StyleSheet.create({
   // container: { flex: 1, backgroundColor: "#0d676b", padding: 0 },
-  container: { flex: 1, backgroundColor: "#a1a1a1", padding: 0 },
+  container: { flex: 1, backgroundColor: "#7f6161", padding: 0 },
   controls: {
     paddingTop: 60,
     paddingBottom: 20,

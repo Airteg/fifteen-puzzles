@@ -111,7 +111,7 @@ export function SoundModalScene({
           r={layout.innerR}
           color="#E1F5FE"
         >
-          <Shadow inner dx={0} dy={4} blur={8} color="rgba(0,0,0,0.55)" />
+          <Shadow inner dx={0} dy={4} blur={8} color="rgba(0,0,0,0.27)" />
         </RoundedRect>
       </Group>
 
