@@ -1,55 +1,81 @@
 // kind=shader
 uniform float2 u_canvasSize;
-uniform float2 u_figureSize;
-uniform vec4   u_tint;
+uniform half4  u_tint;
 
-// uv - поточна координата відносно центру
-// halfSize - половина ширини та висоти нашого прямокутника
-// r - радіус закруглення кутів
 float sdRoundRect(vec2 uv, vec2 halfSize, float r) {
-    // 1. Симетрія (працюємо лише з одним "універсальним" кутом) і зменшення розміру на r
     vec2 d = abs(uv) - (halfSize - r);
-
-    // 2. Рахуємо відстань зовні (max обрізає від'ємні значення, залишаючи лише те, що "вилізло")
     float outsideDist = length(max(d, 0.0));
-
-    // 3. Рахуємо відстань всередині (якщо ми глибоко в фігурі, беремо найближчий край)
     float insideDist = min(max(d.x, d.y), 0.0);
-
-    // 4. Додаємо їх і віднімаємо радіус, щоб "надути" фігуру і закруглити кути
     return outsideDist + insideDist - r;
 }
 
-vec4 main(float2 curP) {
-  vec2  uv          = curP - u_canvasSize * 0.5;
-  float t           = 3.0;                        // товщина обвідки
-  float R           = u_figureSize.x * 0.5 - t;   // радіус бублика
-  float aa          = 2.0;                        // згладжування країв
-  float cornerRadius = 30.0;                      // Наскільки круглими будуть кути
+half4 main(float2 curP) {
+    // 1. ПІДГОТОВКА КООРДИНАТ
+    vec2 center = u_canvasSize * 0.5;
+    vec2 uv = curP - center;
+    float minCanvas = min(u_canvasSize.x, u_canvasSize.y);
 
-  float shadowBlur  = 25.0;                       // ← розмиття тіні
-  float shadowSize  = 0.5*(u_canvasSize.x-u_figureSize.x)-shadowBlur;  // ← розмір тіні
+    // 2. ВХІДНІ УМОВИ
+    float aspectRatio = 1.618;          
+    float shadowSpreadPct = 0.05;       
+    float shadowBlurPct   = 0.08;       
+    float borderThickPct  = 0.01;       
+    float cornerRadiusPct = 0.20;       
 
-  // float dist = length(uv);
-  float dist = sdRoundRect(uv, (0.5*u_figureSize), cornerRadius);
-  // 1. Відстань до обвідки (для бублика)
-  float distanceToBorder = abs(dist) - t * 0.5;
-  // float distanceToBorder = abs(dist - u_figureSize.x * 0.5 - t + 6.0 * sin(8.0 * atan(uv.y, uv.x))) - t * 0.5;
-  float ringMask = 1.0 - smoothstep(0.0, aa, distanceToBorder);
+    // 3. РОЗРАХУНОК ТІНІ
+    float shadowSpread = minCanvas * shadowSpreadPct; 
+    float shadowBlur   = minCanvas * shadowBlurPct;
+    float totalShadowMargin = shadowSpread + shadowBlur;
+    float availableWidth  = u_canvasSize.x - (totalShadowMargin * 2.0);
+    float availableHeight = u_canvasSize.y - (totalShadowMargin * 2.0);
 
-  // 2. Відстань до тіні (тільки зовні бублика)
-  float shadowDistance = distanceToBorder - shadowSize;
-  float shadowMask     = 1.0 - smoothstep(0.0, shadowBlur, shadowDistance);
+    // 4. ВПИСУВАННЯ ФІГУРИ
+    float rectWidth;
+    float rectHeight;
+    float availableAspect = availableWidth / availableHeight;
+    
+    if (availableAspect > aspectRatio) {
+        rectHeight = availableHeight;
+        rectWidth  = rectHeight * aspectRatio;
+    } else {
+        rectWidth  = availableWidth;
+        rectHeight = rectWidth / aspectRatio;
+    }
 
-  // 3. Кольори
-  vec4 ringColor   = u_tint * ringMask;               // червоний бублик
-  vec4 shadowColor = vec4(0.0, 0.0, 0.0, 0.5);        // чорна тінь (alpha можна міняти)
+    vec2 figureSize = vec2(rectWidth, rectHeight);
+    vec2 halfSize   = figureSize * 0.5;
 
-  // 4. Комбінуємо: спочатку тінь, потім зверху бублик
-  vec4 finalColor = mix(shadowColor, ringColor, ringMask);
+    // 5. ДИНАМІЧНІ РАДІУСИ ТА ТОВЩИНА
+    float minFigureSide = min(rectWidth, rectHeight);
+    float cornerRadius  = minFigureSide * cornerRadiusPct;
+    float borderThickness = minCanvas * borderThickPct;
 
-  // 5. Обмежуємо тінь тільки зовні (ключовий рядок!)
-  finalColor.a *= max(shadowMask, ringMask);
+    // 6. ГЕОМЕТРІЯ (SDF)
+    float dist = sdRoundRect(uv, halfSize, cornerRadius);
+    float distanceToBorder = abs(dist) - (borderThickness * 0.5);
+    float shadowDistance = distanceToBorder - shadowSpread;
 
-  return finalColor;
+    // 7. МАСКИ ТА КОЛЬОРИ
+    float aa = 1.5; 
+    float ringMask   = 1.0 - smoothstep(0.0, aa, distanceToBorder);
+    float shadowMask = 1.0 - smoothstep(0.0, shadowBlur, shadowDistance);
+
+    // --- ВАШ НОВИЙ КОД ДЛЯ КОЛЬОРОВОЇ ТІНІ (СВІТІННЯ) ---
+    // 1. Задаємо базовий колір тіні (наприклад, синій неон: R=0, G=0.3, B=0.8)
+    vec3 baseShadowRGB = vec3(0.0, 0.3, 0.8);
+    
+    // 2. Вираховуємо фінальну прозорість (максимум 80% непрозорості * маску тіні)
+    float shadowAlpha = 0.8 * shadowMask;
+    
+    // 3. Створюємо half4, множачи RGB на alpha (Premultiplied Alpha)
+    half4 shadowColor = half4(baseShadowRGB * shadowAlpha, shadowAlpha);
+    // ----------------------------------------------------
+
+    // Колір самої рамки (червоний)
+    half4 ringColor = half4(1.0, 0.2, 0.2, 1.0); 
+
+    // Комбінуємо: mix накладе червону рамку поверх синього світіння
+    half4 finalColor = mix(shadowColor, ringColor, ringMask);
+
+    return finalColor;
 }

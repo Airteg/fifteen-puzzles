@@ -1,0 +1,80 @@
+// kind=shader
+uniform float2 u_canvasSize;
+uniform half4  u_tint;
+
+// Наша незмінна формула прямокутника з круглими кутами
+float sdRoundRect(vec2 uv, vec2 halfSize, float r) {
+    vec2 d = abs(uv) - (halfSize - r);
+    float outsideDist = length(max(d, 0.0));
+    float insideDist = min(max(d.x, d.y), 0.0);
+    return outsideDist + insideDist - r;
+}
+
+half4 main(float2 curP) {
+    // 1. ПІДГОТОВКА КООРДИНАТ
+    vec2 center = u_canvasSize * 0.5;
+    vec2 uv = curP - center;
+    float minCanvas = min(u_canvasSize.x, u_canvasSize.y);
+
+    // 2. ВХІДНІ УМОВИ (Збережені ваші змінні)
+    float aspectRatio = 1.618;          
+    float cornerRadiusPct = 0.20;       
+    
+    // Замість розмиття тіні вводимо крок нашої мішені
+    float ringSpacing = minCanvas * 0.08;     // Відстань між стартами кілець (8% від екрана)
+    float borderThickness = minCanvas * 0.015; // Товщина самої лінії (1.5% від екрана)
+
+    // 3. РОБИМО БАЗОВУ ФІГУРУ МЕНШОЮ
+    // Щоб мішень мала куди рости, виділяємо для "нульової" фігури лише 20% екрана
+    float availableWidth  = u_canvasSize.x * 0.2; 
+    float availableHeight = u_canvasSize.y * 0.2;
+
+    float rectWidth;
+    float rectHeight;
+    float availableAspect = availableWidth / availableHeight;
+    
+    if (availableAspect > aspectRatio) {
+        rectHeight = availableHeight;
+        rectWidth  = rectHeight * aspectRatio;
+    } else {
+        rectWidth  = availableWidth;
+        rectHeight = rectWidth / aspectRatio;
+    }
+
+    vec2 figureSize = vec2(rectWidth, rectHeight);
+    vec2 halfSize   = figureSize * 0.5;
+
+    float minFigureSide = min(rectWidth, rectHeight);
+    float cornerRadius  = minFigureSide * cornerRadiusPct;
+
+    // 4. ГЕОМЕТРІЯ (SDF)
+    // Отримуємо АБСОЛЮТНУ відстань до нашого маленького базового прямокутника
+    float dist = sdRoundRect(uv, halfSize, cornerRadius);
+
+    // ==========================================
+    // 5. МАГІЯ МІШЕНІ (Циклічне згортання простору)
+    // ==========================================
+    
+    // Замість того, щоб малювати один бордер, ми ділимо безкінечний простір на відрізки.
+    // mod() бере відстань і циклічно скидає її. 
+    // localDist тепер завжди бігає в діапазоні від 0.0 до ringSpacing.
+    float localDist = mod(abs(dist), ringSpacing);
+
+    // Малюємо рамку всередині цього локального циклу.
+    // Якщо localDist менше за товщину рамки - зафарбовуємо.
+    float aa = 1.5; 
+    float ringMask = 1.0 - smoothstep(borderThickness - aa, borderThickness, localDist);
+
+    // Додатково: зафарбовуємо саму центральну фігуру суцільним кольором,
+    // щоб бачити джерело мішені. (dist < 0 означає, що ми всередині)
+    float centerMask = 1.0 - step(0.0, dist);
+    
+    // Об'єднуємо кільця і центр (логічне АБО)
+    float finalMask = max(ringMask, centerMask);
+
+    // 6. КОЛЬОРИ
+    half4 ringColor = half4(0.0, 0.8, 0.4, 1.0); // Неоновий зелений (як на радарах)
+    half4 bgColor   = half4(0.0, 0.05, 0.1, 1.0); // Темно-синій фон
+
+    return mix(bgColor, ringColor, finalMask);
+}
