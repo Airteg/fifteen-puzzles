@@ -1,6 +1,6 @@
 import { useGameState } from "@/context/GameStateProvider";
 import React, { useMemo } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Props } from "../types/types";
 import { styles as globalStyles } from "../styles/globalStyles"; // Якщо хочеш перевикористати стилі кнопок
 
@@ -33,7 +33,11 @@ const StatisticScreen = ({ navigation }: Props<"Statistic">) => {
         <Text style={styles.modalTitle}>📊 Статистика</Text>
 
         {/* Список (ScrollView, якщо список довгий) */}
-        <View style={styles.listContainer}>
+        <ScrollView
+          style={styles.listContainer}
+          showsVerticalScrollIndicator={true} // явно вмикаємо полосу (за замовчуванням true)
+          // якщо потрібно додати padding/margin всередині
+        >
           {stats.length === 0 ? (
             <Text style={styles.emptyText}>Ще немає жодного результату.</Text>
           ) : (
@@ -53,7 +57,7 @@ const StatisticScreen = ({ navigation }: Props<"Statistic">) => {
               </View>
             ))
           )}
-        </View>
+        </ScrollView>
 
         {/* Кнопка Закрити */}
         <Pressable

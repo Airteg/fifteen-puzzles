@@ -8,14 +8,60 @@ type Params = {
   safeBottom: number;
 };
 
+// Базова ширина еталонного дизайн-макета, від якого рахується scale.
 const DESIGN_W = 390;
+// Базова висота еталонного дизайн-макета.
 const DESIGN_H = 844;
 
 const BOARD_DESIGN = {
+  // Розмір зовнішнього квадрата поля в дизайн-макеті.
   size: 324,
+  // Внутрішній відступ від краю поля до плиток.
   inset: 12,
+  // Проміжок між сусідніми плитками.
   gap: 4,
 };
+
+const LAYOUT_TOKENS = {
+  // Мінімальний відступ від країв екрана до широких панелей.
+  sideMarginMin: 16,
+  // Максимальна базова ширина стандартної панелі/модалки.
+  panelMaxW: 340,
+  // Базова ширина основної кнопки.
+  buttonW: 276,
+  // Базова висота основної кнопки.
+  buttonH: 58,
+  // Вертикальний проміжок між таймером, полем і блоком кнопок.
+  gameGap: 30,
+  // Ширина хедера відносно базової ширини дизайну.
+  headerWidthPct: 0.9,
+  // Висота хедера відносно базової ширини дизайну.
+  headerHeightPct: 0.2,
+  // Вертикальний зсув хедера від safeTop у частках його власної висоти.
+  headerTopOffsetPct: 0.308,
+  // Висота нижньої панелі режимів відносно розміру поля.
+  modePanelHeightPct: 0.21,
+  // Висота таймера відносно розміру поля.
+  timerHeightPct: 0.181,
+  // Висота блока нижніх кнопок відносно розміру поля.
+  buttonsBlockHeightPct: 0.359,
+  // Розмір квадратної іконкової кнопки.
+  iconButtonSize: 80,
+  // Базова висота стандартної модалки налаштувань.
+  modalDefaultH: 400,
+  // Базова ширина компактної модалки звуку.
+  modalSoundW: 214,
+  // Базова висота компактної модалки звуку.
+  modalSoundH: 169,
+  // Відступ між хедером shell-екрана і анімацією.
+  shellHeaderToAnimationGap: 24,
+  // Відступ між анімацією і заголовком.
+  shellAnimationToTitleGap: 16,
+  // Відступ між заголовком і основним контентом.
+  shellTitleToContentGap: 24,
+  // Нижній відступ футера від краю екрана.
+  shellFooterBottomGap: 24,
+} as const;
 
 function snap(v: number) {
   return PixelRatio.roundToNearestPixel(v);
@@ -53,33 +99,35 @@ export function createAppLayoutSnapshot({
 }: Params): AppLayoutSnapshot {
   const scale = Math.min(screenW / DESIGN_W, screenH / DESIGN_H);
 
-  const sideMarginMin = 16;
-  const panelW = snap(Math.min(screenW - 2 * sideMarginMin, 340 * scale));
-  const buttonW = snap(276 * scale);
-  const buttonH = snap(58 * scale);
+  const sideMarginMin = LAYOUT_TOKENS.sideMarginMin;
+  const panelW = snap(
+    Math.min(screenW - 2 * sideMarginMin, LAYOUT_TOKENS.panelMaxW * scale),
+  );
+  const buttonW = snap(LAYOUT_TOKENS.buttonW * scale);
+  const buttonH = snap(LAYOUT_TOKENS.buttonH * scale);
 
   const board = makeBoardLayout(scale);
   const boardSize = board.boardSize;
-  const gameGap = snap(30 * scale);
+  const gameGap = snap(LAYOUT_TOKENS.gameGap * scale);
 
-  const headerW = snap(DESIGN_W * 0.9 * scale);
-  const headerH = snap(DESIGN_W * 0.2 * scale);
+  const headerW = snap(DESIGN_W * LAYOUT_TOKENS.headerWidthPct * scale);
+  const headerH = snap(DESIGN_W * LAYOUT_TOKENS.headerHeightPct * scale);
 
   const modePanelW = boardSize;
-  const modePanelH = snap(boardSize * 0.21);
+  const modePanelH = snap(boardSize * LAYOUT_TOKENS.modePanelHeightPct);
 
   const headerX = (screenW - headerW) / 2;
-  const headerY = safeTop + snap(headerH * 0.308);
+  const headerY = safeTop + snap(headerH * LAYOUT_TOKENS.headerTopOffsetPct);
 
   const modePanelX = (screenW - modePanelW) / 2;
   const modePanelY = screenH - safeBottom - modePanelH;
 
   function makeGameScreenLayout(hasGameTimer: boolean): GameScreenLayout {
     const timerW = boardSize;
-    const timerH = snap(boardSize * 0.181);
+    const timerH = snap(boardSize * LAYOUT_TOKENS.timerHeightPct);
 
     const buttonsW = boardSize;
-    const buttonsH = snap(boardSize * 0.359);
+    const buttonsH = snap(boardSize * LAYOUT_TOKENS.buttonsBlockHeightPct);
 
     const headerBottomY = headerY + headerH;
     const group2Height =
@@ -113,7 +161,7 @@ export function createAppLayoutSnapshot({
       buttonsH,
     );
 
-    const iconBtnW = snap(80 * scale);
+    const iconBtnW = snap(LAYOUT_TOKENS.iconButtonSize * scale);
 
     const homeButtonFrame = makeFrame(
       buttonsBlockFrame.x,
@@ -142,9 +190,9 @@ export function createAppLayoutSnapshot({
   }
 
   const modalDefaultW = panelW;
-  const modalDefaultH = snap(400 * scale);
-  const modalSoundW = snap(214 * scale);
-  const modalSoundH = snap(169 * scale);
+  const modalDefaultH = snap(LAYOUT_TOKENS.modalDefaultH * scale);
+  const modalSoundW = snap(LAYOUT_TOKENS.modalSoundW * scale);
+  const modalSoundH = snap(LAYOUT_TOKENS.modalSoundH * scale);
 
   const modalDefaultFrame = makeFrame(
     (screenW - modalDefaultW) / 2,
@@ -193,10 +241,12 @@ export function createAppLayoutSnapshot({
       },
 
       shell: {
-        headerToAnimationGap: snap(24 * scale),
-        animationToTitleGap: snap(16 * scale),
-        titleToContentGap: snap(24 * scale),
-        footerBottomGap: snap(24 * scale),
+        headerToAnimationGap: snap(LAYOUT_TOKENS.shellHeaderToAnimationGap * scale),
+        animationToTitleGap: snap(
+          LAYOUT_TOKENS.shellAnimationToTitleGap * scale,
+        ),
+        titleToContentGap: snap(LAYOUT_TOKENS.shellTitleToContentGap * scale),
+        footerBottomGap: snap(LAYOUT_TOKENS.shellFooterBottomGap * scale),
       },
     },
   };

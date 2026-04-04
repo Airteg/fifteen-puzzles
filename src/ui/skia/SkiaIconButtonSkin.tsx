@@ -27,7 +27,7 @@ export function SkiaIconButtonSkin({ rect, pressed = false }: Props) {
   const iconColor = "#216169";
   const SHADOW_BLUR = 11;
   const canvasW = rect.width + SHADOW_BLUR * 2;
-  const canvasH = rect.height + SHADOW_BLUR * 2;
+  const canvasH = canvasW;
 
   const uniforms = useMemo(() => {
     return {

@@ -65,9 +65,9 @@ export function SkiaButtonSkin({ rect, title, font, pressed = false }: Props) {
       u_borderColor: hexToShader("#D5F7FF"),
       u_bgColor: hexToShader(pressed ? "#FAFF3F" : "#D5F7FF"),
       u_cornerRadiusPct: 0.1,
-      u_aspectRatio: canvasW / canvasH,
+      u_aspectRatio: rect.width / rect.height,
     };
-  }, [canvasW, canvasH, pressed]);
+  }, [canvasW, canvasH, rect.width, rect.height, pressed]);
 
   const textPath = useMemo(() => {
     return Skia.Path.MakeFromText(title, textX, textY, font)!;
