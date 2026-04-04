@@ -11,7 +11,8 @@ import React, { useMemo } from "react";
 import type { Rect as UIRect } from "../pixel";
 
 // Імпортуємо наш нативний шейдер!
-import buttonSksl from "./shaders/button.sksl";
+import { hexToShader } from "@/utils/color";
+import buttonSksl from "./shaders/frame.sksl";
 
 const buttonEffect = Skia.RuntimeEffect.Make(buttonSksl)!;
 
@@ -49,15 +50,24 @@ export function SkiaButtonSkin({ rect, title, font, pressed = false }: Props) {
     (m.height - font.getSize()) * 0.15;
 
   // Параметри для GPU
+  // const uniforms = useMemo(() => {
+  //   return {
+  //     canvasSize: [canvasW, canvasH],
+  //     buttonSize: [rect.width, rect.height],
+  //     radius: 8.0,
+  //     // borderWidth: 3.0,
+  //     isPressed: pressed ? 1.0 : 0.0,
+  //   };
+  // }, [canvasW, canvasH, rect.width, rect.height, pressed]);
   const uniforms = useMemo(() => {
     return {
-      canvasSize: [canvasW, canvasH],
-      buttonSize: [rect.width, rect.height],
-      radius: 8.0,
-      // borderWidth: 3.0,
-      isPressed: pressed ? 1.0 : 0.0,
+      u_canvasSize: [canvasW, canvasH],
+      u_borderColor: hexToShader("#D5F7FF"),
+      u_bgColor: hexToShader(pressed ? "#FAFF3F" : "#D5F7FF"),
+      u_cornerRadiusPct: 0.1,
+      u_aspectRatio: canvasW / canvasH,
     };
-  }, [canvasW, canvasH, rect.width, rect.height, pressed]);
+  }, [canvasW, canvasH, pressed]);
 
   const textPath = useMemo(() => {
     return Skia.Path.MakeFromText(title, textX, textY, font)!;

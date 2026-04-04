@@ -2,7 +2,7 @@ import { Group, Rect, Shader, Skia } from "@shopify/react-native-skia";
 import React, { useMemo } from "react";
 
 import { hexToShader } from "@/utils/color";
-import tileShaderSource from "./shaders/test/roundedRectangle.sksl";
+import tileShaderSource from "./shaders/frame.sksl";
 
 const tileEffect = Skia.RuntimeEffect.Make(tileShaderSource);
 
@@ -29,10 +29,12 @@ export function Test({ w, h }: { w: number; h: number }) {
   const uniforms = useMemo(() => {
     return {
       u_canvasSize: [w, h],
-      u_figureSize: [rect.w, rect.h],
-      u_tint: hexToShader("#ffffff"),
+      u_borderColor: hexToShader("#D5F7FF"),
+      u_bgColor: hexToShader("#FAFF3F"),
+      u_cornerRadiusPct: 0.1,
+      u_aspectRatio: 4.75866206896,
     };
-  }, [w, h, rect.w, rect.h]);
+  }, [w, h]);
 
   if (!tileEffect) return null;
 

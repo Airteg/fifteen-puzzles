@@ -7,9 +7,10 @@ import {
   Skia,
 } from "@shopify/react-native-skia";
 import React, { useMemo } from "react";
+import { hexToShader } from "@/utils/color";
 import type { Rect as UIRect } from "../pixel";
 // Впевнись, що шлях до шейдера правильний
-import buttonSksl from "./shaders/button.sksl";
+import buttonSksl from "./shaders/frame.sksl";
 
 const buttonEffect = Skia.RuntimeEffect.Make(buttonSksl)!;
 
@@ -30,12 +31,13 @@ export function SkiaIconButtonSkin({ rect, pressed = false }: Props) {
 
   const uniforms = useMemo(() => {
     return {
-      canvasSize: [canvasW, canvasH],
-      buttonSize: [rect.width, rect.height],
-      radius: 8.0,
-      isPressed: pressed ? 1.0 : 0.0,
+      u_canvasSize: [canvasW, canvasH],
+      u_borderColor: hexToShader("#D5F7FF"),
+      u_bgColor: hexToShader(pressed ? "#FAFF3F" : "#D5F7FF"),
+      u_cornerRadiusPct: 0.1,
+      u_aspectRatio: canvasW / canvasH,
     };
-  }, [canvasW, canvasH, rect.width, rect.height, pressed]);
+  }, [canvasW, canvasH, pressed]);
 
   // Розраховуємо центрування та масштаб іконки всередині квадрата
   const path = useMemo(() => {

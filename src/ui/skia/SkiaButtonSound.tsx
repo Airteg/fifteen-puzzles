@@ -1,3 +1,4 @@
+import { hexToShader } from "@/utils/color";
 import {
   Blur,
   Group,
@@ -7,7 +8,7 @@ import {
   Skia,
 } from "@shopify/react-native-skia";
 import React, { useMemo } from "react";
-import buttonSksl from "./shaders/button.sksl";
+import buttonSksl from "./shaders/frame.sksl";
 
 const buttonEffect = Skia.RuntimeEffect.Make(buttonSksl)!;
 
@@ -31,15 +32,23 @@ export function SkiaButtonSound({ frame, type, active }: Props) {
   const canvasW = frame.width + SHADOW_BLUR * 2;
   const canvasH = frame.width + SHADOW_BLUR * 2;
 
+  // const uniforms = useMemo(() => {
+  //   return {
+  //     canvasSize: [canvasW, canvasH],
+  //     buttonSize: [frame.width, frame.width],
+  //     radius: 8.0,
+  //     isPressed: active ? 1.0 : 0.0,
+  //   };
+  // }, [canvasW, canvasH, frame.width, active]);
   const uniforms = useMemo(() => {
     return {
-      canvasSize: [canvasW, canvasH],
-      buttonSize: [frame.width, frame.width],
-      radius: 8.0,
-      isPressed: active ? 1.0 : 0.0,
+      u_canvasSize: [canvasW, canvasH],
+      u_borderColor: hexToShader("#D5F7FF"),
+      u_bgColor: hexToShader(active ? "#FAFF3F" : "#D5F7FF"),
+      u_cornerRadiusPct: 0.1,
+      u_aspectRatio: canvasW / canvasH,
     };
-  }, [canvasW, canvasH, frame.width, active]);
-
+  }, [canvasW, canvasH, active]);
   const pathIcon = useMemo(() => {
     const p = Skia.Path.MakeFromSVGString(path);
     if (!p) return null;

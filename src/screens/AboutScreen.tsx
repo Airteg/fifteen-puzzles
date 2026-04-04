@@ -114,6 +114,7 @@ const localStyles = StyleSheet.create({
     alignItems: "center",
     borderColor: "white",
     borderWidth: 1,
+    backgroundColor: "#71D4EB",
   },
   footer: {
     padding: 30,

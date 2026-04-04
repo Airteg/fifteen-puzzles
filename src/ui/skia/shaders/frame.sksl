@@ -1,0 +1,99 @@
+// kind=shader
+uniform float2 u_canvasSize;
+uniform half4  u_borderColor;      // Колір рамки 
+uniform half4  u_bgColor;          // Колір підкладки всередині рамки
+uniform float  u_cornerRadiusPct;  // Радіус заокруглення (відсоток від найменшої сторони: 0.0 - 0.5)
+uniform float  u_aspectRatio;      // Пропорції фігури (Ширина / Висота)
+
+float sdRoundRect(vec2 uv, vec2 halfSize, float r) {
+    vec2 d = abs(uv) - (halfSize - r);
+    float outsideDist = length(max(d, 0.0));
+    float insideDist = min(max(d.x, d.y), 0.0);
+    return outsideDist + insideDist - r;
+}
+
+half4 main(float2 curP) {
+    // 1. ПІДГОТОВКА КООРДИНАТ
+    vec2 center = u_canvasSize * 0.5;
+    vec2 uv = curP - center;
+    float minCanvas = min(u_canvasSize.x, u_canvasSize.y);
+
+    // 2. ВНУТРІШНІ НАЛАШТУВАННЯ ТІНІ ТА РАМКИ
+    float shadowSpreadPct = 0.00;
+    float shadowBlurPct   = 0.08;       
+    float borderThickPct  = 0.01;       
+
+    // 3. РОЗРАХУНОК ТІНІ
+    float shadowSpread = minCanvas * shadowSpreadPct;
+    float shadowBlur   = minCanvas * shadowBlurPct;
+    float totalShadowMargin = shadowSpread + shadowBlur;
+    float availableWidth  = u_canvasSize.x - (totalShadowMargin * 2.0);
+    float availableHeight = u_canvasSize.y - (totalShadowMargin * 2.0);
+
+    // 4. ВПИСУВАННЯ ФІГУРИ (через зовнішній u_aspectRatio)
+    float rectWidth;
+    float rectHeight;
+    float availableAspect = availableWidth / availableHeight;
+
+    if (availableAspect > u_aspectRatio) {
+        rectHeight = availableHeight;
+        rectWidth  = rectHeight * u_aspectRatio;
+    } else {
+        rectWidth  = availableWidth;
+        rectHeight = rectWidth / u_aspectRatio;
+    }
+
+    vec2 figureSize = vec2(rectWidth, rectHeight);
+    vec2 halfSize   = figureSize * 0.5;
+
+    // 5. ДИНАМІЧНІ РАДІУСИ ТА ТОВЩИНА (через зовнішній u_cornerRadiusPct)
+    float minFigureSide = min(rectWidth, rectHeight);
+    
+    // Множимо на змінну ззовні. Якщо передати 0.5 - кути зійдуться в центрі.
+    float cornerRadius  = minFigureSide * u_cornerRadiusPct;
+    float borderThickness = minCanvas * borderThickPct;
+
+    // 6. ГЕОМЕТРІЯ (SDF)
+    float dist = sdRoundRect(uv, halfSize, cornerRadius);
+    float distanceToBorder = abs(dist) - (borderThickness * 0.5);
+    float shadowDistance = max(distanceToBorder - shadowSpread, 0.0);
+
+    // 7. МАСКИ
+    float aa = 1.5;
+    
+    // Маска тіні
+    float falloff = 0.03; 
+    float cutOff = 0.76;
+    float rawShadow = exp(-falloff * shadowDistance);
+    float shadowMask = max(rawShadow - cutOff, 0.0);
+
+    // Маска рамки (бордера)
+    float ringMask = 1.0 - smoothstep(0.0, aa, distanceToBorder);
+
+    // --- НОВА МАСКА: ПІДКЛАДКА ---
+    // dist <= 0 означає, що піксель знаходиться всередині базової фігури.
+    // smoothstep робить краї цієї підкладки згладженими.
+    float bgMask = 1.0 - smoothstep(0.0, aa, dist);
+    // -----------------------------
+
+    // 8. КОЛЬОРИ ТА ЗМІШУВАННЯ ШАРІВ
+    
+    // Починаємо з абсолютно прозорого полотна екрана
+    half4 finalColor = half4(0.0);
+
+    // Шар 1 (Низ): Малюємо підкладку. 
+    // Де bgMask = 1 (всередині), з'являється u_bgColor. Зовні залишається прозорим.
+    finalColor = mix(finalColor, u_bgColor, bgMask);
+
+    // Шар 2 (Середина): Накладаємо маску тіні поверх підкладки.
+    // Задаємо чистий колір тіні без вбудованої прозорості, щоб mix спрацював ідеально
+    vec3 baseShadowRGB = vec3(0.0, 0.0, 0.0);
+    half4 shadowColor = half4(baseShadowRGB, 1.0); 
+    float shadowAlpha = 0.7 * shadowMask;
+    finalColor = mix(finalColor, shadowColor, shadowAlpha);
+
+    // Шар 3 (Верх): Накладаємо рамку. Вона перекриє все, що під нею.
+    finalColor = mix(finalColor, u_borderColor, ringMask);
+
+    return finalColor;
+}
