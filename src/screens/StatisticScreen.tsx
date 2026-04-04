@@ -1,153 +1,118 @@
+import {
+  useLayoutDevice,
+  useLayoutRenderHelpers,
+  useSettingsLayout,
+} from "@/context/LayoutSnapshotProvider";
+import { useSkiaFonts } from "@/context/FontProvider";
 import { useGameState } from "@/context/GameStateProvider";
+import {
+  StatisticItemVm,
+  StatisticModalOverlay,
+  StatisticModalScene,
+  StatisticSummaryVm,
+} from "@/screens/components/StatisticModal";
+import { PanelSurface } from "@/ui/skia/PanelSurface";
+import { Canvas, Rect } from "@shopify/react-native-skia";
 import React, { useMemo } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { Props } from "../types/types";
-import { styles as globalStyles } from "../styles/globalStyles"; // Якщо хочеш перевикористати стилі кнопок
 
 function formatDuration(durationMs: number) {
   const totalSeconds = Math.max(0, Math.round(durationMs / 1000));
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
-
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
+function formatDate(iso: string) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "--/--";
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${month}/${day}`;
+}
+
 const StatisticScreen = ({ navigation }: Props<"Statistic">) => {
-  const { bestGames } = useGameState();
-  const stats = useMemo(
+  const { screenW: sw, screenH: sh } = useLayoutDevice();
+  const { modalDefaultFrame } = useSettingsLayout();
+  const { S, snap } = useLayoutRenderHelpers();
+  const { title: titleFont, body: bodyFont } = useSkiaFonts();
+  const { bestGames, statistics } = useGameState();
+
+  const items = useMemo<StatisticItemVm[]>(
     () =>
-      [...bestGames].sort(
-        (a, b) => a.durationMs - b.durationMs || a.moves - b.moves,
-      ),
+      [...bestGames]
+        .sort((a, b) => a.durationMs - b.durationMs || a.moves - b.moves)
+        .slice(0, 10)
+        .map((item, index) => ({
+          id: item.id,
+          rank: index + 1,
+          durationText: formatDuration(item.durationMs),
+          movesText: String(item.moves),
+          dateText: formatDate(item.startedAt),
+        })),
     [bestGames],
   );
 
+  const summary = useMemo<StatisticSummaryVm>(
+    () => ({
+      bestTimeText:
+        statistics.bestTime > 0 ? formatDuration(statistics.bestTime) : "--:--",
+      bestMovesText:
+        statistics.bestMoves > 0 ? String(statistics.bestMoves) : "---",
+    }),
+    [statistics.bestMoves, statistics.bestTime],
+  );
+
   return (
-    // 1. Оверлей (Темний фон на весь екран)
-    // Pressable тут дозволяє закрити вікно, якщо клікнути повз нього
-    <Pressable style={styles.overlay} onPress={() => navigation.goBack()}>
-      {/* 2. Саме модальне вікно (Білий квадрат) */}
-      {/* Pressable тут потрібен, щоб клік по білому вікну НЕ закривав його */}
-      <Pressable style={styles.modalView} onPress={(e) => e.stopPropagation()}>
-        {/* Заголовок */}
-        <Text style={styles.modalTitle}>📊 Статистика</Text>
+    <View style={StyleSheet.absoluteFill}>
+      <Canvas style={StyleSheet.absoluteFill}>
+        <Rect x={0} y={0} width={sw} height={sh} color="rgba(0,0,0,0.45)" />
 
-        {/* Список (ScrollView, якщо список довгий) */}
-        <ScrollView
-          style={styles.listContainer}
-          showsVerticalScrollIndicator={true} // явно вмикаємо полосу (за замовчуванням true)
-          // якщо потрібно додати padding/margin всередині
-        >
-          {stats.length === 0 ? (
-            <Text style={styles.emptyText}>Ще немає жодного результату.</Text>
-          ) : (
-            stats.map((item, index) => (
-              <View key={item.id} style={styles.row}>
-                <Text style={styles.rank}>#{index + 1}</Text>
-                <View style={styles.resultBody}>
-                  <Text style={styles.metaLabel}>Start</Text>
-                  <Text style={styles.metaValue}>{item.startedAt}</Text>
-                  <Text style={styles.metaLabel}>Duration</Text>
-                  <Text style={styles.metaValue}>
-                    {formatDuration(item.durationMs)}
-                  </Text>
-                  <Text style={styles.metaLabel}>Moves</Text>
-                  <Text style={styles.metaValue}>{item.moves}</Text>
-                </View>
-              </View>
-            ))
-          )}
-        </ScrollView>
+        <StatisticModalScene
+          frame={modalDefaultFrame}
+          S={S}
+          snap={snap}
+          titleFont={titleFont}
+          bodyFont={bodyFont}
+          summary={summary}
+          items={items}
+        />
+      </Canvas>
 
-        {/* Кнопка Закрити */}
+      <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
         <Pressable
-          style={[globalStyles.button, styles.closeButton]}
+          style={StyleSheet.absoluteFill}
           onPress={() => navigation.goBack()}
+        />
+
+        <Pressable
+          style={{
+            position: "absolute",
+            left: modalDefaultFrame.x,
+            top: modalDefaultFrame.y,
+            width: modalDefaultFrame.width,
+            height: modalDefaultFrame.height,
+          }}
+          onPress={(e) => e.stopPropagation()}
         >
-          <Text style={globalStyles.btnText}>Закрити</Text>
+          <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+            <StatisticModalOverlay
+              frame={modalDefaultFrame}
+              S={S}
+              snap={snap}
+              onBack={() => navigation.goBack()}
+              onResetStatistics={() => {
+                // Поки що заглушка.
+                // Коли дійдемо до логіки — підключимо окремий reset action.
+                console.log("TODO: reset statistics");
+              }}
+            />
+          </View>
         </Pressable>
-      </Pressable>
-    </Pressable>
+      </View>
+    </View>
   );
 };
 
 export default StatisticScreen;
-
-// Локальні стилі для модалки
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)", // Напівпрозорий чорний
-    justifyContent: "center", // Центруємо по вертикалі
-    alignItems: "center", // Центруємо по горизонталі
-  },
-  modalView: {
-    width: "85%", // Ширина вікна
-    backgroundColor: "white",
-    borderRadius: 20,
-    padding: 25,
-    alignItems: "center",
-    // Тіні для iOS
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    // Тінь для Android
-    elevation: 5,
-  },
-  modalTitle: {
-    fontSize: 22,
-    fontWeight: "bold",
-    marginBottom: 20,
-    color: "#333",
-  },
-  listContainer: {
-    width: "100%",
-    marginBottom: 20,
-    gap: 12,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-    backgroundColor: "#f8fbff",
-    borderRadius: 14,
-  },
-  rank: {
-    fontWeight: "bold",
-    color: "#2f6ea2",
-    width: 34,
-    fontSize: 16,
-  },
-  resultBody: {
-    flex: 1,
-    gap: 2,
-  },
-  metaLabel: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#6b7c8d",
-    textTransform: "uppercase",
-  },
-  metaValue: {
-    fontSize: 14,
-    color: "#333",
-  },
-  emptyText: {
-    textAlign: "center",
-    color: "#667085",
-    paddingVertical: 16,
-  },
-  closeButton: {
-    marginTop: 10,
-    width: "100%", // Кнопка на всю ширину модалки
-    backgroundColor: "#ff5252", // Червоний колір для закриття
-  },
-});
