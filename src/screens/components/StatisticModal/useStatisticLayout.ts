@@ -5,127 +5,88 @@ export function useStatisticLayout(
   frame: Frame,
   S: number,
   snap: (v: number) => number,
-  rowCount: number,
+  contentHeight: number, // 🔥 ВАЖЛИВО: висота списку з overlay
 ) {
   return useMemo(() => {
-    const titleY = snap(42 * S);
+    // =========================================================
+    // 1. ВІДСТУПИ ТА БАЗОВІ РОЗМІРИ
+    // =========================================================
+
+    const paddingTop = snap(24 * S);
+    const paddingBottom = snap(20 * S);
+
+    const gapAfterTitle = snap(20 * S);
+
+    const gapBeforeButtons = snap(20 * S);
+    const gapBetweenButtons = snap(130 * S);
+
+    const buttonHeight = snap(52 * S);
+
+    // =========================================================
+    // 2. ВНУТРІШНІЙ БЛОК (через SkiaButtonSkin)
+    // =========================================================
 
     const innerInset = snap(16 * S);
-    const innerY = snap(60 * S);
-    const innerW = frame.width - innerInset * 2;
-    const innerH = frame.height - innerY - innerInset;
-    const innerR = snap(10 * S);
 
-    const sectionTitleY = innerY + snap(32 * S);
+    const innerX = innerInset;
+    const innerY = paddingTop + gapAfterTitle;
 
-    const summaryX = innerInset + snap(18 * S);
-    const summaryY = innerY + snap(54 * S);
-    const summaryW = innerW - snap(36 * S);
-    const summaryH = snap(74 * S);
-    const summaryR = snap(10 * S);
+    const innerWidth = frame.width - innerInset * 2;
 
-    const summaryLabelX = summaryX + snap(16 * S);
-    const summaryValueColX = summaryX + summaryW - snap(92 * S);
-    const summaryRow1Y = summaryY + snap(26 * S);
-    const summaryRow2Y = summaryY + snap(52 * S);
+    // 🔥 Висота внутрішнього блоку = висота списку
+    const innerHeight = contentHeight;
 
-    const listX = innerInset + snap(18 * S);
-    const listY = summaryY + summaryH + snap(18 * S);
-    const listW = innerW - snap(36 * S);
+    const innerRadius = snap(10 * S);
 
-    const rowH = snap(28 * S);
-    const rowGap = snap(6 * S);
-    const listHeaderH = snap(24 * S);
-    const listHeaderGap = snap(8 * S);
+    // =========================================================
+    // 3. КНОПКИ
+    // =========================================================
 
-    const rowsTop = listY + listHeaderH + listHeaderGap;
-    const rowsH =
-      rowCount > 0 ? rowCount * rowH + Math.max(0, rowCount - 1) * rowGap : 0;
+    const buttonsStartY = innerY + innerHeight + gapBeforeButtons;
 
-    const rankColW = snap(28 * S);
-    const timeColW = snap(84 * S);
-    const movesColW = snap(64 * S);
-    const dateColW = snap(86 * S);
-
-    const rankColX = listX;
-    const timeColX = rankColX + rankColW + snap(10 * S);
-    const movesColX = timeColX + timeColW + snap(10 * S);
-    const dateColX = listX + listW - dateColW;
-
-    const buttonsGap = snap(14 * S);
-    const buttonH = snap(52 * S);
-    const resetButtonY = rowsTop + rowsH + snap(22 * S);
-    const backButtonY = resetButtonY + buttonH + buttonsGap;
-    const buttonX = listX;
-    const buttonW = listW;
-    const buttonR = snap(12 * S);
-
-    const rows: HitRect[] = Array.from({ length: rowCount }, (_, index) => ({
-      x: listX,
-      y: rowsTop + index * (rowH + rowGap),
-      width: listW,
-      height: rowH,
-    }));
+    const buttonWidth = innerWidth / 3;
+    const buttonX = innerX;
 
     const resetButtonRect: HitRect = {
       x: buttonX,
-      y: resetButtonY,
-      width: buttonW,
-      height: buttonH,
+      y: buttonsStartY,
+      width: buttonWidth,
+      height: buttonHeight,
     };
 
     const backButtonRect: HitRect = {
-      x: buttonX,
-      y: backButtonY,
-      width: buttonW,
-      height: buttonH,
+      x: buttonX + buttonHeight + gapBetweenButtons,
+      y: buttonsStartY,
+      width: buttonWidth,
+      height: buttonHeight,
     };
 
+    // =========================================================
+    // 4. ОБЧИСЛЕННЯ ВИСОТИ ВСІЄЇ МОДАЛКИ
+    // =========================================================
+
+    const totalHeight =
+      paddingTop +
+      gapAfterTitle +
+      innerHeight +
+      gapBeforeButtons +
+      buttonHeight * 2 +
+      paddingBottom;
+
     return {
-      titleY,
-
-      innerInset,
+      // внутрішній блок
+      innerX,
       innerY,
-      innerW,
-      innerH,
-      innerR,
+      innerWidth,
+      innerHeight,
+      innerRadius,
 
-      sectionTitleY,
-
-      summaryX,
-      summaryY,
-      summaryW,
-      summaryH,
-      summaryR,
-      summaryLabelX,
-      summaryValueColX,
-      summaryRow1Y,
-      summaryRow2Y,
-
-      listX,
-      listY,
-      listW,
-      listHeaderH,
-      listHeaderGap,
-      rowH,
-      rowGap,
-      rowsTop,
-      rowsH,
-
-      rankColX,
-      timeColX,
-      movesColX,
-      dateColX,
-      rankColW,
-      timeColW,
-      movesColW,
-      dateColW,
-
-      buttonR,
+      // кнопки
       resetButtonRect,
       backButtonRect,
 
-      rows,
+      // загальна висота PanelSurface
+      totalHeight,
     };
-  }, [frame.width, frame.height, S, snap, rowCount]);
+  }, [frame.width, frame.height, S, snap, contentHeight]);
 }
