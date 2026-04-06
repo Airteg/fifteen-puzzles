@@ -3,17 +3,17 @@ import {
   useLayoutRenderHelpers,
   useSettingsLayout,
 } from "@/context/LayoutSnapshotProvider";
-import { useSkiaFonts } from "@/context/FontProvider";
 import { useGameState } from "@/context/GameStateProvider";
 import {
+  getStatisticInitialContentHeight,
   StatisticItemVm,
   StatisticModalOverlay,
   StatisticModalScene,
   StatisticSummaryVm,
+  useStatisticLayout,
 } from "@/screens/components/StatisticModal";
-import { PanelSurface } from "@/ui/skia/PanelSurface";
 import { Canvas, Rect } from "@shopify/react-native-skia";
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Props } from "../types/types";
 
@@ -36,8 +36,10 @@ const StatisticScreen = ({ navigation }: Props<"Statistic">) => {
   const { screenW: sw, screenH: sh } = useLayoutDevice();
   const { modalDefaultFrame } = useSettingsLayout();
   const { S, snap } = useLayoutRenderHelpers();
-  const { title: titleFont, body: bodyFont } = useSkiaFonts();
-  const { bestGames, statistics } = useGameState();
+  const { bestGames, statistics, resetStatistics } = useGameState();
+  const [contentHeight, setContentHeight] = useState(() =>
+    getStatisticInitialContentHeight(modalDefaultFrame, S, snap),
+  );
 
   const items = useMemo<StatisticItemVm[]>(
     () =>
@@ -61,7 +63,21 @@ const StatisticScreen = ({ navigation }: Props<"Statistic">) => {
       bestMovesText:
         statistics.bestMoves > 0 ? String(statistics.bestMoves) : "---",
     }),
-    [statistics.bestMoves, statistics.bestTime],
+    [statistics.bestTime, statistics.bestMoves],
+  );
+
+  const layout = useStatisticLayout(modalDefaultFrame, S, snap, contentHeight);
+
+  const modalFrame = useMemo(
+    () => ({
+      ...modalDefaultFrame,
+      y: snap(
+        modalDefaultFrame.y +
+          (modalDefaultFrame.height - layout.totalHeight) / 2,
+      ),
+      height: layout.totalHeight,
+    }),
+    [layout.totalHeight, modalDefaultFrame, snap],
   );
 
   return (
@@ -70,13 +86,10 @@ const StatisticScreen = ({ navigation }: Props<"Statistic">) => {
         <Rect x={0} y={0} width={sw} height={sh} color="rgba(0,0,0,0.45)" />
 
         <StatisticModalScene
-          frame={modalDefaultFrame}
+          frame={modalFrame}
           S={S}
           snap={snap}
-          titleFont={titleFont}
-          bodyFont={bodyFont}
-          summary={summary}
-          items={items}
+          contentHeight={contentHeight}
         />
       </Canvas>
 
@@ -90,23 +103,23 @@ const StatisticScreen = ({ navigation }: Props<"Statistic">) => {
           style={{
             position: "absolute",
             left: modalDefaultFrame.x,
-            top: modalDefaultFrame.y,
-            width: modalDefaultFrame.width,
-            height: modalDefaultFrame.height,
+            top: modalFrame.y,
+            width: modalFrame.width,
+            height: modalFrame.height,
           }}
           onPress={(e) => e.stopPropagation()}
         >
           <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
             <StatisticModalOverlay
-              frame={modalDefaultFrame}
+              frame={modalFrame}
               S={S}
               snap={snap}
+              items={items}
+              summary={summary}
+              contentHeight={contentHeight}
+              onContentHeightChange={setContentHeight}
               onBack={() => navigation.goBack()}
-              onResetStatistics={() => {
-                // Поки що заглушка.
-                // Коли дійдемо до логіки — підключимо окремий reset action.
-                console.log("TODO: reset statistics");
-              }}
+              onResetStatistics={resetStatistics}
             />
           </View>
         </Pressable>

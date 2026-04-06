@@ -69,7 +69,7 @@ export function SkiaIconButtonSkin({
 
     p.transform(m);
     return p;
-  }, [rect.x, rect.y, rect.width, rect.height]);
+  }, [other, rect.x, rect.y, rect.width, rect.height]);
 
   if (!buttonEffect || !path) return null;
 

@@ -15,108 +15,54 @@ if (!shader) {
 
 const INNER_COLOR = "#D5F7FF";
 
-export function StatisticModalScene({
-  frame,
-  S,
-  snap,
-  contentHeight, // 🔥 новий проп
-}: SceneProps & { contentHeight: number }) {
-  const layout = useStatisticLayout(frame, S, snap, (contentHeight = 300));
-  // console.log("🚀 ~ layout:", layout);
-  console.log("🚀 ~ layout:", layout);
-  console.log(
-    "🚀 ~ layout:\n" +
-      JSON.stringify(
-        layout,
-        (k, v) => (typeof v === "number" ? Number(v.toFixed(1)) : v),
-        2,
-      ),
-  );
+export function StatisticModalScene({ frame, S, snap, contentHeight }: SceneProps) {
+  const layout = useStatisticLayout(frame, S, snap, contentHeight);
+
   const uniforms = useMemo(() => {
     return {
-      u_canvasSize: [0, 0],
-      u_borderColor: hexToShader("#D5F7FF"),
-      u_bgColor: hexToShader("#FAFF3F"),
+      u_canvasSize: [layout.shaderRect.width, layout.shaderRect.height],
+      u_borderColor: hexToShader(INNER_COLOR),
+      u_bgColor: hexToShader(INNER_COLOR),
       u_cornerRadiusPct: 0.1,
-      u_aspectRatio: 4.75866206896,
+      u_aspectRatio: layout.shaderRect.width / layout.shaderRect.height,
     };
-  }, []);
+  }, [layout.shaderRect.height, layout.shaderRect.width]);
 
   if (!shader) return null;
 
   return (
     <Group transform={[{ translateX: frame.x }, { translateY: frame.y }]}>
-      {/* ===================================================== */}
-      {/* 1. PANEL SURFACE (висота динамічна!) */}
-      {/* ===================================================== */}
-
       <PanelSurface
         rect={{
           x: 0,
           y: 0,
           width: frame.width,
-          height: layout.totalHeight, // 🔥 залежить від списку
+          height: layout.totalHeight,
         }}
       />
 
-      {/* ===================================================== */}
-      {/* 2. SKIA BUTTON (як контейнер) */}
-      {/* ===================================================== */}
-
-      {/* <SkiaButtonSkin
-        rect={{
-          x: layout.innerX,
-          y: layout.innerY,
-          width: layout.innerWidth,
-          height: layout.innerHeight,
-        }}
-        title="" // ❗ без тексту — тільки фон
-        font={{} as any} // 🔥 тимчасово (потім приберемо або зробимо optional)
-      /> */}
-      <Group
-        transform={[
-          { translateX: layout.innerX },
-          { translateY: layout.innerY },
-        ]}
+      <RoundedRect
+        x={layout.shaderRect.x}
+        y={layout.shaderRect.y}
+        width={layout.shaderRect.width}
+        height={layout.shaderRect.height}
+        r={layout.shaderRadius}
+        color="rgba(143, 40, 40, 0.2)"
       >
-        <RoundedRect
-          x={0}
-          y={0}
-          width={layout.innerWidth + 15}
-          height={layout.innerHeight + 15}
-          r={snap(10 * S)}
-          color="rgba(143, 40, 40, 0.2)"
-        >
-          <Shader source={shader} uniforms={uniforms} />
-        </RoundedRect>
-      </Group>
+        <Shader source={shader} uniforms={uniforms} />
+      </RoundedRect>
 
-      {/* ===================================================== */}
-      {/* 3. ВНУТРІШНІЙ СВІТЛИЙ БЛОК */}
-      {/* ===================================================== */}
-
-      {/* <RoundedRect
+      <RoundedRect
         x={layout.innerX}
         y={layout.innerY}
         width={layout.innerWidth}
         height={layout.innerHeight}
         r={layout.innerRadius}
         color={INNER_COLOR}
-      /> */}
+      />
 
-      {/* ===================================================== */}
-      {/* 4. КНОПКИ */}
-      {/* ===================================================== */}
-
-      <Group>
-        <SkiaIconButtonSkin
-          rect={layout.resetButtonRect}
-          pressed={false}
-          other={true} // 🔥 твій новий варіант
-        />
-
-        <SkiaIconButtonSkin rect={layout.backButtonRect} pressed={false} />
-      </Group>
+      <SkiaIconButtonSkin rect={layout.resetButtonRect} pressed={false} other />
+      <SkiaIconButtonSkin rect={layout.backButtonRect} pressed={false} />
     </Group>
   );
 }

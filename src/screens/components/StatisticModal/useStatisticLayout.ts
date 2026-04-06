@@ -1,92 +1,109 @@
 import { useMemo } from "react";
 import type { Frame, HitRect } from "./StatisticModal.types";
 
+function getStatisticLayoutMetrics(
+  frame: Frame,
+  S: number,
+  snap: (v: number) => number,
+) {
+  const titleTop = snap(18 * S);
+  const titleHeight = snap(30 * S);
+  const titleToContentGap = snap(12 * S);
+  const horizontalInset = snap(16 * S);
+  const buttonsTopGap = snap(20 * S);
+  const buttonsGap = snap(18 * S);
+  const bottomInset = snap(18 * S);
+  const innerRadius = snap(10 * S);
+  const shaderOutset = snap(10 * S);
+
+  const innerWidth = Math.max(0, frame.width - horizontalInset * 2);
+  const maxButtonSize = Math.max(0, (innerWidth - buttonsGap) / 2);
+  const buttonSize = snap(Math.min(56 * S, maxButtonSize));
+
+  return {
+    titleTop,
+    titleHeight,
+    titleToContentGap,
+    horizontalInset,
+    buttonsTopGap,
+    buttonsGap,
+    bottomInset,
+    buttonSize,
+    innerRadius,
+    shaderOutset,
+  };
+}
+
+export function getStatisticInitialContentHeight(
+  frame: Frame,
+  S: number,
+  snap: (v: number) => number,
+) {
+  const metrics = getStatisticLayoutMetrics(frame, S, snap);
+
+  const chromeHeight =
+    metrics.titleTop +
+    metrics.titleHeight +
+    metrics.titleToContentGap +
+    metrics.buttonsTopGap +
+    metrics.buttonSize +
+    metrics.bottomInset;
+
+  return Math.max(0, frame.height - chromeHeight);
+}
+
 export function useStatisticLayout(
   frame: Frame,
   S: number,
   snap: (v: number) => number,
-  contentHeight: number, // 🔥 ВАЖЛИВО: висота списку з overlay
+  contentHeight: number,
 ) {
   return useMemo(() => {
-    // =========================================================
-    // 1. ВІДСТУПИ ТА БАЗОВІ РОЗМІРИ
-    // =========================================================
-
-    const paddingTop = snap(24 * S);
-    const paddingBottom = snap(20 * S);
-
-    const gapAfterTitle = snap(20 * S);
-
-    const gapBeforeButtons = snap(20 * S);
-    const gapBetweenButtons = snap(130 * S);
-
-    const buttonHeight = snap(52 * S);
-
-    // =========================================================
-    // 2. ВНУТРІШНІЙ БЛОК (через SkiaButtonSkin)
-    // =========================================================
-
-    const innerInset = snap(16 * S);
-
-    const innerX = innerInset;
-    const innerY = paddingTop + gapAfterTitle;
-
-    const innerWidth = frame.width - innerInset * 2;
-
-    // 🔥 Висота внутрішнього блоку = висота списку
-    const innerHeight = contentHeight;
-
-    const innerRadius = snap(10 * S);
-
-    // =========================================================
-    // 3. КНОПКИ
-    // =========================================================
-
-    const buttonsStartY = innerY + innerHeight + gapBeforeButtons;
-
-    const buttonWidth = innerWidth / 3;
-    const buttonX = innerX;
+    const metrics = getStatisticLayoutMetrics(frame, S, snap);
+    const innerX = metrics.horizontalInset;
+    const innerY =
+      metrics.titleTop + metrics.titleHeight + metrics.titleToContentGap;
+    const innerWidth = Math.max(0, frame.width - metrics.horizontalInset * 2);
+    const innerHeight = Math.max(0, contentHeight);
+    const buttonsY = innerY + innerHeight + metrics.buttonsTopGap;
+    const buttonsRowWidth = metrics.buttonSize * 2 + metrics.buttonsGap;
+    const buttonsX = innerX + (innerWidth - buttonsRowWidth) / 2;
 
     const resetButtonRect: HitRect = {
-      x: buttonX,
-      y: buttonsStartY,
-      width: buttonWidth,
-      height: buttonHeight,
+      x: buttonsX,
+      y: buttonsY,
+      width: metrics.buttonSize,
+      height: metrics.buttonSize,
     };
 
     const backButtonRect: HitRect = {
-      x: buttonX + buttonHeight + gapBetweenButtons,
-      y: buttonsStartY,
-      width: buttonWidth,
-      height: buttonHeight,
+      x: buttonsX + metrics.buttonSize + metrics.buttonsGap,
+      y: buttonsY,
+      width: metrics.buttonSize,
+      height: metrics.buttonSize,
     };
 
-    // =========================================================
-    // 4. ОБЧИСЛЕННЯ ВИСОТИ ВСІЄЇ МОДАЛКИ
-    // =========================================================
+    const shaderRect = {
+      x: innerX - metrics.shaderOutset / 2,
+      y: innerY - metrics.shaderOutset / 2,
+      width: innerWidth + metrics.shaderOutset,
+      height: innerHeight + metrics.shaderOutset,
+    };
 
-    const totalHeight =
-      paddingTop +
-      gapAfterTitle +
-      innerHeight +
-      gapBeforeButtons +
-      buttonHeight * 2 +
-      paddingBottom;
+    const totalHeight = buttonsY + metrics.buttonSize + metrics.bottomInset;
 
     return {
-      // внутрішній блок
+      titleTop: metrics.titleTop,
       innerX,
       innerY,
       innerWidth,
       innerHeight,
-      innerRadius,
-
-      // кнопки
+      innerRadius: metrics.innerRadius,
+      shaderRect,
+      shaderRadius: metrics.innerRadius + metrics.shaderOutset / 2,
       resetButtonRect,
       backButtonRect,
-
-      // загальна висота PanelSurface
       totalHeight,
     };
-  }, [frame.width, frame.height, S, snap, contentHeight]);
+  }, [frame, S, snap, contentHeight]);
 }

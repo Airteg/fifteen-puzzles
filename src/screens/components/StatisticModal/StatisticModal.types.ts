@@ -1,5 +1,3 @@
-import type { SkFont } from "@shopify/react-native-skia";
-
 export type Frame = {
   x: number;
   y: number;
@@ -33,14 +31,15 @@ export type ModalProps = {
   snap: (v: number) => number;
 };
 
-export type SceneProps = ModalProps & {
-  titleFont: SkFont | null;
-  bodyFont?: SkFont | null;
-  summary: StatisticSummaryVm;
-  items: StatisticItemVm[];
-};
-
 export type OverlayProps = ModalProps & {
+  items: StatisticItemVm[];
+  summary: StatisticSummaryVm;
+  contentHeight: number;
+  onContentHeightChange: (height: number) => void;
   onBack: () => void;
   onResetStatistics?: () => void;
+};
+
+export type SceneProps = ModalProps & {
+  contentHeight: number;
 };

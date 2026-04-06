@@ -6,6 +6,7 @@ import {
 import {
   AppStorageData,
   DEFAULT_APP_STORAGE,
+  DEFAULT_STATISTICS,
   GameSettings,
   GameResult,
   GameState,
@@ -36,6 +37,7 @@ interface GameContextType {
   clearGame: () => void;
   updateSettings: (patch: Partial<GameSettings>) => void;
   updateStatistics: (patch: Partial<Statistics>) => void;
+  resetStatistics: () => void;
   startCountdown: (initialMs: number) => void;
   setCountdownMs: (ms: number) => void;
   stopCountdown: () => void;
@@ -113,6 +115,14 @@ export const GameStateProvider = ({ children }: { children: ReactNode }) => {
     }));
   }, []);
 
+  const resetStatistics = useCallback(() => {
+    setData((prev) => ({
+      ...prev,
+      statistics: { ...DEFAULT_STATISTICS },
+      bestGames: [],
+    }));
+  }, []);
+
   const startCountdown = useCallback((initialMs: number) => {
     setCountdownMsState(Math.max(0, Math.round(initialMs)));
     setIsCountdownActive(true);
@@ -183,6 +193,7 @@ export const GameStateProvider = ({ children }: { children: ReactNode }) => {
         clearGame,
         updateSettings,
         updateStatistics,
+        resetStatistics,
         startCountdown,
         setCountdownMs,
         stopCountdown,
