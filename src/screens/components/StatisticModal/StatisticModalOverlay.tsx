@@ -34,9 +34,10 @@ export function StatisticModalOverlay({
           position: "absolute",
           left: listRect.x + 10,
           top: listRect.y + 10,
-          width: listRect.w,
+          width: listRect.w - 20,
           height: listRect.h,
           borderRadius: listRect.r,
+          backgroundColor: "#f0ffee",
         }}
         contentContainerStyle={{
           paddingBottom: snap(8 * S),
@@ -47,7 +48,7 @@ export function StatisticModalOverlay({
         {items.length === 0 ? (
           <View
             style={{
-              backgroundColor: "#FFFFFF",
+              backgroundColor: "#FFFFFF00",
               borderRadius: snap(10 * S),
               paddingVertical: snap(20 * S),
               paddingHorizontal: snap(14 * S),
@@ -76,6 +77,7 @@ export function StatisticModalOverlay({
                 flexDirection: "row",
                 paddingHorizontal: snap(8 * S),
                 marginBottom: snap(2 * S),
+                backgroundColor: "#f6bcbc",
               }}
             >
               <Text
@@ -113,9 +115,7 @@ export function StatisticModalOverlay({
                   paddingVertical: snap(6 * S),
                 }}
               >
-                <Text
-                  style={[styles.cell, { width: "12%" }, bodyStyle]}
-                >
+                <Text style={[styles.cell, { width: "12%" }, bodyStyle]}>
                   {item.rank}
                 </Text>
                 <Text style={[styles.cell, { width: "30%" }, bodyStyle]}>
