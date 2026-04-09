@@ -1,30 +1,21 @@
 import React, { useMemo } from "react";
-import {
-  LayoutChangeEvent,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { Typography } from "@/theme/typography";
 import type { OverlayProps } from "./StatisticModal.types";
 import { useStatisticLayout } from "./useStatisticLayout";
 
 export function StatisticModalOverlay({
-  frame,
   S,
-  snap,
+  frame,
   items,
-  summary,
-  contentHeight,
+  snap,
   onContentHeightChange,
   onBack,
   onResetStatistics,
 }: OverlayProps) {
-  const layout = useStatisticLayout(frame, S, snap, contentHeight);
+  const { button, listRect } = useStatisticLayout(frame, S, snap);
 
-  const titleStyle = useMemo(() => Typography.krona.headerTitle(S), [S]);
   const bodyStyle = useMemo(() => Typography.mariupol.body(S), [S]);
   const bodyStrongStyle = useMemo(
     () => [
@@ -36,95 +27,23 @@ export function StatisticModalOverlay({
     [S],
   );
 
-  const handleContentLayout = (e: LayoutChangeEvent) => {
-    const h = snap(e.nativeEvent.layout.height);
-    if (h !== contentHeight) {
-      onContentHeightChange(h);
-    }
-  };
-
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-      {/* Заголовок */}
-      <View
-        pointerEvents="none"
+      <ScrollView
         style={{
           position: "absolute",
-          left: 0,
-          top: layout.titleTop,
-          width: frame.width,
-          alignItems: "center",
+          left: listRect.x + 10,
+          top: listRect.y + 10,
+          width: listRect.w,
+          height: listRect.h,
+          borderRadius: listRect.r,
         }}
-      >
-        <Text style={titleStyle}>STATISTIC</Text>
-      </View>
-
-      {/* Контент, який визначає висоту сцени */}
-      <View
-        onLayout={handleContentLayout}
-        style={{
-          position: "absolute",
-          left: layout.innerX,
-          top: layout.innerY,
-          width: layout.innerWidth,
-          paddingHorizontal: snap(16 * S),
-          paddingTop: snap(16 * S),
-          paddingBottom: snap(16 * S),
+        contentContainerStyle={{
+          paddingBottom: snap(8 * S),
         }}
-        pointerEvents="none"
+        onContentSizeChange={(_, height) => onContentHeightChange(height)}
+        showsVerticalScrollIndicator
       >
-        <Text
-          style={[
-            bodyStrongStyle,
-            {
-              textAlign: "center",
-              marginBottom: snap(14 * S),
-              color: "#216169",
-            },
-          ]}
-        >
-          YOUR LAST 10 GAMES:
-        </Text>
-
-        <View
-          style={{
-            backgroundColor: "#FFFFFF",
-            borderRadius: snap(10 * S),
-            paddingHorizontal: snap(14 * S),
-            paddingVertical: snap(12 * S),
-            marginBottom: snap(14 * S),
-          }}
-        >
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              marginBottom: snap(8 * S),
-            }}
-          >
-            <Text style={[bodyStrongStyle, { color: "#216169" }]}>
-              RECORD TIME:
-            </Text>
-            <Text style={[bodyStrongStyle, { color: "#1C2833" }]}>
-              {summary.bestTimeText}
-            </Text>
-          </View>
-
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-            }}
-          >
-            <Text style={[bodyStrongStyle, { color: "#216169" }]}>
-              RECORD STEPS:
-            </Text>
-            <Text style={[bodyStrongStyle, { color: "#1C2833" }]}>
-              {summary.bestMovesText}
-            </Text>
-          </View>
-        </View>
-
         {items.length === 0 ? (
           <View
             style={{
@@ -187,14 +106,16 @@ export function StatisticModalOverlay({
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
-                  backgroundColor: "#FFFFFF",
+                  backgroundColor: "#FFFFFF00",
                   borderRadius: snap(8 * S),
                   minHeight: snap(28 * S),
                   paddingHorizontal: snap(8 * S),
                   paddingVertical: snap(6 * S),
                 }}
               >
-                <Text style={[styles.cell, { width: "12%" }, bodyStyle]}>
+                <Text
+                  style={[styles.cell, { width: "12%" }, bodyStyle]}
+                >
                   {item.rank}
                 </Text>
                 <Text style={[styles.cell, { width: "30%" }, bodyStyle]}>
@@ -210,18 +131,17 @@ export function StatisticModalOverlay({
             ))}
           </View>
         )}
-      </View>
+      </ScrollView>
 
-      {/* Hit areas кнопок */}
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Reset statistics"
         style={{
           position: "absolute",
-          left: layout.resetButtonRect.x,
-          top: layout.resetButtonRect.y,
-          width: layout.resetButtonRect.width,
-          height: layout.resetButtonRect.height,
+          left: button.x,
+          top: button.y,
+          width: button.size,
+          height: button.size,
         }}
         onPress={onResetStatistics}
       />
@@ -231,10 +151,10 @@ export function StatisticModalOverlay({
         accessibilityLabel="Back"
         style={{
           position: "absolute",
-          left: layout.backButtonRect.x,
-          top: layout.backButtonRect.y,
-          width: layout.backButtonRect.width,
-          height: layout.backButtonRect.height,
+          left: button.x + button.size * 2,
+          top: button.y,
+          width: button.size,
+          height: button.size,
         }}
         onPress={onBack}
       />

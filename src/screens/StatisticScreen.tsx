@@ -1,16 +1,14 @@
+import { useGameState } from "@/context/GameStateProvider";
 import {
   useLayoutDevice,
   useLayoutRenderHelpers,
   useSettingsLayout,
 } from "@/context/LayoutSnapshotProvider";
-import { useGameState } from "@/context/GameStateProvider";
 import {
-  getStatisticInitialContentHeight,
   StatisticItemVm,
   StatisticModalOverlay,
   StatisticModalScene,
   StatisticSummaryVm,
-  useStatisticLayout,
 } from "@/screens/components/StatisticModal";
 import { Canvas, Rect } from "@shopify/react-native-skia";
 import React, { useMemo, useState } from "react";
@@ -21,14 +19,17 @@ function formatDuration(durationMs: number) {
   const totalSeconds = Math.max(0, Math.round(durationMs / 1000));
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
+
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
 function formatDate(iso: string) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "--/--";
+
   const month = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
+
   return `${month}/${day}`;
 }
 
@@ -37,9 +38,9 @@ const StatisticScreen = ({ navigation }: Props<"Statistic">) => {
   const { modalDefaultFrame } = useSettingsLayout();
   const { S, snap } = useLayoutRenderHelpers();
   const { bestGames, statistics, resetStatistics } = useGameState();
-  const [contentHeight, setContentHeight] = useState(() =>
-    getStatisticInitialContentHeight(modalDefaultFrame, S, snap),
-  );
+  const [contentHeight, setContentHeight] = useState(0);
+
+  const modalFrame = modalDefaultFrame;
 
   const items = useMemo<StatisticItemVm[]>(
     () =>
@@ -66,20 +67,6 @@ const StatisticScreen = ({ navigation }: Props<"Statistic">) => {
     [statistics.bestTime, statistics.bestMoves],
   );
 
-  const layout = useStatisticLayout(modalDefaultFrame, S, snap, contentHeight);
-
-  const modalFrame = useMemo(
-    () => ({
-      ...modalDefaultFrame,
-      y: snap(
-        modalDefaultFrame.y +
-          (modalDefaultFrame.height - layout.totalHeight) / 2,
-      ),
-      height: layout.totalHeight,
-    }),
-    [layout.totalHeight, modalDefaultFrame, snap],
-  );
-
   return (
     <View style={StyleSheet.absoluteFill}>
       <Canvas style={StyleSheet.absoluteFill}>
@@ -102,7 +89,7 @@ const StatisticScreen = ({ navigation }: Props<"Statistic">) => {
         <Pressable
           style={{
             position: "absolute",
-            left: modalDefaultFrame.x,
+            left: modalFrame.x,
             top: modalFrame.y,
             width: modalFrame.width,
             height: modalFrame.height,
