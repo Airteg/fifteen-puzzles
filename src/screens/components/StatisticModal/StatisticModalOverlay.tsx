@@ -1,8 +1,8 @@
 import React, { useMemo } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 
 import { Typography } from "@/theme/typography";
-import { __debugBorder } from "@/utils/debugLayout";
+import { StRow } from "./components/StRow";
 import type { OverlayProps } from "./StatisticModal.types";
 import { useStatisticLayout } from "./useStatisticLayout";
 
@@ -15,23 +15,18 @@ export function StatisticModalOverlay({
   onBack,
   onResetStatistics,
 }: OverlayProps) {
-  const { button, listRect } = useStatisticLayout(frame, S, snap);
+  const {
+    button,
+    listRect,
+    outer: { c: BG },
+  } = useStatisticLayout(frame, S, snap);
 
   const bodyStyle = useMemo(() => Typography.mariupol.body(S), [S]);
-  const bodyStrongStyle = useMemo(
-    () => [
-      Typography.mariupol.body(S),
-      {
-        fontFamily: "Mariupol-Bold" as const,
-      },
-    ],
-    [S],
-  );
 
   return (
     <View
       style={[
-        __debugBorder("#00f"),
+        // __debugBorder("#00f"),
         {
           width: "100%",
           height: "100%",
@@ -41,14 +36,14 @@ export function StatisticModalOverlay({
     >
       <ScrollView
         style={[
-          __debugBorder("orange", 14),
+          // __debugBorder("orange", 1),
           {
             position: "absolute",
             left: listRect.x,
             top: listRect.y,
             width: listRect.w,
             height: listRect.h,
-            // borderRadius: listRect.r,
+            borderRadius: listRect.r,
           },
         ]}
         contentContainerStyle={{
@@ -56,8 +51,6 @@ export function StatisticModalOverlay({
         }}
         onContentSizeChange={(_, height) => onContentHeightChange(height)}
         showsVerticalScrollIndicator
-        onScrollBeginDrag={() => console.log("SCROLL START")}
-        onScrollEndDrag={() => console.log("SCROLL END")}
       >
         {items.length === 0 ? (
           <View
@@ -76,7 +69,7 @@ export function StatisticModalOverlay({
                 },
               ]}
             >
-              Ви ще не зіграли жодної гри.
+              You haven&apos;t played any games yet.
             </Text>
           </View>
         ) : (
@@ -88,65 +81,32 @@ export function StatisticModalOverlay({
             }}
           >
             <View
-              style={[
-                // __debugBorder(),
-                {
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                },
-              ]}
+              style={{
+                backgroundColor: BG,
+                borderTopLeftRadius: listRect.r,
+                borderTopRightRadius: listRect.r,
+              }}
             >
-              <Text
-                style={[styles.headerCell, bodyStrongStyle, { width: "12%" }]}
-              >
-                #
-              </Text>
-              <Text
-                style={[styles.headerCell, { width: "30%" }, bodyStrongStyle]}
-              >
-                TIME
-              </Text>
-              <Text
-                style={[styles.headerCell, { width: "23%" }, bodyStrongStyle]}
-              >
-                MOVES
-              </Text>
-              <Text
-                style={[styles.headerCell, { width: "35%" }, bodyStrongStyle]}
-              >
-                DATE
-              </Text>
+              <StRow
+                S={S}
+                snap={snap}
+                values={["#", "TIME", "MOVES", "DATE"]}
+                isHeader
+              />
             </View>
 
             {items.map((item) => (
-              <View
+              <StRow
                 key={item.id}
-                style={[
-                  {
-                    flexDirection: "row",
-                    alignItems: "center",
-                    borderRadius: snap(8 * S),
-                    minHeight: snap(28 * S),
-                    paddingHorizontal: snap(8 * S),
-                    paddingVertical: snap(6 * S),
-                  },
-                  __debugBorder("magenta"),
+                S={S}
+                snap={snap}
+                values={[
+                  item.rank,
+                  item.durationText,
+                  item.movesText,
+                  item.dateText,
                 ]}
-              >
-                <Text style={[styles.cell, { width: "12%" }, bodyStyle]}>
-                  {item.rank}
-                </Text>
-                <Text style={[styles.cell, { width: "30%" }, bodyStyle]}>
-                  {item.durationText}
-                </Text>
-                <Text style={[styles.cell, { width: "23%" }, bodyStyle]}>
-                  {item.movesText}
-                </Text>
-                <Text style={[styles.cell, { width: "35%" }, bodyStyle]}>
-                  {item.dateText}
-                </Text>
-              </View>
+              />
             ))}
           </View>
         )}
@@ -180,13 +140,3 @@ export function StatisticModalOverlay({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  headerCell: {
-    color: "#216169",
-    textAlign: "center",
-  },
-  cell: {
-    color: "#1C2833",
-  },
-});

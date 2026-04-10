@@ -59,8 +59,9 @@ function getStatisticLayoutMetrics(
     r: outer.w * 0.021,
     c: INNER_BORDER_BG,
   };
-  // RECT FOR LIST
   const sizeButton = outer.w * 0.144;
+
+  // RECT FOR LIST
   const listRect = {
     x: innerBorder.x,
     y: innerBorder.y,
