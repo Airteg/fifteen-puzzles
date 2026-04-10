@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { Typography } from "@/theme/typography";
+import { __debugBorder } from "@/utils/debugLayout";
 import type { OverlayProps } from "./StatisticModal.types";
 import { useStatisticLayout } from "./useStatisticLayout";
 
@@ -28,27 +29,39 @@ export function StatisticModalOverlay({
   );
 
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+    <View
+      style={[
+        __debugBorder("#00f"),
+        {
+          width: "100%",
+          height: "100%",
+        },
+      ]}
+      pointerEvents="box-none"
+    >
       <ScrollView
-        style={{
-          position: "absolute",
-          left: listRect.x + 10,
-          top: listRect.y + 10,
-          width: listRect.w - 20,
-          height: listRect.h,
-          borderRadius: listRect.r,
-          backgroundColor: "#f0ffee",
-        }}
+        style={[
+          __debugBorder("orange", 14),
+          {
+            position: "absolute",
+            left: listRect.x,
+            top: listRect.y,
+            width: listRect.w,
+            height: listRect.h,
+            // borderRadius: listRect.r,
+          },
+        ]}
         contentContainerStyle={{
           paddingBottom: snap(8 * S),
         }}
         onContentSizeChange={(_, height) => onContentHeightChange(height)}
         showsVerticalScrollIndicator
+        onScrollBeginDrag={() => console.log("SCROLL START")}
+        onScrollEndDrag={() => console.log("SCROLL END")}
       >
         {items.length === 0 ? (
           <View
             style={{
-              backgroundColor: "#FFFFFF00",
               borderRadius: snap(10 * S),
               paddingVertical: snap(20 * S),
               paddingHorizontal: snap(14 * S),
@@ -69,19 +82,23 @@ export function StatisticModalOverlay({
         ) : (
           <View
             style={{
-              rowGap: snap(6 * S),
+              rowGap: snap(0),
+              flexDirection: "column",
+              justifyContent: "space-between",
             }}
           >
             <View
-              style={{
-                flexDirection: "row",
-                paddingHorizontal: snap(8 * S),
-                marginBottom: snap(2 * S),
-                backgroundColor: "#f6bcbc",
-              }}
+              style={[
+                // __debugBorder(),
+                {
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                },
+              ]}
             >
               <Text
-                style={[styles.headerCell, { width: "12%" }, bodyStrongStyle]}
+                style={[styles.headerCell, bodyStrongStyle, { width: "12%" }]}
               >
                 #
               </Text>
@@ -105,15 +122,17 @@ export function StatisticModalOverlay({
             {items.map((item) => (
               <View
                 key={item.id}
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  backgroundColor: "#FFFFFF00",
-                  borderRadius: snap(8 * S),
-                  minHeight: snap(28 * S),
-                  paddingHorizontal: snap(8 * S),
-                  paddingVertical: snap(6 * S),
-                }}
+                style={[
+                  {
+                    flexDirection: "row",
+                    alignItems: "center",
+                    borderRadius: snap(8 * S),
+                    minHeight: snap(28 * S),
+                    paddingHorizontal: snap(8 * S),
+                    paddingVertical: snap(6 * S),
+                  },
+                  __debugBorder("magenta"),
+                ]}
               >
                 <Text style={[styles.cell, { width: "12%" }, bodyStyle]}>
                   {item.rank}
@@ -165,6 +184,7 @@ export function StatisticModalOverlay({
 const styles = StyleSheet.create({
   headerCell: {
     color: "#216169",
+    textAlign: "center",
   },
   cell: {
     color: "#1C2833",

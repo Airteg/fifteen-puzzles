@@ -41,6 +41,9 @@ const StatisticScreen = ({ navigation }: Props<"Statistic">) => {
   const [contentHeight, setContentHeight] = useState(0);
 
   const modalFrame = modalDefaultFrame;
+  const modalHeight = modalFrame.width * 1.4;
+  const modalRight = modalFrame.x + modalFrame.width;
+  const modalBottom = modalFrame.y + modalHeight;
 
   const items = useMemo<StatisticItemVm[]>(
     () =>
@@ -82,19 +85,54 @@ const StatisticScreen = ({ navigation }: Props<"Statistic">) => {
 
       <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
         <Pressable
-          style={StyleSheet.absoluteFill}
+          style={{
+            position: "absolute",
+            left: 0,
+            top: 0,
+            width: sw,
+            height: modalFrame.y,
+          }}
+          onPress={() => navigation.goBack()}
+        />
+        <Pressable
+          style={{
+            position: "absolute",
+            left: 0,
+            top: modalFrame.y,
+            width: modalFrame.x,
+            height: modalHeight,
+          }}
+          onPress={() => navigation.goBack()}
+        />
+        <Pressable
+          style={{
+            position: "absolute",
+            left: modalRight,
+            top: modalFrame.y,
+            width: Math.max(0, sw - modalRight),
+            height: modalHeight,
+          }}
+          onPress={() => navigation.goBack()}
+        />
+        <Pressable
+          style={{
+            position: "absolute",
+            left: 0,
+            top: modalBottom,
+            width: sw,
+            height: Math.max(0, sh - modalBottom),
+          }}
           onPress={() => navigation.goBack()}
         />
 
-        <Pressable
+        <View
           style={{
             position: "absolute",
             left: modalFrame.x,
             top: modalFrame.y,
             width: modalFrame.width,
-            height: modalFrame.height,
+            height: modalHeight,
           }}
-          onPress={(e) => e.stopPropagation()}
         >
           <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
             <StatisticModalOverlay
@@ -109,7 +147,7 @@ const StatisticScreen = ({ navigation }: Props<"Statistic">) => {
               onResetStatistics={resetStatistics}
             />
           </View>
-        </Pressable>
+        </View>
       </View>
     </View>
   );

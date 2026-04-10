@@ -22,11 +22,7 @@ if (!shader) {
 const MARIUPOL_BOLD_TTF = require("../../../../assets/fonts/Mariupol-Bold.ttf");
 const MARIUPOL_MEDIUM_TTF = require("../../../../assets/fonts/Mariupol-Medium.ttf");
 
-export function StatisticModalScene({
-  frame,
-  S,
-  snap,
-}: SceneProps) {
+export function StatisticModalScene({ frame, S, snap }: SceneProps) {
   const { title, subtitle, outer, innerFrame, innerBorder, button } =
     useStatisticLayout(frame, S, snap);
   console.log("---");
@@ -102,6 +98,14 @@ export function StatisticModalScene({
         radius={innerBorder.r}
         color="#D5F7FF"
         // color="#D5F7FF30"
+      />
+      <RoundedRect
+        x={innerBorder.x}
+        y={innerBorder.y}
+        width={innerBorder.w}
+        height={innerBorder.h}
+        r={innerBorder.r}
+        color={innerBorder.c}
       />
 
       <SkiaIconButtonSkin
