@@ -24,7 +24,7 @@ const TILES_CONFIG = [
     label: "you",
     dx: -70,
     dy: -70,
-    rot: 0.78,
+    rot: -0.78,
     color: [0.4, 0.8, 0.9, 1.0] as const,
     delay: 600,
   }, // Cyan
@@ -33,7 +33,7 @@ const TILES_CONFIG = [
     label: "can",
     dx: 70,
     dy: -70,
-    rot: -0.78,
+    rot: 0.78,
     color: [0.6, 0.9, 0.5, 1.0] as const,
     delay: 650,
   }, // Green
@@ -43,7 +43,7 @@ const TILES_CONFIG = [
     dx: -70,
     dy: 70,
     rot: 0.78,
-    color: [0.9, 0.4, 0.4, 1.0] as const,
+    color: [0.95, 0.0, 0.0, 0.7] as const,
     delay: 700,
   }, // Coral
   {
@@ -52,10 +52,79 @@ const TILES_CONFIG = [
     dx: 70,
     dy: 70,
     rot: -0.78,
-    color: [0.5, 0.4, 0.9, 1.0] as const,
+    color: [0.5, 0.4, 0.9, 0.5] as const,
     delay: 750,
   }, // Purple
 ];
+
+// --- ГОЛОВНА СЦЕНА ---
+export default function NewGameAnimation() {
+  const { width } = useWindowDimensions();
+  const { S, snap } = useLayoutRenderHelpers();
+  const { body: tileFont } = useSkiaFonts();
+
+  const [animationKey, setAnimationKey] = useState(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      setAnimationKey((prev) => prev + 1);
+    }, []),
+  );
+
+  if (!tileFont) return null;
+
+  // Дизайн-метрики (260x260 за макетом)
+  const CANVAS_HEIGHT = snap(230 * S);
+  const cx = width / 2;
+  const cy = CANVAS_HEIGHT / 2;
+
+  const TILE_SIZE = snap(60 * S);
+  const SMILEY_SIZE = snap(88 * S);
+  const SQUARE_SIZE = snap(140 * S); // Трохи менший за розмах плиток
+
+  return (
+    <Canvas style={{ width: "100%", height: CANVAS_HEIGHT }}>
+      <Rect
+        x={0}
+        y={0}
+        width={width}
+        height={CANVAS_HEIGHT}
+        style={"stroke"}
+        strokeWidth={1}
+        color={"red"}
+      />
+      {/* 1. Спочатку малюємо квадрат, щоб він був на самому фоні */}
+      <AnimatedSquare
+        key={`square-${animationKey}`}
+        cx={cx}
+        cy={cy}
+        size={SQUARE_SIZE}
+      />
+
+      {/* 2. Потім плитки, щоб вони вилітали З-ПІД смайлика, але НАД квадратом */}
+      {TILES_CONFIG.map((config) => (
+        <AnimatedTile
+          key={`${config.id}-${animationKey}`}
+          config={config}
+          cx={cx}
+          cy={cy}
+          tileSize={TILE_SIZE}
+          font={tileFont}
+          S={S}
+          snap={snap}
+        />
+      ))}
+
+      {/* 3. Смайлик завжди зверху */}
+      <AnimatedSmiley
+        key={`smiley-${animationKey}`}
+        cx={cx}
+        cy={cy}
+        smileySize={SMILEY_SIZE}
+      />
+    </Canvas>
+  );
+}
 
 // --- АНІМОВАНИЙ КВАДРАТ (ФОН) ---
 const AnimatedSquare = ({ cx, cy, size }: any) => {
@@ -66,7 +135,7 @@ const AnimatedSquare = ({ cx, cy, size }: any) => {
     // Пружинне збільшення розміру з 0 до 1
     scaleVal.value = withSpring(1, { damping: 15, stiffness: 80 });
     // Робимо 5 повних обертів (10 пі) за 1.5 секунди
-    rotVal.value = withTiming(Math.PI * 10, { duration: 1500 });
+    rotVal.value = withTiming(Math.PI * 3, { duration: 1500 });
   }, [scaleVal, rotVal]);
 
   const transform = useDerivedValue(() => {
@@ -124,7 +193,7 @@ const AnimatedTile = ({ config, cx, cy, tileSize, font, S, snap }: any) => {
         rect={{ x: 0, y: 0, width: tileSize, height: tileSize }}
         label={String(config.label)}
         font={font}
-        tintColor={config.tint}
+        tintColor={config.color}
         S={S}
         snap={snap}
       />
@@ -143,10 +212,10 @@ const AnimatedSmiley = ({ cx, cy, smileySize }: any) => {
     rotVal.value = withDelay(
       400,
       withSequence(
-        withTiming(-0.15, { duration: 150 }),
-        withTiming(0.15, { duration: 150 }),
-        withTiming(-0.1, { duration: 100 }),
-        withTiming(0, { duration: 100 }),
+        withTiming(-1, { duration: 500 }),
+        withTiming(0.5, { duration: 500 }),
+        withTiming(-0.8, { duration: 500 }),
+        withTiming(-0.4, { duration: 500 }),
       ),
     );
   }, [scaleVal, rotVal]);
@@ -168,63 +237,3 @@ const AnimatedSmiley = ({ cx, cy, smileySize }: any) => {
     </Group>
   );
 };
-
-// --- ГОЛОВНА СЦЕНА ---
-export default function NewGameAnimation() {
-  const { width } = useWindowDimensions();
-  const { S, snap } = useLayoutRenderHelpers();
-  const { title: tileFont } = useSkiaFonts();
-
-  const [animationKey, setAnimationKey] = useState(0);
-
-  useFocusEffect(
-    useCallback(() => {
-      setAnimationKey((prev) => prev + 1);
-    }, []),
-  );
-
-  if (!tileFont) return null;
-
-  // Дизайн-метрики (260x260 за макетом)
-  const CANVAS_HEIGHT = snap(260 * S);
-  const cx = width / 2;
-  const cy = CANVAS_HEIGHT / 2;
-
-  const TILE_SIZE = snap(56 * S);
-  const SMILEY_SIZE = snap(88 * S);
-  const SQUARE_SIZE = snap(140 * S); // Трохи менший за розмах плиток
-
-  return (
-    <Canvas style={{ width: "100%", height: CANVAS_HEIGHT }}>
-      {/* 1. Спочатку малюємо квадрат, щоб він був на самому фоні */}
-      <AnimatedSquare
-        key={`square-${animationKey}`}
-        cx={cx}
-        cy={cy}
-        size={SQUARE_SIZE}
-      />
-
-      {/* 2. Потім плитки, щоб вони вилітали З-ПІД смайлика, але НАД квадратом */}
-      {TILES_CONFIG.map((config) => (
-        <AnimatedTile
-          key={`${config.id}-${animationKey}`}
-          config={config}
-          cx={cx}
-          cy={cy}
-          tileSize={TILE_SIZE}
-          font={tileFont}
-          S={S}
-          snap={snap}
-        />
-      ))}
-
-      {/* 3. Смайлик завжди зверху */}
-      <AnimatedSmiley
-        key={`smiley-${animationKey}`}
-        cx={cx}
-        cy={cy}
-        smileySize={SMILEY_SIZE}
-      />
-    </Canvas>
-  );
-}
