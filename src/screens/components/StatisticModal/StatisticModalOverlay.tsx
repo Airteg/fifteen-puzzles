@@ -14,6 +14,8 @@ export function StatisticModalOverlay({
   onContentHeightChange,
   onBack,
   onResetStatistics,
+  onPressInButton,
+  onPressOutButton,
 }: OverlayProps) {
   const {
     button,
@@ -24,28 +26,18 @@ export function StatisticModalOverlay({
   const bodyStyle = useMemo(() => Typography.mariupol.body(S), [S]);
 
   return (
-    <View
-      style={[
-        // __debugBorder("#00f"),
-        {
-          width: "100%",
-          height: "100%",
-        },
-      ]}
-      pointerEvents="box-none"
-    >
+    <View style={{ width: "100%", height: "100%" }} pointerEvents="box-none">
       <ScrollView
-        style={[
-          // __debugBorder("orange", 1),
-          {
-            position: "absolute",
-            left: listRect.x,
-            top: listRect.y,
-            width: listRect.w,
-            height: listRect.h,
-            borderRadius: listRect.r,
-          },
-        ]}
+        style={{
+          position: "absolute",
+          left: listRect.x + 1,
+          top: listRect.y,
+          width: listRect.w - 2,
+          height: listRect.h,
+          borderRadius: listRect.r,
+          borderBottomLeftRadius: 0,
+          borderBottomRightRadius: 0,
+        }}
         contentContainerStyle={{
           paddingBottom: snap(8 * S),
         }}
@@ -61,13 +53,7 @@ export function StatisticModalOverlay({
             }}
           >
             <Text
-              style={[
-                bodyStyle,
-                {
-                  textAlign: "center",
-                  color: "#5F7C84",
-                },
-              ]}
+              style={[bodyStyle, { textAlign: "center", color: "#5F7C84" }]}
             >
               You haven&apos;t played any games yet.
             </Text>
@@ -122,6 +108,8 @@ export function StatisticModalOverlay({
           width: button.size,
           height: button.size,
         }}
+        onPressIn={() => onPressInButton("reset")}
+        onPressOut={() => onPressOutButton("reset")}
         onPress={onResetStatistics}
       />
 
@@ -135,6 +123,8 @@ export function StatisticModalOverlay({
           width: button.size,
           height: button.size,
         }}
+        onPressIn={() => onPressInButton("back")}
+        onPressOut={() => onPressOutButton("back")}
         onPress={onBack}
       />
     </View>

@@ -15,6 +15,8 @@ type Props = {
   radius?: number;
 };
 
+const makeBg = (alpha: number) => `rgba(113, 212, 235, ${alpha})`;
+
 export function StRow({
   S,
   snap,
@@ -35,7 +37,9 @@ export function StRow({
     [S, isHeader],
   );
 
-  const resolvedTextColor = textColor ?? (isHeader ? "#D5F7FF" : "#1C2833");
+  const resolvedTextColor = textColor ?? (isHeader ? "#ffffff" : "#1C2833");
+
+  const alfa = typeof values[0] === "number" && values[0] % 2 === 0 ? 0.6 : 0;
 
   return (
     <View
@@ -43,14 +47,17 @@ export function StRow({
         styles.row,
         {
           minHeight: snap(28 * S),
-          paddingHorizontal: snap(8 * S),
-          paddingVertical: snap(6 * S),
-          backgroundColor,
           borderRadius: radius,
+          backgroundColor,
         },
       ]}
     >
-      <View style={[styles.cellWrap, { width: "12%" }]}>
+      <View
+        style={[
+          styles.cellWrap,
+          { width: "12%", backgroundColor: makeBg(alfa + 0.3) },
+        ]}
+      >
         <Text
           style={[baseTextStyle, styles.text, { color: resolvedTextColor }]}
           numberOfLines={1}
@@ -59,7 +66,16 @@ export function StRow({
         </Text>
       </View>
 
-      <View style={[styles.cellWrap, { width: "30%" }]}>
+      <View
+        style={[
+          styles.cellWrap,
+          {
+            width: "30%",
+            borderTopLeftRadius: values[0] === 1 ? 12 : 0,
+            backgroundColor: makeBg(alfa),
+          },
+        ]}
+      >
         <Text
           style={[baseTextStyle, styles.text, { color: resolvedTextColor }]}
           numberOfLines={1}
@@ -68,7 +84,12 @@ export function StRow({
         </Text>
       </View>
 
-      <View style={[styles.cellWrap, { width: "23%" }]}>
+      <View
+        style={[
+          styles.cellWrap,
+          { width: "23%", backgroundColor: makeBg(alfa) },
+        ]}
+      >
         <Text
           style={[baseTextStyle, styles.text, { color: resolvedTextColor }]}
           numberOfLines={1}
@@ -77,7 +98,12 @@ export function StRow({
         </Text>
       </View>
 
-      <View style={[styles.cellWrap, { width: "35%" }]}>
+      <View
+        style={[
+          styles.cellWrap,
+          { width: "35%", backgroundColor: makeBg(alfa) },
+        ]}
+      >
         <Text
           style={[baseTextStyle, styles.text, { color: resolvedTextColor }]}
           numberOfLines={1}
@@ -93,13 +119,15 @@ const styles = StyleSheet.create({
   row: {
     width: "100%",
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "stretch",
   },
   cellWrap: {
+    alignSelf: "stretch",
     justifyContent: "center",
     alignItems: "center",
   },
   text: {
     textAlign: "center",
+    marginVertical: 6,
   },
 });

@@ -6,6 +6,7 @@ const INNER_FRAME_BG = "#D5F7FF";
 const INNER_BORDER_BG = "#D5F7FF";
 const TITLE_COLOR = "#216169";
 const SUBTITLE_COLOR = "#000000";
+
 // Словник базових токенів модалки
 function getStatisticLayoutMetrics(
   frame: Frame,

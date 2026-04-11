@@ -1,7 +1,6 @@
 import { DBorder } from "@/ui/skia/DBorder";
 import { SkiaIconButtonSkin } from "@/ui/skia/SkiaIconButtonSkin";
 import shaderSource from "@/ui/skia/shaders/frame.sksl";
-import { logLayout } from "@/utils/debugLayout";
 import {
   Group,
   RoundedRect,
@@ -22,10 +21,14 @@ if (!shader) {
 const MARIUPOL_BOLD_TTF = require("../../../../assets/fonts/Mariupol-Bold.ttf");
 const MARIUPOL_MEDIUM_TTF = require("../../../../assets/fonts/Mariupol-Medium.ttf");
 
-export function StatisticModalScene({ frame, S, snap }: SceneProps) {
+export function StatisticModalScene({
+  frame,
+  S,
+  snap,
+  pressedButton,
+}: SceneProps) {
   const { title, subtitle, outer, innerFrame, innerBorder, button } =
     useStatisticLayout(frame, S, snap);
-  console.log("---");
 
   const titleFont = useFont(MARIUPOL_BOLD_TTF, title.fontSize);
   const titleText = "STATISTIC";
@@ -40,7 +43,6 @@ export function StatisticModalScene({ frame, S, snap }: SceneProps) {
     : innerFrame.x;
 
   if (!shader) return null;
-  logLayout("frame", frame);
 
   return (
     <Group transform={[{ translateX: frame.x }, { translateY: frame.y }]}>
@@ -97,7 +99,6 @@ export function StatisticModalScene({ frame, S, snap }: SceneProps) {
         }}
         radius={innerBorder.r}
         color="#D5F7FF"
-        // color="#D5F7FF30"
       />
       <RoundedRect
         x={innerBorder.x}
@@ -115,7 +116,7 @@ export function StatisticModalScene({ frame, S, snap }: SceneProps) {
           width: button.size,
           height: button.size,
         }}
-        pressed={false}
+        pressed={pressedButton === "reset"}
         other
       />
       <SkiaIconButtonSkin
@@ -125,7 +126,7 @@ export function StatisticModalScene({ frame, S, snap }: SceneProps) {
           width: button.size,
           height: button.size,
         }}
-        pressed={false}
+        pressed={pressedButton === "back"}
       />
     </Group>
   );

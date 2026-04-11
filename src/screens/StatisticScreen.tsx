@@ -6,12 +6,13 @@ import {
 } from "@/context/LayoutSnapshotProvider";
 import {
   StatisticItemVm,
+  StatisticModalButtonId,
   StatisticModalOverlay,
   StatisticModalScene,
   StatisticSummaryVm,
 } from "@/screens/components/StatisticModal";
 import { Canvas, Rect } from "@shopify/react-native-skia";
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Props } from "../types/types";
 
@@ -39,6 +40,8 @@ const StatisticScreen = ({ navigation }: Props<"Statistic">) => {
   const { S, snap } = useLayoutRenderHelpers();
   const { bestGames, statistics, resetStatistics } = useGameState();
   const [contentHeight, setContentHeight] = useState(0);
+  const [pressedButton, setPressedButton] =
+    useState<StatisticModalButtonId | null>(null);
 
   const modalFrame = modalDefaultFrame;
   const modalHeight = modalFrame.width * 1.4;
@@ -70,6 +73,17 @@ const StatisticScreen = ({ navigation }: Props<"Statistic">) => {
     [statistics.bestTime, statistics.bestMoves],
   );
 
+  const handlePressInButton = useCallback((buttonId: StatisticModalButtonId) => {
+    setPressedButton(buttonId);
+  }, []);
+
+  const handlePressOutButton = useCallback(
+    (buttonId: StatisticModalButtonId) => {
+      setPressedButton((current) => (current === buttonId ? null : current));
+    },
+    [],
+  );
+
   return (
     <View style={StyleSheet.absoluteFill}>
       <Canvas style={StyleSheet.absoluteFill}>
@@ -80,6 +94,7 @@ const StatisticScreen = ({ navigation }: Props<"Statistic">) => {
           S={S}
           snap={snap}
           contentHeight={contentHeight}
+          pressedButton={pressedButton}
         />
       </Canvas>
 
@@ -145,6 +160,8 @@ const StatisticScreen = ({ navigation }: Props<"Statistic">) => {
               onContentHeightChange={setContentHeight}
               onBack={() => navigation.goBack()}
               onResetStatistics={resetStatistics}
+              onPressInButton={handlePressInButton}
+              onPressOutButton={handlePressOutButton}
             />
           </View>
         </View>
