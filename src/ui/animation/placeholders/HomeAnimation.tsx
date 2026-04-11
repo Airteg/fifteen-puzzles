@@ -20,7 +20,7 @@ const TILES_CONFIG = [
   {
     id: 9,
     label: "9",
-    dx: -155,
+    dx: -150,
     dy: 10,
     rot: 0.5,
     color: [0.4, 0.8, 0.9, 1.0] as const,
@@ -30,8 +30,8 @@ const TILES_CONFIG = [
   {
     id: 12,
     label: "12",
-    dx: -90,
-    dy: 30,
+    dx: -82,
+    dy: 25,
     rot: 0.2,
     color: [0.6, 0.5, 0.9, 1.0] as const,
     delay: 700,
@@ -171,10 +171,10 @@ const AnimatedSmiley = ({ cx, cy, smileySize }: any) => {
     rotVal.value = withDelay(
       400,
       withSequence(
-        withTiming(-0.15, { duration: 150 }),
-        withTiming(0.15, { duration: 150 }),
-        withTiming(-0.1, { duration: 100 }),
-        withTiming(0, { duration: 100 }),
+        withTiming(-1, { duration: 500 }),
+        withTiming(0.5, { duration: 500 }),
+        withTiming(-0.1, { duration: 500 }),
+        withTiming(0, { duration: 300 }),
       ),
     );
   }, [scaleVal, rotVal]);
