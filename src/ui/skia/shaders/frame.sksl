@@ -63,7 +63,7 @@ half4 main(float2 curP) {
     
     // Маска тіні
     float falloff = 0.03; 
-    float cutOff = 0.76;
+    float cutOff = 0.79;
     float rawShadow = exp(-falloff * shadowDistance);
     float shadowMask = max(rawShadow - cutOff, 0.0);
 
