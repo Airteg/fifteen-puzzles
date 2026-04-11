@@ -8,6 +8,7 @@ type SkiaFonts = {
   button: SkFont | null; // 24 * S
   title: SkFont | null; // 32 * S
   body: SkFont | null; // 16 * S
+  anim: SkFont | null; // 20 * S
 };
 
 interface FontContextType {
@@ -36,14 +37,16 @@ export const FontProvider = ({ children }: { children: ReactNode }) => {
   const buttonFont = useFont(KRONA_TTF, snap(24 * S));
   const titleFont = useFont(KRONA_TTF, snap(25 * S));
   const bodyFont = useFont(KRONA_TTF, snap(16 * S));
+  const tileAnimationFont = useFont(KRONA_TTF, snap(20 * S));
 
   const skiaFonts = useMemo<SkiaFonts>(
     () => ({
       button: buttonFont,
       title: titleFont,
       body: bodyFont,
+      anim: tileAnimationFont,
     }),
-    [buttonFont, titleFont, bodyFont],
+    [buttonFont, titleFont, bodyFont, tileAnimationFont],
   );
 
   // Ready when RN fonts + all Skia fonts are ready

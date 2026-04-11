@@ -20,44 +20,45 @@ const TILES_CONFIG = [
   {
     id: 9,
     label: "9",
-    dx: -115,
+    dx: -155,
     dy: 10,
-    rot: -0.3,
+    rot: 0.5,
     color: [0.4, 0.8, 0.9, 1.0] as const,
     delay: 600,
+  },
+
+  {
+    id: 12,
+    label: "12",
+    dx: -90,
+    dy: 30,
+    rot: 0.2,
+    color: [0.6, 0.5, 0.9, 1.0] as const,
+    delay: 700,
   },
   {
     id: 3,
     label: "3",
-    dx: -65,
-    dy: -55,
+    dx: -110,
+    dy: -35,
     rot: -0.2,
     color: [0.9, 0.5, 0.7, 1.0] as const,
     delay: 650,
   },
   {
-    id: 12,
-    label: "12",
-    dx: -45,
-    dy: 45,
-    rot: -0.15,
-    color: [0.6, 0.5, 0.9, 1.0] as const,
-    delay: 700,
-  },
-  {
     id: 2,
     label: "2",
-    dx: 65,
-    dy: -55,
+    dx: 90,
+    dy: -35,
     rot: 0.1,
-    color: [0.9, 0.4, 0.4, 1.0] as const,
+    color: [0.95, 0.4, 0.3, 1.0] as const,
     delay: 650,
   },
   {
     id: 10,
     label: "10",
-    dx: 55,
-    dy: 50,
+    dx: 85,
+    dy: 35,
     rot: -0.1,
     color: [0.9, 0.9, 0.3, 1.0] as const,
     delay: 750,
@@ -65,21 +66,67 @@ const TILES_CONFIG = [
   {
     id: 1,
     label: "1",
-    dx: 115,
+    dx: 145,
     dy: 10,
-    rot: 0.25,
+    rot: 0.4,
     color: [0.6, 0.9, 0.5, 1.0] as const,
     delay: 600,
   },
 ];
+export default function HomeAnimation() {
+  const { width } = useWindowDimensions();
+  const { S, snap } = useLayoutRenderHelpers();
+  const { anim: tileFont } = useSkiaFonts();
 
+  const [animationKey, setAnimationKey] = useState(0);
+  useFocusEffect(
+    useCallback(() => {
+      // Оновлюємо ключ анімації, щоб примусити перезапустити анімацію
+      setAnimationKey((prev) => prev + 1);
+    }, []),
+  );
+
+  if (!tileFont) return null;
+
+  const CANVAS_HEIGHT = snap(210 * S);
+  const cx = width / 2;
+  const cy = CANVAS_HEIGHT / 2;
+
+  const TILE_SIZE = snap(60 * S);
+  const SMILEY_SIZE = snap(88 * S);
+
+  return (
+    <Canvas style={{ width: "100%", height: CANVAS_HEIGHT }}>
+      {TILES_CONFIG.map((config) => (
+        <AnimatedTile
+          // Додаємо animationKey сюди, щоб компоненти перемонтовувались
+          key={`${config.id}-${animationKey}`}
+          config={config}
+          cx={cx}
+          cy={cy}
+          tileSize={TILE_SIZE}
+          font={tileFont}
+          S={S}
+          snap={snap}
+        />
+      ))}
+
+      <AnimatedSmiley
+        key={`smiley-${animationKey}`}
+        cx={cx}
+        cy={cy}
+        smileySize={SMILEY_SIZE}
+      />
+    </Canvas>
+  );
+}
 const AnimatedTile = ({ config, cx, cy, tileSize, font, S, snap }: any) => {
   const progress = useSharedValue(0);
 
   useEffect(() => {
     progress.value = withDelay(
       config.delay,
-      withSpring(1, { damping: 10, stiffness: 90, mass: 1 }),
+      withSpring(1, { damping: 5, stiffness: 90, mass: 2 }),
     );
   }, [config.delay, progress]);
 
@@ -105,7 +152,7 @@ const AnimatedTile = ({ config, cx, cy, tileSize, font, S, snap }: any) => {
         rect={{ x: 0, y: 0, width: tileSize, height: tileSize }}
         label={config.label}
         font={font}
-        baseColor={config.color}
+        tintColor={config.color}
         textColor="#000000"
         S={S}
         snap={snap}
@@ -149,52 +196,3 @@ const AnimatedSmiley = ({ cx, cy, smileySize }: any) => {
     </Group>
   );
 };
-
-export default function HomeAnimation() {
-  const { width } = useWindowDimensions();
-  const { S, snap } = useLayoutRenderHelpers();
-  const { title: tileFont } = useSkiaFonts();
-
-  const [animationKey, setAnimationKey] = useState(0);
-  // Використовуємо useFocusEffect, щоб оновлювати ключ щоразу, коли екран отримує фокус
-  useFocusEffect(
-    useCallback(() => {
-      // Оновлюємо ключ анімації, щоб примусити перезапустити анімацію
-      setAnimationKey((prev) => prev + 1);
-    }, []),
-  );
-
-  if (!tileFont) return null;
-
-  const CANVAS_HEIGHT = snap(210 * S);
-  const cx = width / 2;
-  const cy = CANVAS_HEIGHT / 2;
-
-  const TILE_SIZE = snap(56 * S);
-  const SMILEY_SIZE = snap(88 * S);
-
-  return (
-    <Canvas style={{ width: "100%", height: CANVAS_HEIGHT }}>
-      {TILES_CONFIG.map((config) => (
-        <AnimatedTile
-          // Додаємо animationKey сюди, щоб компоненти перемонтовувались
-          key={`${config.id}-${animationKey}`}
-          config={config}
-          cx={cx}
-          cy={cy}
-          tileSize={TILE_SIZE}
-          font={tileFont}
-          S={S}
-          snap={snap}
-        />
-      ))}
-
-      <AnimatedSmiley
-        key={`smiley-${animationKey}`}
-        cx={cx}
-        cy={cy}
-        smileySize={SMILEY_SIZE}
-      />
-    </Canvas>
-  );
-}
