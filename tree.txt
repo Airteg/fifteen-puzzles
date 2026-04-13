@@ -114,6 +114,7 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   │   ├── placeholders
 │   │   │   │   ├── HomeAnimation.tsx
 │   │   │   │   ├── NewGameAnimation.tsx
+│   │   │   │   ├── SettingsAnimation.tsx
 │   │   │   │   └── SettingsAnimationPlaceholder.tsx
 │   │   │   └── animation.ts
 │   │   ├── game

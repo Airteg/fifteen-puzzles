@@ -50,7 +50,13 @@ export const FontProvider = ({ children }: { children: ReactNode }) => {
   );
 
   // Ready when RN fonts + all Skia fonts are ready
-  const isReady = !!(expoFontsLoaded && buttonFont && titleFont && bodyFont);
+  const isReady = !!(
+    expoFontsLoaded &&
+    buttonFont &&
+    titleFont &&
+    bodyFont &&
+    tileAnimationFont
+  );
 
   return (
     <FontContext.Provider value={{ skiaFonts, isReady }}>
