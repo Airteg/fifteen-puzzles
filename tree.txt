@@ -146,6 +146,7 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   │   │   │   └── targets.sksl
 │   │   │   │   ├── board_v1.sksl
 │   │   │   │   ├── button.sksl
+│   │   │   │   ├── frame_v2.sksl
 │   │   │   │   ├── frame.sksl
 │   │   │   │   ├── test.sksl
 │   │   │   │   ├── tile_v2_logo.sksl
@@ -160,6 +161,7 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   │   ├── BoardSkin.tsx
 │   │   │   ├── BoardSkin1.tsx
 │   │   │   ├── DBorder.tsx
+│   │   │   ├── Frame.tsx
 │   │   │   ├── GameHeader.tsx
 │   │   │   ├── IconButtonSkin.tsx
 │   │   │   ├── LogoFrameSkin.tsx
