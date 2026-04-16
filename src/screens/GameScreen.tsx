@@ -1,3 +1,7 @@
+import {
+  resolveGameResultReason,
+} from "@/screens/components/GameResult/resultLogic";
+import type { GameResultRouteParams } from "@/screens/components/GameResult/result.types";
 import { RootStackParamList } from "@/types/types";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import React, {
@@ -52,6 +56,7 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   const { title: tileFont } = useSkiaFonts();
   const {
     settings,
+    statistics,
     countdownMs,
     startCountdown,
     setCountdownMs,
@@ -68,6 +73,8 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   const didResolveGameRef = useRef(false);
   const didPersistGameResultRef = useRef(false);
   const hasPendingWinRef = useRef(false);
+  const lastCommittedMovesRef = useRef(0);
+  const pendingGameResultRef = useRef<GameResultRouteParams | null>(null);
   const sessionStartedAtMsRef = useRef<number | null>(null);
   const sessionStartedAtIsoRef = useRef<string | null>(null);
   const sessionIdRef = useRef(0);
@@ -96,6 +103,8 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     didResolveGameRef.current = false;
     didPersistGameResultRef.current = false;
     hasPendingWinRef.current = false;
+    lastCommittedMovesRef.current = 0;
+    pendingGameResultRef.current = null;
 
     return startedAtMs;
   }, [sessionIdSV]);
@@ -110,6 +119,7 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     sessionStartedAtIsoRef.current = null;
     didResolveGameRef.current = true;
     hasPendingWinRef.current = false;
+    pendingGameResultRef.current = null;
   }, [sessionIdSV]);
 
   const handleMoveCommitted = useCallback(
@@ -117,6 +127,8 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
       if (sessionId !== sessionIdRef.current) {
         return;
       }
+
+      lastCommittedMovesRef.current = moves;
 
       if (!isWinningMove) {
         return;
@@ -137,14 +149,35 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
         return;
       }
 
+      const durationMs = Math.max(0, Math.round(committedAtMs - startedAtMs));
+      const resultParams: GameResultRouteParams = {
+        reason: resolveGameResultReason({
+          didWin: true,
+          didTimeExpire: false,
+          currentDurationMs: durationMs,
+          previousBestTime: statistics.bestTime,
+        }),
+        durationMs,
+        moves,
+        startedAt,
+        mode: gameMode,
+      };
+
+      pendingGameResultRef.current = resultParams;
       didPersistGameResultRef.current = true;
       recordWin({
         startedAt,
-        durationMs: Math.max(0, Math.round(committedAtMs - startedAtMs)),
+        durationMs,
         moves,
       });
     },
-    [clearCountdownInterval, recordWin, stopCountdown],
+    [
+      clearCountdownInterval,
+      gameMode,
+      recordWin,
+      statistics.bestTime,
+      stopCountdown,
+    ],
   );
 
   const handleWin = useCallback(
@@ -162,7 +195,14 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
       clearCountdownInterval();
       countdownDeadlineRef.current = null;
       stopCountdown();
-      navigation.navigate("Win", { score: 100 });
+
+      const pendingGameResult = pendingGameResultRef.current;
+      if (!pendingGameResult) {
+        console.error("Missing pending GameResult params for win flow.");
+        return;
+      }
+
+      navigation.replace("GameResult", pendingGameResult);
     },
     [clearCountdownInterval, navigation, stopCountdown],
   );
@@ -172,6 +212,30 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
       return;
     }
 
+    const startedAtMs = sessionStartedAtMsRef.current;
+    const startedAt = sessionStartedAtIsoRef.current;
+    if (startedAtMs === null || startedAt === null) {
+      return;
+    }
+
+    const durationMs = Math.min(
+      settings.limitTimeMs,
+      Math.max(0, Math.round(Date.now() - startedAtMs)),
+    );
+    const resultParams: GameResultRouteParams = {
+      reason: resolveGameResultReason({
+        didWin: false,
+        didTimeExpire: true,
+        currentDurationMs: durationMs,
+        previousBestTime: statistics.bestTime,
+      }),
+      durationMs,
+      moves: lastCommittedMovesRef.current,
+      startedAt,
+      mode: gameMode,
+    };
+
+    pendingGameResultRef.current = resultParams;
     didResolveGameRef.current = true;
     if (!didPersistGameResultRef.current) {
       didPersistGameResultRef.current = true;
@@ -180,8 +244,16 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     clearCountdownInterval();
     countdownDeadlineRef.current = null;
     stopCountdown();
-    navigation.navigate("Lose", { score: 0 });
-  }, [clearCountdownInterval, navigation, recordLoss, stopCountdown]);
+    navigation.replace("GameResult", resultParams);
+  }, [
+    clearCountdownInterval,
+    gameMode,
+    navigation,
+    recordLoss,
+    settings.limitTimeMs,
+    statistics.bestTime,
+    stopCountdown,
+  ]);
 
   // 5. Ігровий контролер
   const boardCtrl = useGameBoardController({

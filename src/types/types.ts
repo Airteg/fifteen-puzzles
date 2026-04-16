@@ -1,4 +1,8 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import type {
+  GameMode,
+  GameResultRouteParams,
+} from "@/screens/components/GameResult/result.types";
 
 export type RootStackParamList = {
   Home: undefined;
@@ -7,7 +11,8 @@ export type RootStackParamList = {
   Support: undefined;
   Statistic: undefined;
   NewGame: undefined;
-  Game: { mode: "classic" | "limitTime" };
+  Game: { mode: GameMode };
+  GameResult: GameResultRouteParams;
   Win: { score: number };
   Lose: { score: number };
 };
