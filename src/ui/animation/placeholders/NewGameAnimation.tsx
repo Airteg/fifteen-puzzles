@@ -84,15 +84,6 @@ export default function NewGameAnimation() {
 
   return (
     <Canvas style={{ width: "100%", height: CANVAS_HEIGHT }}>
-      <Rect
-        x={0}
-        y={0}
-        width={width}
-        height={CANVAS_HEIGHT}
-        style={"stroke"}
-        strokeWidth={1}
-        color={"red"}
-      />
       {/* 1. Спочатку малюємо квадрат, щоб він був на самому фоні */}
       <AnimatedSquare
         key={`square-${animationKey}`}

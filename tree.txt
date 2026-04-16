@@ -48,13 +48,25 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   ├── logo.png
 │   │   ├── logo5.png
 │   │   └── splash-icon.png
-│   └── sounds
-│       ├── buttonPress.mp3
-│       ├── gameOver2.mp3
-│       ├── gameOver3.mp3
-│       ├── move.mp3
-│       ├── TileMove.mp3
-│       └── winner.mp3
+│   ├── sounds
+│   │   ├── buttonPress.mp3
+│   │   ├── gameOver2.mp3
+│   │   ├── gameOver3.mp3
+│   │   ├── move.mp3
+│   │   ├── TileMove.mp3
+│   │   └── winner.mp3
+│   └── video
+│       ├── GoodGame
+│       │   ├── goodGame (1).mp4
+│       │   ├── goodGame (2).mp4
+│       │   ├── goodGame (3).mp4
+│       │   ├── goodGame (4).mp4
+│       │   └── goodGame (5).mp4
+│       └── TimeUp
+│           ├── timUpGame (1).mp4
+│           ├── timUpGame (2).mp4
+│           ├── timUpGame (3).mp4
+│           └── timUpGame (4).mp4
 ├── src
 │   ├── context
 │   │   ├── AppShell.tsx
@@ -69,6 +81,11 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   └── RootNavigator.tsx
 │   ├── screens
 │   │   ├── components
+│   │   │   ├── GameResult
+│   │   │   │   ├── result.types.ts
+│   │   │   │   ├── resultLogic.ts
+│   │   │   │   ├── VideoResultScene.tsx
+│   │   │   │   └── WinRecordScene.tsx
 │   │   │   ├── SkinModal
 │   │   │   │   ├── index.ts
 │   │   │   │   ├── SkinModal.types.ts
@@ -87,6 +104,7 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   │   ├── SettingsModalHost.tsx
 │   │   │   └── SoundModal.tsx
 │   │   ├── AboutScreen.tsx
+│   │   ├── GameResultScreen.tsx
 │   │   ├── GameScreen.tsx
 │   │   ├── HomeScreen.tsx
 │   │   ├── LoseScreen.tsx
@@ -188,6 +206,7 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   └── skslTransformer.js
 ├── .gitignore
 ├── Action_Plan.md
+├── AI_FeatureSpecificationGameResultFlow.md
 ├── AI_INDEX.md
 ├── AI_RULES.md
 ├── app.json
@@ -199,8 +218,6 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 ├── eslint.config.js
 ├── expo-env.d.ts
 ├── metro.config.js
-├── modal.css
-├── modal.html
 ├── package.json
 ├── pnpm-lock.yaml
 ├── pnpm-workspace.yaml
