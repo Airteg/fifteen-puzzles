@@ -1,25 +1,59 @@
+import {
+  useLayoutDevice,
+  useLayoutRenderHelpers,
+} from "@/context/LayoutSnapshotProvider";
+import { useVideoPlayer, VideoView } from "expo-video";
 import React, { useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
-import { useVideoPlayer, VideoView } from "expo-video";
 
 import { T } from "@/ui/T";
 import type { VideoResultSceneProps } from "./result.types";
 
-// Тимчасово локально.
-// Коли додаси resultAssets.ts — перенесемо туди.
-const WIN_VIDEOS = [
-  require("../../../../assets/video/GoodGame/goodGame (1).mp4"),
-  require("../../../../assets/video/GoodGame/goodGame (2).mp4"),
-  require("../../../../assets/video/GoodGame/goodGame (3).mp4"),
-  require("../../../../assets/video/GoodGame/goodGame (4).mp4"),
-  require("../../../../assets/video/GoodGame/goodGame (5).mp4"),
+type VideoAssetEntry = {
+  source: number;
+  aspectRatio: number; // width / height
+};
+
+const WIN_VIDEOS: readonly VideoAssetEntry[] = [
+  {
+    source: require("../../../../assets/video/GoodGame/goodGame1.mp4"),
+    aspectRatio: 16 / 9,
+  },
+  {
+    source: require("../../../../assets/video/GoodGame/goodGame2.mp4"),
+    aspectRatio: 16 / 9,
+  },
+  {
+    source: require("../../../../assets/video/GoodGame/goodGame3.mp4"),
+    aspectRatio: 16 / 9,
+  },
+  {
+    source: require("../../../../assets/video/GoodGame/goodGame4.mp4"),
+    aspectRatio: 16 / 9,
+  },
+  {
+    source: require("../../../../assets/video/GoodGame/goodGame5.mp4"),
+    aspectRatio: 16 / 9,
+  },
 ] as const;
 
-const LOSE_VIDEOS = [
-  require("../../../../assets/video/TimeUp/timUpGame (1).mp4"),
-  require("../../../../assets/video/TimeUp/timUpGame (2).mp4"),
-  require("../../../../assets/video/TimeUp/timUpGame (3).mp4"),
-  require("../../../../assets/video/TimeUp/timUpGame (4).mp4"),
+const LOSE_VIDEOS: readonly VideoAssetEntry[] = [
+  {
+    source: require("../../../../assets/video/TimeUp/timUpGame1.mp4"),
+    aspectRatio: 16 / 9,
+  },
+  {
+    source: require("../../../../assets/video/TimeUp/timUpGame2.mp4"),
+    aspectRatio: 16 / 9,
+  },
+  {
+    source: require("../../../../assets/video/TimeUp/timUpGame3.mp4"),
+    aspectRatio: 16 / 9,
+  },
+  {
+    source: require("../../../../assets/video/TimeUp/timUpGame4.mp4"),
+    aspectRatio: 16 / 9,
+  },
 ] as const;
 
 const HOME_DELAY_WIN_MS = 1000;
@@ -32,7 +66,7 @@ function formatDuration(durationMs: number) {
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
-function pickRandomVideo(type: "win" | "lose") {
+function pickRandomVideo(type: "win" | "lose"): VideoAssetEntry {
   const pool = type === "win" ? WIN_VIDEOS : LOSE_VIDEOS;
   const index = Math.floor(Math.random() * pool.length);
   return pool[index];
@@ -45,12 +79,16 @@ export default function VideoResultScene({
   onHome,
   onRestart,
 }: VideoResultSceneProps) {
+  const { screenW } = useLayoutDevice();
+  const { snap } = useLayoutRenderHelpers();
+
   const [showHome, setShowHome] = useState(type === "lose");
   const [showRestart, setShowRestart] = useState(type === "lose");
 
-  const source = useMemo(() => pickRandomVideo(type), [type]);
+  const selectedVideo = useMemo(() => pickRandomVideo(type), [type]);
+  const videoFrameWidth = snap(screenW * 0.9);
 
-  const player = useVideoPlayer(source, (playerInstance) => {
+  const player = useVideoPlayer(selectedVideo.source, (playerInstance) => {
     playerInstance.loop = false;
     playerInstance.muted = false;
     playerInstance.play();
@@ -69,16 +107,26 @@ export default function VideoResultScene({
 
   return (
     <View style={styles.root}>
-      <VideoView
-        player={player}
-        style={StyleSheet.absoluteFill}
-        contentFit="cover"
-        allowsFullscreen={false}
-        allowsPictureInPicture={false}
-        nativeControls={false}
-      />
-
-      <View style={styles.scrim} pointerEvents="none" />
+      <View style={styles.videoArea} pointerEvents="none">
+        <View
+          style={[
+            styles.videoFrame,
+            {
+              width: videoFrameWidth,
+              aspectRatio: selectedVideo.aspectRatio,
+            },
+          ]}
+        >
+          <VideoView
+            player={player}
+            style={StyleSheet.absoluteFill}
+            contentFit="contain"
+            nativeControls={false}
+            fullscreenOptions={{ enable: false }}
+            allowsPictureInPicture={false}
+          />
+        </View>
+      </View>
 
       <View style={styles.overlay} pointerEvents="box-none">
         <View style={styles.topMeta} pointerEvents="none">
@@ -108,12 +156,19 @@ export default function VideoResultScene({
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: "#000000",
+    backgroundColor: "#111111",
   },
 
-  scrim: {
+  videoArea: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.16)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  videoFrame: {
+    overflow: "hidden",
+    borderRadius: 16,
+    backgroundColor: "#000000",
   },
 
   overlay: {
