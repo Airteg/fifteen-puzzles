@@ -19,6 +19,7 @@ import { useGameState } from "@/context/GameStateProvider";
 import {
   MoveCommitEvent,
   useGameBoardController,
+  WinEvent,
 } from "@/ui/game/useGameBoardController";
 import { useGameSceneMetrics } from "@/ui/game/useGameSceneMetrics";
 
@@ -34,6 +35,7 @@ import { useSharedValue } from "react-native-reanimated";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Game">;
 const COUNTDOWN_TICK_MS = 250;
+type ResultPhase = "inactive" | "active" | "win_pending" | "resolved";
 
 function formatCountdownMs(ms: number) {
   const safeMs = Math.max(0, ms);
@@ -70,11 +72,8 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     null,
   );
   const countdownDeadlineRef = useRef<number | null>(null);
-  const didResolveGameRef = useRef(false);
-  const didPersistGameResultRef = useRef(false);
-  const hasPendingWinRef = useRef(false);
+  const resultPhaseRef = useRef<ResultPhase>("inactive");
   const lastCommittedMovesRef = useRef(0);
-  const pendingGameResultRef = useRef<GameResultRouteParams | null>(null);
   const sessionStartedAtMsRef = useRef<number | null>(null);
   const sessionStartedAtIsoRef = useRef<string | null>(null);
   const sessionIdRef = useRef(0);
@@ -90,6 +89,23 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     }
   }, []);
 
+  const stopCountdownFlow = useCallback(() => {
+    clearCountdownInterval();
+    countdownDeadlineRef.current = null;
+    stopCountdown();
+  }, [clearCountdownInterval, stopCountdown]);
+
+  const getSessionSnapshot = useCallback(() => {
+    const startedAtMs = sessionStartedAtMsRef.current;
+    const startedAt = sessionStartedAtIsoRef.current;
+
+    if (startedAtMs === null || startedAt === null) {
+      return null;
+    }
+
+    return { startedAtMs, startedAt };
+  }, []);
+
   const beginGameSession = useCallback(() => {
     const startedAtMs = Date.now();
     const nextSessionId = sessionIdRef.current + 1;
@@ -100,11 +116,8 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     sessionStartedAtMsRef.current = startedAtMs;
     sessionStartedAtIsoRef.current = new Date(startedAtMs).toISOString();
 
-    didResolveGameRef.current = false;
-    didPersistGameResultRef.current = false;
-    hasPendingWinRef.current = false;
+    resultPhaseRef.current = "active";
     lastCommittedMovesRef.current = 0;
-    pendingGameResultRef.current = null;
 
     return startedAtMs;
   }, [sessionIdSV]);
@@ -117,13 +130,11 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
 
     sessionStartedAtMsRef.current = null;
     sessionStartedAtIsoRef.current = null;
-    didResolveGameRef.current = true;
-    hasPendingWinRef.current = false;
-    pendingGameResultRef.current = null;
+    resultPhaseRef.current = "inactive";
   }, [sessionIdSV]);
 
   const handleMoveCommitted = useCallback(
-    ({ committedAtMs, isWinningMove, moves, sessionId }: MoveCommitEvent) => {
+    ({ isWinningMove, moves, sessionId }: MoveCommitEvent) => {
       if (sessionId !== sessionIdRef.current) {
         return;
       }
@@ -134,93 +145,85 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
         return;
       }
 
-      hasPendingWinRef.current = true;
-      clearCountdownInterval();
-      countdownDeadlineRef.current = null;
-      stopCountdown();
-
-      if (didPersistGameResultRef.current) {
+      if (resultPhaseRef.current !== "active") {
         return;
       }
 
-      const startedAtMs = sessionStartedAtMsRef.current;
-      const startedAt = sessionStartedAtIsoRef.current;
-      if (startedAtMs === null || startedAt === null) {
+      resultPhaseRef.current = "win_pending";
+      stopCountdownFlow();
+    },
+    [stopCountdownFlow],
+  );
+
+  const handleWin = useCallback(
+    ({ committedAtMs, moves, sessionId }: WinEvent) => {
+      if (sessionId !== sessionIdRef.current) {
         return;
       }
 
-      const durationMs = Math.max(0, Math.round(committedAtMs - startedAtMs));
+      if (
+        resultPhaseRef.current !== "active" &&
+        resultPhaseRef.current !== "win_pending"
+      ) {
+        return;
+      }
+
+      const session = getSessionSnapshot();
+      if (!session) {
+        return;
+      }
+
+      const prevBestTime = statistics.bestTime;
+      const durationMs = Math.max(
+        0,
+        Math.round(committedAtMs - session.startedAtMs),
+      );
       const resultParams: GameResultRouteParams = {
         reason: resolveGameResultReason({
           didWin: true,
           didTimeExpire: false,
           currentDurationMs: durationMs,
-          previousBestTime: statistics.bestTime,
+          previousBestTime: prevBestTime,
         }),
         durationMs,
         moves,
-        startedAt,
+        startedAt: session.startedAt,
         mode: gameMode,
       };
 
-      pendingGameResultRef.current = resultParams;
-      didPersistGameResultRef.current = true;
+      resultPhaseRef.current = "resolved";
+      stopCountdownFlow();
       recordWin({
-        startedAt,
+        startedAt: session.startedAt,
         durationMs,
         moves,
       });
+
+      navigation.replace("GameResult", resultParams);
     },
     [
-      clearCountdownInterval,
       gameMode,
+      getSessionSnapshot,
+      navigation,
       recordWin,
       statistics.bestTime,
-      stopCountdown,
+      stopCountdownFlow,
     ],
   );
 
-  const handleWin = useCallback(
-    (sessionId: number) => {
-      if (sessionId !== sessionIdRef.current) {
-        return;
-      }
-
-      if (didResolveGameRef.current) {
-        return;
-      }
-
-      didResolveGameRef.current = true;
-      hasPendingWinRef.current = false;
-      clearCountdownInterval();
-      countdownDeadlineRef.current = null;
-      stopCountdown();
-
-      const pendingGameResult = pendingGameResultRef.current;
-      if (!pendingGameResult) {
-        console.error("Missing pending GameResult params for win flow.");
-        return;
-      }
-
-      navigation.replace("GameResult", pendingGameResult);
-    },
-    [clearCountdownInterval, navigation, stopCountdown],
-  );
-
   const handleLose = useCallback(() => {
-    if (didResolveGameRef.current || hasPendingWinRef.current) {
+    if (resultPhaseRef.current !== "active") {
       return;
     }
 
-    const startedAtMs = sessionStartedAtMsRef.current;
-    const startedAt = sessionStartedAtIsoRef.current;
-    if (startedAtMs === null || startedAt === null) {
+    const session = getSessionSnapshot();
+    if (!session) {
       return;
     }
 
     const durationMs = Math.min(
       settings.limitTimeMs,
-      Math.max(0, Math.round(Date.now() - startedAtMs)),
+      Math.max(0, Math.round(Date.now() - session.startedAtMs)),
     );
     const resultParams: GameResultRouteParams = {
       reason: resolveGameResultReason({
@@ -231,28 +234,22 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
       }),
       durationMs,
       moves: lastCommittedMovesRef.current,
-      startedAt,
+      startedAt: session.startedAt,
       mode: gameMode,
     };
 
-    pendingGameResultRef.current = resultParams;
-    didResolveGameRef.current = true;
-    if (!didPersistGameResultRef.current) {
-      didPersistGameResultRef.current = true;
-      recordLoss();
-    }
-    clearCountdownInterval();
-    countdownDeadlineRef.current = null;
-    stopCountdown();
+    resultPhaseRef.current = "resolved";
+    recordLoss();
+    stopCountdownFlow();
     navigation.replace("GameResult", resultParams);
   }, [
-    clearCountdownInterval,
     gameMode,
+    getSessionSnapshot,
     navigation,
     recordLoss,
     settings.limitTimeMs,
     statistics.bestTime,
-    stopCountdown,
+    stopCountdownFlow,
   ]);
 
   // 5. Ігровий контролер
@@ -323,11 +320,9 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   useEffect(() => {
     return () => {
       invalidateGameSession();
-      clearCountdownInterval();
-      countdownDeadlineRef.current = null;
-      stopCountdown();
+      stopCountdownFlow();
     };
-  }, [clearCountdownInterval, invalidateGameSession, stopCountdown]);
+  }, [invalidateGameSession, stopCountdownFlow]);
 
   useEffect(() => {
     if (!isReady) {
@@ -335,11 +330,9 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     }
 
     if (!hasTimer) {
-      clearCountdownInterval();
-      countdownDeadlineRef.current = null;
+      stopCountdownFlow();
       beginGameSession();
       resetCountdown(settings.limitTimeMs);
-      stopCountdown();
       return;
     }
 
@@ -347,31 +340,26 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   }, [
     beginCountdown,
     beginGameSession,
-    clearCountdownInterval,
     hasTimer,
     isReady,
     resetCountdown,
     settings.limitTimeMs,
-    stopCountdown,
+    stopCountdownFlow,
   ]);
 
   const handleHomePress = useCallback(() => {
     invalidateGameSession();
-    clearCountdownInterval();
-    countdownDeadlineRef.current = null;
-    stopCountdown();
+    stopCountdownFlow();
     navigation.popToTop();
-  }, [clearCountdownInterval, invalidateGameSession, navigation, stopCountdown]);
+  }, [invalidateGameSession, navigation, stopCountdownFlow]);
 
   const handleRestartPress = useCallback(() => {
     boardCtrl.resetBoard(shuffleTiles());
 
     if (!hasTimer) {
-      clearCountdownInterval();
-      countdownDeadlineRef.current = null;
+      stopCountdownFlow();
       beginGameSession();
       resetCountdown(settings.limitTimeMs);
-      stopCountdown();
       return;
     }
 
@@ -380,11 +368,10 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     beginCountdown,
     beginGameSession,
     boardCtrl,
-    clearCountdownInterval,
     hasTimer,
     resetCountdown,
     settings.limitTimeMs,
-    stopCountdown,
+    stopCountdownFlow,
   ]);
 
   const timeText = useMemo(

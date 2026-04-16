@@ -27,6 +27,12 @@ export type MoveCommitEvent = {
   sessionId: number;
 };
 
+export type WinEvent = {
+  committedAtMs: number;
+  moves: number;
+  sessionId: number;
+};
+
 const STATIC_TILES: readonly BoardTileDescriptor[] = Array.from(
   { length: 15 },
   (_, index) => {
@@ -65,7 +71,7 @@ export type UseGameBoardControllerResult = {
 type UseGameBoardControllerParams = {
   mode: "classic" | "limitTime";
   bootGrid?: number[];
-  onWin?: (sessionId: number) => void;
+  onWin?: (event: WinEvent) => void;
   onMoveCommitted?: (event: MoveCommitEvent) => void;
   sessionIdSV: SharedValue<number>;
 };
@@ -203,7 +209,11 @@ export function useGameBoardController({
         { duration: 150 * (1 - clampedProgress) },
         (finished) => {
           if (finished && isWin && onWin) {
-            scheduleOnRN(onWin, sessionId);
+            scheduleOnRN(onWin, {
+              committedAtMs,
+              moves: nextMoves,
+              sessionId,
+            });
           }
         },
       );
