@@ -6,9 +6,8 @@ import type { Props } from "../types/types";
 
 // Імпортуємо хук для метрик
 import { useLayoutRenderHelpers } from "@/context/LayoutSnapshotProvider";
-import { BoardSkin } from "@/ui/skia/BoardSkin";
+import { Frame } from "@/ui/skia/Frame";
 import { hexToShader } from "@/utils/color";
-import { Test } from "@/ui/skia/Test";
 
 const cW = 350; // ширина Canvas
 const cH = 550; // висота Canvas
@@ -24,8 +23,8 @@ const AboutScreen = ({ navigation }: Props<"About">) => {
   // ===========================
   // Геометрія фігури, яку ми будемо масштабувати.
   // Вона не залежить від масштабу, бо ми трансформуватимемо всю групу цілком.
-  const figureW = 300;
-  const figureH = 300;
+  const figureW = 200;
+  const figureH = 400;
   const fW = figureW * scale;
   const fH = figureH * scale;
   // ===========================
@@ -49,7 +48,7 @@ const AboutScreen = ({ navigation }: Props<"About">) => {
   const handleReset = () => setScale(1);
 
   // if (!fiveImage) return null;
-
+  console.log('hexToShader("#eafa0900")', hexToShader("#eafa0900"));
   return (
     <View style={[globalStyles.container, localStyles.container]}>
       <View style={localStyles.controls}>
@@ -80,8 +79,15 @@ const AboutScreen = ({ navigation }: Props<"About">) => {
             style="stroke"
             strokeWidth={2}
           />
-          <Group transform={[{ translateX: fX }, { translateY: fY }]}>
-            <Test w={fW} h={fH} />
+          <Group transform={[{ translateX: fX - 10 }, { translateY: fY - 10 }]}>
+            <Frame
+              width={figureW}
+              height={figureH}
+              cornerRadius={10}
+              borderThickness={10}
+              borderColor={hexToShader("#D5F7FF")}
+              bgColor={hexToShader("#0000")}
+            />
           </Group>
         </Canvas>
       </View>

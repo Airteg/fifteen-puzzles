@@ -1,68 +1,133 @@
-import { PanelSurface } from "@/ui/skia/PanelSurface";
-import shaderSource from "@/ui/skia/shaders/frame.sksl";
+import { DBorder } from "@/ui/skia/DBorder";
 import { SkiaIconButtonSkin } from "@/ui/skia/SkiaIconButtonSkin";
-import { hexToShader } from "@/utils/color";
-import { Group, RoundedRect, Shader, Skia } from "@shopify/react-native-skia";
-import React, { useMemo } from "react";
+import shaderSource from "@/ui/skia/shaders/frame.sksl";
+import {
+  Group,
+  RoundedRect,
+  Shadow,
+  Skia,
+  Text,
+  useFont,
+} from "@shopify/react-native-skia";
+import React from "react";
 import type { SceneProps } from "./StatisticModal.types";
 import { useStatisticLayout } from "./useStatisticLayout";
 
 const shader = Skia.RuntimeEffect.Make(shaderSource);
 
 if (!shader) {
-  console.error("Помилка компіляції шейдера tile_v2.sksl");
+  console.error("Помилка компіляції шейдера frame.sksl");
 }
+const MARIUPOL_BOLD_TTF = require("../../../../assets/fonts/Mariupol-Bold.ttf");
+const MARIUPOL_MEDIUM_TTF = require("../../../../assets/fonts/Mariupol-Medium.ttf");
 
-const INNER_COLOR = "#D5F7FF";
+export function StatisticModalScene({
+  frame,
+  S,
+  snap,
+  pressedButton,
+}: SceneProps) {
+  const { title, subtitle, outer, innerFrame, innerBorder, button } =
+    useStatisticLayout(frame, S, snap);
 
-export function StatisticModalScene({ frame, S, snap, contentHeight }: SceneProps) {
-  const layout = useStatisticLayout(frame, S, snap, contentHeight);
+  const titleFont = useFont(MARIUPOL_BOLD_TTF, title.fontSize);
+  const titleText = "STATISTIC";
+  const titleWidth = titleFont?.measureText(titleText)?.width ?? 0;
+  const subtitleFont = useFont(MARIUPOL_MEDIUM_TTF, subtitle.fontSize);
+  const subtitleText = "YOUR LAST 10 GAMES:";
+  const subtitleWidth = subtitleFont?.measureText(subtitleText)?.width ?? 0;
 
-  const uniforms = useMemo(() => {
-    return {
-      u_canvasSize: [layout.shaderRect.width, layout.shaderRect.height],
-      u_borderColor: hexToShader(INNER_COLOR),
-      u_bgColor: hexToShader(INNER_COLOR),
-      u_cornerRadiusPct: 0.1,
-      u_aspectRatio: layout.shaderRect.width / layout.shaderRect.height,
-    };
-  }, [layout.shaderRect.height, layout.shaderRect.width]);
+  const titleX = titleFont ? (frame.width - titleWidth) / 2 : 0;
+  const subtitleX = subtitleFont
+    ? innerFrame.x + (innerFrame.w - subtitleWidth) / 2
+    : innerFrame.x;
 
   if (!shader) return null;
 
   return (
     <Group transform={[{ translateX: frame.x }, { translateY: frame.y }]}>
-      <PanelSurface
-        rect={{
-          x: 0,
-          y: 0,
-          width: frame.width,
-          height: layout.totalHeight,
-        }}
+      <RoundedRect
+        x={outer.x}
+        y={outer.y}
+        width={outer.w}
+        height={outer.h}
+        r={outer.r}
+        color={outer.c}
       />
 
+      {titleFont && (
+        // "STATISTIC"
+        <Text
+          x={titleX}
+          y={title.baselineY}
+          text={titleText}
+          font={titleFont}
+          color={title.c}
+        />
+      )}
+
       <RoundedRect
-        x={layout.shaderRect.x}
-        y={layout.shaderRect.y}
-        width={layout.shaderRect.width}
-        height={layout.shaderRect.height}
-        r={layout.shaderRadius}
-        color="rgba(143, 40, 40, 0.2)"
+        x={innerFrame.x}
+        y={innerFrame.y}
+        width={innerFrame.w}
+        height={innerFrame.h}
+        r={innerFrame.r}
+        color={innerFrame.c}
       >
-        <Shader source={shader} uniforms={uniforms} />
+        <Shadow inner dx={0} dy={4} blur={8} color="rgba(0, 0, 0, 0.5)" />
       </RoundedRect>
 
+      {subtitleFont && (
+        <>
+          {/* "YOUR LAST 10 GAMES:" */}
+          <Text
+            x={subtitleX}
+            y={subtitle.baselineY}
+            text={subtitleText}
+            font={subtitleFont}
+            color={subtitle.c}
+          />
+        </>
+      )}
+
+      <DBorder
+        rect={{
+          x: innerBorder.x,
+          y: innerBorder.y,
+          width: innerBorder.w,
+          height: innerBorder.h,
+        }}
+        radius={innerBorder.r}
+        color="#D5F7FF"
+      />
       <RoundedRect
-        x={layout.innerX}
-        y={layout.innerY}
-        width={layout.innerWidth}
-        height={layout.innerHeight}
-        r={layout.innerRadius}
-        color={INNER_COLOR}
+        x={innerBorder.x}
+        y={innerBorder.y}
+        width={innerBorder.w}
+        height={innerBorder.h}
+        r={innerBorder.r}
+        color={innerBorder.c}
       />
 
-      <SkiaIconButtonSkin rect={layout.resetButtonRect} pressed={false} other />
-      <SkiaIconButtonSkin rect={layout.backButtonRect} pressed={false} />
+      <SkiaIconButtonSkin
+        rect={{
+          x: button.x,
+          y: button.y,
+          width: button.size,
+          height: button.size,
+        }}
+        pressed={pressedButton === "reset"}
+        other
+      />
+      <SkiaIconButtonSkin
+        rect={{
+          x: button.x + button.size * 2,
+          y: button.y,
+          width: button.size,
+          height: button.size,
+        }}
+        pressed={pressedButton === "back"}
+      />
     </Group>
   );
 }

@@ -2,7 +2,7 @@ import {
   useLayoutDevice,
   useSettingsLayout,
 } from "@/context/LayoutSnapshotProvider";
-import SettingsAnimationPlaceholder from "@/ui/animation/placeholders/SettingsAnimationPlaceholder";
+import SettingsAnimation from "@/ui/animation/placeholders/SettingsAnimation";
 import { PanelZone } from "@/ui/PanelZone";
 import { ScreenShell } from "@/ui/shell/ScreenShell";
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -141,7 +141,7 @@ const SettingsScreen = ({ navigation }: Props<"Settings">) => {
             headerToAnimationGapDesign={24}
             animationToTitleGapDesign={16}
             titleToContentGapDesign={24}
-            animation={<SettingsAnimationPlaceholder />}
+            animation={<SettingsAnimation />}
             footerBottomGapDesign={24}
           >
             <PanelZone

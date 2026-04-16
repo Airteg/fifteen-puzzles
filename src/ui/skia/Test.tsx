@@ -2,7 +2,7 @@ import { Group, Rect, Shader, Skia } from "@shopify/react-native-skia";
 import React, { useMemo } from "react";
 
 import { hexToShader } from "@/utils/color";
-import tileShaderSource from "./shaders/frame.sksl";
+import tileShaderSource from "./shaders/frame_v2.sksl";
 
 const tileEffect = Skia.RuntimeEffect.Make(tileShaderSource);
 
@@ -28,11 +28,13 @@ export function Test({ w, h }: { w: number; h: number }) {
   // ТУТ НАША БРОНЯ ВІД БАГІВ: використовуємо префікс u_
   const uniforms = useMemo(() => {
     return {
-      u_canvasSize: [w, h],
+      u_resolution: [w, h],
+      u_figureSize: [w, h],
       u_borderColor: hexToShader("#D5F7FF"),
       u_bgColor: hexToShader("#FAFF3F"),
-      u_cornerRadiusPct: 0.1,
-      u_aspectRatio: 4.75866206896,
+      u_cornerRadiusPct: 16,
+      u_borderThickness: 12,
+      u_aspectRatio: 1,
     };
   }, [w, h]);
 
@@ -51,7 +53,16 @@ export function Test({ w, h }: { w: number; h: number }) {
       ></Rect>
       <Group>
         <Group>
-          <Rect x={0} y={0} width={w} height={h} color="#000000ff">
+          <Rect
+            x={0}
+            y={0}
+            width={w}
+            height={h}
+            style={"stroke"}
+            strokeWidth={1}
+            color="#magenta"
+          />
+          <Rect x={0} y={0} width={w} height={h}>
             <Shader source={tileEffect} uniforms={uniforms} />
           </Rect>
         </Group>

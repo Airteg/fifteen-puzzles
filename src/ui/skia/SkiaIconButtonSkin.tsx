@@ -94,7 +94,7 @@ export function SkiaIconButtonSkin({
           color={iconColor}
           // style="fill"
           style="stroke"
-          strokeWidth={2}
+          strokeWidth={!other ? 2 : 0.8}
         />
 
         {/* Внутрішня тінь (як у тексту) */}
@@ -106,7 +106,7 @@ export function SkiaIconButtonSkin({
               color="#00000042"
               // style="fill"
               style="stroke"
-              strokeWidth={0.5}
+              strokeWidth={!other ? 0.5 : 0}
             >
               <Blur blur={4} mode="decal" />
             </Path>

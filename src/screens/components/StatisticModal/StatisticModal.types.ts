@@ -25,6 +25,8 @@ export type StatisticSummaryVm = {
   bestMovesText: string;
 };
 
+export type StatisticModalButtonId = "reset" | "back";
+
 export type ModalProps = {
   frame: Frame;
   S: number;
@@ -38,8 +40,11 @@ export type OverlayProps = ModalProps & {
   onContentHeightChange: (height: number) => void;
   onBack: () => void;
   onResetStatistics?: () => void;
+  onPressInButton: (buttonId: StatisticModalButtonId) => void;
+  onPressOutButton: (buttonId: StatisticModalButtonId) => void;
 };
 
 export type SceneProps = ModalProps & {
   contentHeight: number;
+  pressedButton: StatisticModalButtonId | null;
 };

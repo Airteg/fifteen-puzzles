@@ -1,19 +1,18 @@
+import { useGameState } from "@/context/GameStateProvider";
 import {
   useLayoutDevice,
   useLayoutRenderHelpers,
   useSettingsLayout,
 } from "@/context/LayoutSnapshotProvider";
-import { useGameState } from "@/context/GameStateProvider";
 import {
-  getStatisticInitialContentHeight,
   StatisticItemVm,
+  StatisticModalButtonId,
   StatisticModalOverlay,
   StatisticModalScene,
   StatisticSummaryVm,
-  useStatisticLayout,
 } from "@/screens/components/StatisticModal";
 import { Canvas, Rect } from "@shopify/react-native-skia";
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Props } from "../types/types";
 
@@ -21,14 +20,17 @@ function formatDuration(durationMs: number) {
   const totalSeconds = Math.max(0, Math.round(durationMs / 1000));
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
+
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
 function formatDate(iso: string) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "--/--";
+
   const month = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
+
   return `${month}/${day}`;
 }
 
@@ -37,9 +39,14 @@ const StatisticScreen = ({ navigation }: Props<"Statistic">) => {
   const { modalDefaultFrame } = useSettingsLayout();
   const { S, snap } = useLayoutRenderHelpers();
   const { bestGames, statistics, resetStatistics } = useGameState();
-  const [contentHeight, setContentHeight] = useState(() =>
-    getStatisticInitialContentHeight(modalDefaultFrame, S, snap),
-  );
+  const [contentHeight, setContentHeight] = useState(0);
+  const [pressedButton, setPressedButton] =
+    useState<StatisticModalButtonId | null>(null);
+
+  const modalFrame = modalDefaultFrame;
+  const modalHeight = modalFrame.width * 1.4;
+  const modalRight = modalFrame.x + modalFrame.width;
+  const modalBottom = modalFrame.y + modalHeight;
 
   const items = useMemo<StatisticItemVm[]>(
     () =>
@@ -66,18 +73,15 @@ const StatisticScreen = ({ navigation }: Props<"Statistic">) => {
     [statistics.bestTime, statistics.bestMoves],
   );
 
-  const layout = useStatisticLayout(modalDefaultFrame, S, snap, contentHeight);
+  const handlePressInButton = useCallback((buttonId: StatisticModalButtonId) => {
+    setPressedButton(buttonId);
+  }, []);
 
-  const modalFrame = useMemo(
-    () => ({
-      ...modalDefaultFrame,
-      y: snap(
-        modalDefaultFrame.y +
-          (modalDefaultFrame.height - layout.totalHeight) / 2,
-      ),
-      height: layout.totalHeight,
-    }),
-    [layout.totalHeight, modalDefaultFrame, snap],
+  const handlePressOutButton = useCallback(
+    (buttonId: StatisticModalButtonId) => {
+      setPressedButton((current) => (current === buttonId ? null : current));
+    },
+    [],
   );
 
   return (
@@ -90,24 +94,60 @@ const StatisticScreen = ({ navigation }: Props<"Statistic">) => {
           S={S}
           snap={snap}
           contentHeight={contentHeight}
+          pressedButton={pressedButton}
         />
       </Canvas>
 
       <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
         <Pressable
-          style={StyleSheet.absoluteFill}
+          style={{
+            position: "absolute",
+            left: 0,
+            top: 0,
+            width: sw,
+            height: modalFrame.y,
+          }}
           onPress={() => navigation.goBack()}
         />
-
         <Pressable
           style={{
             position: "absolute",
-            left: modalDefaultFrame.x,
+            left: 0,
+            top: modalFrame.y,
+            width: modalFrame.x,
+            height: modalHeight,
+          }}
+          onPress={() => navigation.goBack()}
+        />
+        <Pressable
+          style={{
+            position: "absolute",
+            left: modalRight,
+            top: modalFrame.y,
+            width: Math.max(0, sw - modalRight),
+            height: modalHeight,
+          }}
+          onPress={() => navigation.goBack()}
+        />
+        <Pressable
+          style={{
+            position: "absolute",
+            left: 0,
+            top: modalBottom,
+            width: sw,
+            height: Math.max(0, sh - modalBottom),
+          }}
+          onPress={() => navigation.goBack()}
+        />
+
+        <View
+          style={{
+            position: "absolute",
+            left: modalFrame.x,
             top: modalFrame.y,
             width: modalFrame.width,
-            height: modalFrame.height,
+            height: modalHeight,
           }}
-          onPress={(e) => e.stopPropagation()}
         >
           <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
             <StatisticModalOverlay
@@ -120,9 +160,11 @@ const StatisticScreen = ({ navigation }: Props<"Statistic">) => {
               onContentHeightChange={setContentHeight}
               onBack={() => navigation.goBack()}
               onResetStatistics={resetStatistics}
+              onPressInButton={handlePressInButton}
+              onPressOutButton={handlePressOutButton}
             />
           </View>
-        </Pressable>
+        </View>
       </View>
     </View>
   );

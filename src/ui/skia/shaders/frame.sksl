@@ -21,7 +21,7 @@ half4 main(float2 curP) {
     // 2. ВНУТРІШНІ НАЛАШТУВАННЯ ТІНІ ТА РАМКИ
     float shadowSpreadPct = 0.00;
     float shadowBlurPct   = 0.08;       
-    float borderThickPct  = 0.01;       
+    float borderThickPct  = 0.005;       
 
     // 3. РОЗРАХУНОК ТІНІ
     float shadowSpread = minCanvas * shadowSpreadPct;
@@ -63,7 +63,7 @@ half4 main(float2 curP) {
     
     // Маска тіні
     float falloff = 0.03; 
-    float cutOff = 0.76;
+    float cutOff = 0.79;
     float rawShadow = exp(-falloff * shadowDistance);
     float shadowMask = max(rawShadow - cutOff, 0.0);
 

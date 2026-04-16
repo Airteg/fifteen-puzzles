@@ -76,6 +76,13 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   │   │   ├── SkinModalScene.tsx
 │   │   │   │   └── useSkinLayout.ts
 │   │   │   ├── StatisticModal
+│   │   │   │   ├── components
+│   │   │   │   │   └── StRow.tsx
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── StatisticModal.types.ts
+│   │   │   │   ├── StatisticModalOverlay.tsx
+│   │   │   │   ├── StatisticModalScene.tsx
+│   │   │   │   └── useStatisticLayout.ts
 │   │   │   ├── HomeFooterLinks.tsx
 │   │   │   ├── SettingsModalHost.tsx
 │   │   │   └── SoundModal.tsx
@@ -107,6 +114,7 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   │   ├── placeholders
 │   │   │   │   ├── HomeAnimation.tsx
 │   │   │   │   ├── NewGameAnimation.tsx
+│   │   │   │   ├── SettingsAnimation.tsx
 │   │   │   │   └── SettingsAnimationPlaceholder.tsx
 │   │   │   └── animation.ts
 │   │   ├── game
@@ -138,6 +146,7 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   │   │   │   └── targets.sksl
 │   │   │   │   ├── board_v1.sksl
 │   │   │   │   ├── button.sksl
+│   │   │   │   ├── frame_v2.sksl
 │   │   │   │   ├── frame.sksl
 │   │   │   │   ├── test.sksl
 │   │   │   │   ├── tile_v2_logo.sksl
@@ -151,6 +160,8 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   │   ├── AppHeaderSurface.tsx
 │   │   │   ├── BoardSkin.tsx
 │   │   │   ├── BoardSkin1.tsx
+│   │   │   ├── DBorder.tsx
+│   │   │   ├── Frame.tsx
 │   │   │   ├── GameHeader.tsx
 │   │   │   ├── IconButtonSkin.tsx
 │   │   │   ├── LogoFrameSkin.tsx
@@ -170,6 +181,7 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   └── T.tsx
 │   └── utils
 │       ├── color.ts
+│       ├── debugLayout.ts
 │       ├── soundManager.ts
 │       └── splash.ts
 ├── tools
@@ -187,6 +199,8 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 ├── eslint.config.js
 ├── expo-env.d.ts
 ├── metro.config.js
+├── modal.css
+├── modal.html
 ├── package.json
 ├── pnpm-lock.yaml
 ├── pnpm-workspace.yaml

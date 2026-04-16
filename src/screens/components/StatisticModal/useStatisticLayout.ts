@@ -1,109 +1,120 @@
 import { useMemo } from "react";
-import type { Frame, HitRect } from "./StatisticModal.types";
+import type { Frame } from "./StatisticModal.types";
 
+const OUTER_BG = "#71D4EB";
+const INNER_FRAME_BG = "#D5F7FF";
+const INNER_BORDER_BG = "#D5F7FF";
+const TITLE_COLOR = "#216169";
+const SUBTITLE_COLOR = "#000000";
+
+// Словник базових токенів модалки
 function getStatisticLayoutMetrics(
   frame: Frame,
   S: number,
   snap: (v: number) => number,
 ) {
-  const titleTop = snap(18 * S);
-  const titleHeight = snap(30 * S);
-  const titleToContentGap = snap(12 * S);
-  const horizontalInset = snap(16 * S);
-  const buttonsTopGap = snap(20 * S);
-  const buttonsGap = snap(18 * S);
-  const bottomInset = snap(18 * S);
-  const innerRadius = snap(10 * S);
-  const shaderOutset = snap(10 * S);
+  // =========================
+  // OUTER FRAME
+  // =========================
+  const outer = {
+    r: snap(frame.width * 0.021),
+    x: 0,
+    y: 0,
+    w: snap(frame.width),
+    h: snap(frame.width * 1.4),
+    c: OUTER_BG,
+  };
 
-  const innerWidth = Math.max(0, frame.width - horizontalInset * 2);
-  const maxButtonSize = Math.max(0, (innerWidth - buttonsGap) / 2);
-  const buttonSize = snap(Math.min(56 * S, maxButtonSize));
+  // TITLE
+  const fontSizeTitle = outer.w * 0.0825;
+  const title = {
+    fontSize: fontSizeTitle,
+    lineHeight: fontSizeTitle * 0.97,
+    baselineY: fontSizeTitle * 1.7,
+    c: TITLE_COLOR,
+  };
+  // INNER FRAME
+  const innerFrameMargin = outer.w * 0.04;
+  const innerFrame = {
+    x: innerFrameMargin,
+    y: innerFrameMargin * 5,
+    w: outer.w - 2 * innerFrameMargin,
+    h: outer.h - innerFrameMargin * 6,
+    r: outer.w * 0.021,
+    c: INNER_FRAME_BG,
+  };
+  // SUBTITLE
+  const fontSizeSubtitle = outer.w * 0.051;
+  const subtitle = {
+    fontSize: fontSizeSubtitle,
+    lineHeight: fontSizeSubtitle * 0.95,
+    baselineY: innerFrameMargin * 5 + 2 * fontSizeSubtitle,
+    c: SUBTITLE_COLOR,
+  };
+  // INNER BORDER
+  const innerBorder = {
+    x: innerFrameMargin * 2,
+    y: subtitle.baselineY + fontSizeSubtitle,
+    w: innerFrame.w - innerFrameMargin * 2,
+    h: innerFrame.h - innerFrameMargin * 5,
+    r: outer.w * 0.021,
+    c: INNER_BORDER_BG,
+  };
+  const sizeButton = outer.w * 0.144;
+
+  // RECT FOR LIST
+  const listRect = {
+    x: innerBorder.x,
+    y: innerBorder.y,
+    w: innerBorder.w,
+    h: innerBorder.h - sizeButton - 50,
+    r: outer.w * 0.021,
+    c: INNER_BORDER_BG,
+  };
+
+  // BUTTON
+  const button = {
+    size: sizeButton,
+    y: outer.h - sizeButton - 50,
+    x: (outer.w - sizeButton * 3) / 2,
+  };
 
   return {
-    titleTop,
-    titleHeight,
-    titleToContentGap,
-    horizontalInset,
-    buttonsTopGap,
-    buttonsGap,
-    bottomInset,
-    buttonSize,
-    innerRadius,
-    shaderOutset,
+    outer,
+    title,
+    innerFrame,
+    subtitle,
+    innerBorder,
+    listRect,
+    button,
   };
 }
 
-export function getStatisticInitialContentHeight(
-  frame: Frame,
-  S: number,
-  snap: (v: number) => number,
-) {
-  const metrics = getStatisticLayoutMetrics(frame, S, snap);
-
-  const chromeHeight =
-    metrics.titleTop +
-    metrics.titleHeight +
-    metrics.titleToContentGap +
-    metrics.buttonsTopGap +
-    metrics.buttonSize +
-    metrics.bottomInset;
-
-  return Math.max(0, frame.height - chromeHeight);
-}
-
+// єдине джерело готової геометрії для Scene + Overlay
 export function useStatisticLayout(
   frame: Frame,
   S: number,
   snap: (v: number) => number,
-  contentHeight: number,
 ) {
   return useMemo(() => {
-    const metrics = getStatisticLayoutMetrics(frame, S, snap);
-    const innerX = metrics.horizontalInset;
-    const innerY =
-      metrics.titleTop + metrics.titleHeight + metrics.titleToContentGap;
-    const innerWidth = Math.max(0, frame.width - metrics.horizontalInset * 2);
-    const innerHeight = Math.max(0, contentHeight);
-    const buttonsY = innerY + innerHeight + metrics.buttonsTopGap;
-    const buttonsRowWidth = metrics.buttonSize * 2 + metrics.buttonsGap;
-    const buttonsX = innerX + (innerWidth - buttonsRowWidth) / 2;
-
-    const resetButtonRect: HitRect = {
-      x: buttonsX,
-      y: buttonsY,
-      width: metrics.buttonSize,
-      height: metrics.buttonSize,
-    };
-
-    const backButtonRect: HitRect = {
-      x: buttonsX + metrics.buttonSize + metrics.buttonsGap,
-      y: buttonsY,
-      width: metrics.buttonSize,
-      height: metrics.buttonSize,
-    };
-
-    const shaderRect = {
-      x: innerX - metrics.shaderOutset / 2,
-      y: innerY - metrics.shaderOutset / 2,
-      width: innerWidth + metrics.shaderOutset,
-      height: innerHeight + metrics.shaderOutset,
-    };
-
-    const totalHeight = buttonsY + metrics.buttonSize + metrics.bottomInset;
+    const {
+      title,
+      subtitle,
+      outer,
+      innerFrame,
+      innerBorder,
+      button,
+      listRect,
+    } = getStatisticLayoutMetrics(frame, S, snap);
 
     return {
-      titleTop: metrics.titleTop,
-      innerX,
-      innerY,
-      innerWidth,
-      innerHeight,
-      innerRadius: metrics.innerRadius,
-      shaderRect,
-      shaderRadius: metrics.innerRadius + metrics.shaderOutset / 2,
-      resetButtonRect,
-      backButtonRect,
-      totalHeight,
+      title,
+      subtitle,
+      outer,
+      innerFrame,
+      innerBorder,
+      button,
+      listRect,
     };
-  }, [frame, S, snap, contentHeight]);
+  }, [frame, S, snap]);
 }
