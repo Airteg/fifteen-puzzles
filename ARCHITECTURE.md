@@ -19,10 +19,11 @@
 - внутрішній layout складних вузлів допускається локально, але тільки як похідний від канонічного frame + `S/snap`
 - бойова дошка працює через shared values
 - tap / drag логіка винесена в окремий RN gesture layer
-- `limitTime` має countdown flow, session guards і навігацію на `LoseScreen`
+- `limitTime` має countdown flow, session guards і навігацію на `GameResult` з `time_loss`
 - `recordWin(...)` / `recordLoss()` уже пишуть статистику і `bestGames`
 - Settings має окремий modal host для `sound` і `skin`
 - Statistic flow уже реалізований як окремий screen з split `Scene / Overlay`
+- Game result flow реалізований як єдиний template `GameResultScreen` + split `GameResultScene` / `GameResultOverlay`
 - storage schema містить `gameState`, але активне відновлення сесії у `GameScreen` зараз не підключене
 
 Проектна документація ведеться **українською мовою**.
@@ -305,8 +306,7 @@
 - `Support`
 - `NewGame`
 - `Game`
-- `Win`
-- `Lose`
+- `GameResult`
 
 Окремо є modal group:
 
@@ -317,7 +317,7 @@
 ### Route params
 
 - `Game` приймає `{ mode: "classic" | "limitTime" }`
-- `Win` і `Lose` приймають `{ score: number }`
+- `GameResult` приймає `{ reason, durationMs, moves, startedAt, mode }`
 - `Statistic` не має route params
 
 ---
@@ -389,9 +389,27 @@
 - тримає session guards через refs
 - запускає і зупиняє countdown interval
 - викликає `recordWin(...)` / `recordLoss()`
-- вирішує navigation на `Win` / `Lose`
+- формує `GameResultRouteParams`
+- вирішує navigation на `GameResult`
 
-### 9.2. Game scene composition
+### 9.2. Game result flow
+
+Канонічний flow завершення гри:
+
+`NewGameScreen -> GameScreen -> GameResultScreen -> GameResultScene + GameResultOverlay`
+
+Розподіл відповідальностей:
+
+- `GameScreen.tsx` — domain orchestration, статистика і `navigation.replace("GameResult", ...)`
+- `resultLogic.ts` — вибір `reason`: `normal_win`, `record_win`, `time_loss`
+- `resultPresentation.ts` — presentation-config для відео, accent і primary action
+- `useGameResultLayout.ts` — локальна геометрія result template
+- `GameResultScene.tsx` — тільки Skia surfaces / text / chrome
+- `GameResultOverlay.tsx` — `VideoView` і RN `Pressable`
+
+Legacy routes/screens `Win` і `Lose` не є частиною бойового flow.
+
+### 9.3. Game scene composition
 
 Skia-сцена гри рендериться через `GameSceneCanvas.tsx`.
 
@@ -405,7 +423,7 @@ Skia-сцена гри рендериться через `GameSceneCanvas.tsx`.
 - `SkiaButtonSkin` для mode panel
 - RN hit-zones поверх HOME / RESTART
 
-### 9.3. Board rendering decomposition
+### 9.4. Board rendering decomposition
 
 Pipeline виглядає так:
 
@@ -533,16 +551,15 @@ Runtime countdown state експонується з `GameStateProvider`:
 
 - provider дає API і app-level runtime state
 - `GameScreen` вирішує, коли стартує / зупиняється countdown
-- `GameScreen` вирішує, коли перейти на `LoseScreen`
+- `GameScreen` вирішує, коли перейти на `GameResult` з `time_loss`
 
 ### 13.3. Session guards
 
 `GameScreen.tsx` також тримає session-level refs:
 
 - `sessionIdRef`
-- `didResolveGameRef`
-- `didPersistGameResultRef`
-- `hasPendingWinRef`
+- `resultPhaseRef`
+- `lastCommittedMovesRef`
 - `sessionStartedAtMsRef`
 - `sessionStartedAtIsoRef`
 

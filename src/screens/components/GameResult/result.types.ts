@@ -10,22 +10,31 @@ export type GameResultRouteParams = {
   mode: GameMode;
 };
 
-export type ResultSceneCommonProps = {
-  durationMs: number;
-  moves: number;
-  startedAt: string;
-  mode: GameMode;
-  onHome: () => void;
-  onRestart: () => void;
+export type ResultVideoVariant = "tall" | "square";
+
+export type ResultAccentVariant = "none" | "win" | "lose" | "record";
+
+export type ResultPrimaryActionKind = "new_game" | "home";
+
+export type ResultVideoAsset = {
+  source: number;
+  aspectRatio: number;
+  variant: ResultVideoVariant;
 };
 
-export type VideoResultSceneType = "win" | "lose";
-
-export type VideoResultSceneProps = ResultSceneCommonProps & {
-  reason: Extract<GameResultReason, "normal_win" | "time_loss">;
-  type: VideoResultSceneType;
+export type GameResultAccentPresentation = {
+  variant: ResultAccentVariant;
 };
 
-export type WinRecordSceneProps = ResultSceneCommonProps & {
-  reason: Extract<GameResultReason, "record_win">;
+export type GameResultPrimaryActionPresentation = {
+  kind: ResultPrimaryActionKind;
+  label: string;
+  accessibilityLabel: string;
+};
+
+export type GameResultPresentation = {
+  title: string;
+  video: ResultVideoAsset;
+  accent: GameResultAccentPresentation;
+  primaryAction: GameResultPrimaryActionPresentation;
 };

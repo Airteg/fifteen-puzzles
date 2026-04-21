@@ -249,7 +249,24 @@ Statistic modal використовує цей frame-chrome опосередк�
 
 ---
 
-## 14. Політика змін
+## 14. Game result flow policy
+
+Канонічний result-flow:
+
+`GameScreen -> GameResultScreen -> GameResultScene + GameResultOverlay`
+
+- `GameScreen.tsx` визначає завершення гри, формує `reason` і робить `navigation.replace("GameResult", ...)`
+- `resultLogic.ts` відповідає тільки за domain decision
+- `resultPresentation.ts` відповідає за presentation-config
+- `useGameResultLayout.ts` є локальним джерелом геометрії result template
+- `GameResultScene.tsx` малює Skia surfaces / chrome / text
+- `GameResultOverlay.tsx` тримає native `VideoView` і RN hit-zones
+
+Не повертай окремі бойові routes/screens для win/lose/result variants.
+
+---
+
+## 15. Політика змін
 
 Пропонуй мінімальні зміни, достатні для задачі.
 
@@ -265,7 +282,7 @@ Statistic modal використовує цей frame-chrome опосередк�
 
 ---
 
-## 15. Політика дебагу
+## 16. Політика дебагу
 
 Під час дебагу:
 

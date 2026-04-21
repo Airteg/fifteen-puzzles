@@ -2,12 +2,10 @@ import AboutScreen from "@/screens/AboutScreen";
 import GameScreen from "@/screens/GameScreen";
 import GameResultScreen from "@/screens/GameResultScreen";
 import HomeScreen from "@/screens/HomeScreen";
-import LoseScreen from "@/screens/LoseScreen";
 import NewGame from "@/screens/NewGameScreen";
 import SettingsScreen from "@/screens/SettingsScreen";
 import StatisticScreen from "@/screens/StatisticScreen";
 import SupportScreen from "@/screens/SupportScreen";
-import WinScreen from "@/screens/WinScreen";
 import { RootStackParamList } from "@/types/types";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
@@ -28,8 +26,6 @@ export function RootNavigator() {
         <Stack.Screen name="NewGame" component={NewGame} />
         <Stack.Screen name="Game" component={GameScreen} />
         <Stack.Screen name="GameResult" component={GameResultScreen} />
-        <Stack.Screen name="Win" component={WinScreen} />
-        <Stack.Screen name="Lose" component={LoseScreen} />
       </Stack.Group>
       <Stack.Group
         screenOptions={{

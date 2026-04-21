@@ -13,8 +13,6 @@ export type RootStackParamList = {
   NewGame: undefined;
   Game: { mode: GameMode };
   GameResult: GameResultRouteParams;
-  Win: { score: number };
-  Lose: { score: number };
 };
 
 export type Props<T extends keyof RootStackParamList> = NativeStackScreenProps<

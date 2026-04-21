@@ -122,8 +122,7 @@
   - `Support`
   - `NewGame`
   - `Game`
-  - `Win`
-  - `Lose`
+  - `GameResult`
 - `Statistic` відкривається як `transparentModal`
 
 ### Основні екрани
@@ -131,10 +130,9 @@
 - `src/screens/HomeScreen.tsx` — головне меню через `ScreenShell` + `PanelZone`
 - `src/screens/NewGameScreen.tsx` — вибір режиму (`classic` / `limitTime`)
 - `src/screens/GameScreen.tsx` — канонічний orchestration layer бойового runtime
+- `src/screens/GameResultScreen.tsx` — єдиний route/template для завершення гри
 - `src/screens/SettingsScreen.tsx` — settings screen + modal orchestration
 - `src/screens/StatisticScreen.tsx` — окремий transparent modal screen зі split `Scene / Overlay`
-- `src/screens/WinScreen.tsx` — екран перемоги
-- `src/screens/LoseScreen.tsx` — екран поразки
 - `src/screens/AboutScreen.tsx` — sandbox / debug playground
 - `src/screens/SupportScreen.tsx` — окремий простий RN support-form flow
 
@@ -157,9 +155,21 @@
 - керує countdown timer для режиму `limitTime`
 - тримає session guards для win/loss side effects
 - викликає `recordWin(...)` / `recordLoss()`
+- формує `GameResultRouteParams` і переходить через `navigation.replace("GameResult", ...)`
 - рендерить:
   - `GameSceneCanvas`
   - `BoardGestureOverlay`
+
+### `src/screens/components/GameResult/`
+
+Канонічний template-based result flow.
+
+- `resultLogic.ts` — domain decision для `reason`
+- `resultPresentation.ts` — presentation-config для `normal_win` / `record_win` / `time_loss`
+- `useGameResultLayout.ts` — локальна геометрія result template на базі `S/snap`
+- `GameResultScene.tsx` — тільки Skia-візуал
+- `GameResultOverlay.tsx` — native/video/pressable layer
+- `assets/videoCatalog.ts` — каталоги MP4 для win / lose / record
 
 ### `src/ui/game/useGameSceneMetrics.ts`
 
