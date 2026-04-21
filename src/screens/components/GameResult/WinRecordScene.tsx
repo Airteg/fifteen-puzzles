@@ -1,6 +1,6 @@
-import type { WinRecordSceneProps } from "./result.types";
 import React from "react";
 import { Button, StyleSheet, Text, View } from "react-native";
+import type { WinRecordSceneProps } from "./result.types";
 
 const WinRecordScene: React.FC<WinRecordSceneProps> = ({
   durationMs,
