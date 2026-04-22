@@ -4,6 +4,7 @@ import {
   resolveGameResultPresentation,
   useGameResultLayout,
 } from "@/screens/components/GameResult";
+import GameResultVideoLayer from "@/screens/components/GameResult/GameResultVideoLayer";
 import { Props } from "@/types/types";
 import React, { useCallback, useMemo } from "react";
 import { StyleSheet, View } from "react-native";
@@ -13,6 +14,7 @@ const GameResultScreen: React.FC<Props<"GameResult">> = ({
   route,
 }) => {
   const { reason, durationMs, moves } = route.params;
+  console.log("🚀 ~ reason:", reason);
   const presentation = useMemo(
     () => resolveGameResultPresentation(reason),
     [reason],
@@ -33,6 +35,8 @@ const GameResultScreen: React.FC<Props<"GameResult">> = ({
 
   return (
     <View style={styles.root}>
+      <GameResultVideoLayer layout={layout} presentation={presentation} />
+
       <GameResultScene
         layout={layout}
         presentation={presentation}

@@ -1,7 +1,5 @@
-import {
-  resolveGameResultReason,
-} from "@/screens/components/GameResult/resultLogic";
 import type { GameResultRouteParams } from "@/screens/components/GameResult/result.types";
+import { resolveGameResultReason } from "@/screens/components/GameResult/resultLogic";
 import { RootStackParamList } from "@/types/types";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import React, {
@@ -54,7 +52,6 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
 
   const sceneMetrics = useGameSceneMetrics(hasTimer);
 
-  // 2. Дістаємо оригінальний шрифт KronaOne для плиток
   const { title: tileFont } = useSkiaFonts();
   const {
     settings,

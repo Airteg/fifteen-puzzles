@@ -83,10 +83,15 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   ├── screens
 │   │   ├── components
 │   │   │   ├── GameResult
+│   │   │   │   ├── assets
+│   │   │   │   │   └── videoCatalog.ts
+│   │   │   │   ├── GameResultOverlay.tsx
+│   │   │   │   ├── GameResultScene.tsx
+│   │   │   │   ├── index.ts
 │   │   │   │   ├── result.types.ts
 │   │   │   │   ├── resultLogic.ts
-│   │   │   │   ├── VideoResultScene.tsx
-│   │   │   │   └── WinRecordScene.tsx
+│   │   │   │   ├── resultPresentation.ts
+│   │   │   │   └── useGameResultLayout.ts
 │   │   │   ├── SkinModal
 │   │   │   │   ├── index.ts
 │   │   │   │   ├── SkinModal.types.ts
@@ -108,12 +113,10 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 │   │   ├── GameResultScreen.tsx
 │   │   ├── GameScreen.tsx
 │   │   ├── HomeScreen.tsx
-│   │   ├── LoseScreen.tsx
 │   │   ├── NewGameScreen.tsx
 │   │   ├── SettingsScreen.tsx
 │   │   ├── StatisticScreen.tsx
-│   │   ├── SupportScreen.tsx
-│   │   └── WinScreen.tsx
+│   │   └── SupportScreen.tsx
 │   ├── storage
 │   │   ├── appStorage.ts
 │   │   ├── appStorage.types.ts
@@ -223,6 +226,7 @@ Project Root: D:\ProjectsVVV\_Native\fifteen-puzzles
 ├── pnpm-lock.yaml
 ├── pnpm-workspace.yaml
 ├── README.md
+├── refactoring.md
 ├── RefactoringGameScreen.md
 ├── temp.md
 ├── tree.txt

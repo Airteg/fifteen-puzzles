@@ -1,131 +1,242 @@
-import { Canvas, Group, Rect, useFont } from "@shopify/react-native-skia";
-import React, { useState } from "react";
-import { Button, StyleSheet, Text, View } from "react-native";
-import { styles as globalStyles } from "../styles/globalStyles";
+import type { GameResultRouteParams } from "@/screens/components/GameResult/result.types";
+import React, { useCallback, useMemo } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { Props } from "../types/types";
 
-// Імпортуємо хук для метрик
-import { useLayoutRenderHelpers } from "@/context/LayoutSnapshotProvider";
-import { Frame } from "@/ui/skia/Frame";
-import { hexToShader } from "@/utils/color";
+type DebugPreset = {
+  id: string;
+  title: string;
+  description: string;
+  params: GameResultRouteParams;
+};
 
-const cW = 350; // ширина Canvas
-const cH = 550; // висота Canvas
+function makeIsoMinutesAgo(minutesAgo: number) {
+  return new Date(Date.now() - minutesAgo * 60_000).toISOString();
+}
 
 const AboutScreen = ({ navigation }: Props<"About">) => {
-  const { S, snap } = useLayoutRenderHelpers();
-  const [scale, setScale] = useState(1);
-  // const fiveImage = useImage(require("../../assets/images/logo5.png"));
-  console.log("--------------------------------");
-  console.log("Canvas: ", cW, "X", cH);
-  console.log("Масштаб:", scale);
-
-  // ===========================
-  // Геометрія фігури, яку ми будемо масштабувати.
-  // Вона не залежить від масштабу, бо ми трансформуватимемо всю групу цілком.
-  const figureW = 200;
-  const figureH = 400;
-  const fW = figureW * scale;
-  const fH = figureH * scale;
-  // ===========================
-
-  console.log("Розмір фігури:", figureW, "X", figureH);
-  console.log("Масштабована фігура:", figureW * scale, "X", figureH * scale);
-
-  // Ділимо на 2, бо потім масштабуватимемо всю групу, а не окремі елементи.
-  const fX = cW / 2 - fW / 2;
-  const fY = cH / 2 - fH / 2;
-  console.log("Початкова координата. X:", fX, "Y: ", fY);
-
-  // Шрифт:
-  const font = useFont(
-    require("../../assets/fonts/Krona_One/KronaOne-Regular.ttf"),
-    snap(11 * S * scale),
+  const presets = useMemo<DebugPreset[]>(
+    () => [
+      {
+        id: "normal-win-base",
+        title: "NORMAL WIN",
+        description: "Square video / classic / normal data",
+        params: {
+          reason: "normal_win",
+          durationMs: 83_000,
+          moves: 126,
+          startedAt: makeIsoMinutesAgo(2),
+          mode: "classic",
+        },
+      },
+      {
+        id: "record-win-base",
+        title: "RECORD WIN",
+        description: "Tall video / classic / best result",
+        params: {
+          reason: "record_win",
+          durationMs: 42_000,
+          moves: 74,
+          startedAt: makeIsoMinutesAgo(1),
+          mode: "classic",
+        },
+      },
+      {
+        id: "time-loss-base",
+        title: "TIME LOSS",
+        description: "Square video / limitTime / default loss case",
+        params: {
+          reason: "time_loss",
+          durationMs: 120_000,
+          moves: 98,
+          startedAt: makeIsoMinutesAgo(2),
+          mode: "limitTime",
+        },
+      },
+      {
+        id: "normal-win-short",
+        title: "WIN / SHORT DATA",
+        description: "Compact numbers for quick visual check",
+        params: {
+          reason: "normal_win",
+          durationMs: 19_000,
+          moves: 21,
+          startedAt: makeIsoMinutesAgo(1),
+          mode: "classic",
+        },
+      },
+      {
+        id: "normal-win-long",
+        title: "WIN / LONG DATA",
+        description: "Larger values for rhythm and spacing",
+        params: {
+          reason: "normal_win",
+          durationMs: 599_000,
+          moves: 999,
+          startedAt: makeIsoMinutesAgo(12),
+          mode: "classic",
+        },
+      },
+      {
+        id: "time-loss-stress",
+        title: "LOSS / STRESS TEXT",
+        description: "Checks TIME + MOVES density in accent block",
+        params: {
+          reason: "time_loss",
+          durationMs: 599_000,
+          moves: 999,
+          startedAt: makeIsoMinutesAgo(15),
+          mode: "limitTime",
+        },
+      },
+    ],
+    [],
   );
 
-  const handleZoomIn = () => setScale((s) => Math.min(cW / figureW, s + 0.5));
-  const handleZoomOut = () => setScale((s) => Math.max(0.5, s - 0.5));
-  const handleReset = () => setScale(1);
+  const openGameResultDebug = useCallback(
+    (params: GameResultRouteParams) => {
+      navigation.push("GameResult", params);
+    },
+    [navigation],
+  );
 
-  // if (!fiveImage) return null;
-  console.log('hexToShader("#eafa0900")', hexToShader("#eafa0900"));
-  return (
-    <View style={[globalStyles.container, localStyles.container]}>
-      <View style={localStyles.controls}>
-        <Text style={localStyles.scaleText}>Масштаб: {scale.toFixed(1)}x</Text>
-        <View style={{ flexDirection: "row", gap: 10 }}>
-          <Button title="  -  " onPress={handleZoomOut} />
-          <Button title=" 1x " onPress={handleReset} />
-          <Button title="  +  " onPress={handleZoomIn} />
+  if (!__DEV__) {
+    return (
+      <View style={styles.root}>
+        <View style={styles.card}>
+          <Text style={styles.title}>ABOUT / DEBUG</Text>
+          <Text style={styles.infoText}>
+            Debug launcher is available only in development builds.
+          </Text>
+
+          <Pressable
+            style={styles.secondaryButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={styles.secondaryButtonText}>BACK</Text>
+          </Pressable>
         </View>
       </View>
+    );
+  }
 
-      <View style={localStyles.testArea}>
-        <Canvas
-          style={{
-            width: cW,
-            height: cH,
-          }}
-        >
-          {/* Прямокутник, що окреслює межі Canvas для візуалізації координатної системи Skia. 
-          Він не масштабуватиметься разом з фігурою, 
-          оскільки знаходиться поза групою, яка трансформується. */}
-          <Rect
-            x={0}
-            y={0}
-            width={cW}
-            height={cH}
-            color="#ff0000"
-            style="stroke"
-            strokeWidth={2}
-          />
-          <Group transform={[{ translateX: fX - 10 }, { translateY: fY - 10 }]}>
-            <Frame
-              width={figureW}
-              height={figureH}
-              cornerRadius={10}
-              borderThickness={10}
-              borderColor={hexToShader("#D5F7FF")}
-              bgColor={hexToShader("#0000")}
-            />
-          </Group>
-        </Canvas>
-      </View>
+  return (
+    <View style={styles.root}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.card}>
+          <Text style={styles.title}>GAME RESULT DEBUG</Text>
+          <Text style={styles.infoText}>
+            Opens GameResult directly with test route params.
+          </Text>
+          <Text style={styles.infoText}>
+            Use system back gesture/button to return here quickly.
+          </Text>
+        </View>
 
-      <View style={localStyles.footer}>
-        <Button title="Назад" onPress={() => navigation.goBack()} />
-      </View>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Quick presets</Text>
+
+          {presets.map((preset) => (
+            <Pressable
+              key={preset.id}
+              style={styles.primaryButton}
+              onPress={() => openGameResultDebug(preset.params)}
+            >
+              <Text style={styles.primaryButtonText}>{preset.title}</Text>
+              <Text style={styles.buttonSubtext}>{preset.description}</Text>
+            </Pressable>
+          ))}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Navigation</Text>
+
+          <Pressable
+            style={styles.secondaryButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={styles.secondaryButtonText}>BACK</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
     </View>
   );
 };
 
-const localStyles = StyleSheet.create({
-  // container: { flex: 1, backgroundColor: "#0d676b", padding: 0 },
-  container: { flex: 1, backgroundColor: "#7f6161", padding: 0 },
-  controls: {
-    paddingTop: 60,
-    paddingBottom: 20,
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.2)",
-  },
-  scaleText: {
-    color: "white",
-    fontSize: 18,
-    marginBottom: 15,
-    fontWeight: "bold",
-  },
-  testArea: {
+const styles = StyleSheet.create({
+  root: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    borderColor: "white",
-    borderWidth: 1,
-    backgroundColor: "#71D4EB",
+    backgroundColor: "#D5F7FF",
   },
-  footer: {
-    padding: 30,
-    paddingBottom: 50,
-    alignItems: "center",
+  content: {
+    paddingTop: 32,
+    paddingBottom: 40,
+    paddingHorizontal: 20,
+    rowGap: 20,
+  },
+  card: {
+    backgroundColor: "#EAFBFF",
+    borderRadius: 18,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: "#71D4EB",
+  },
+  section: {
+    rowGap: 6,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#216169",
+    marginBottom: 8,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#216169",
+    marginBottom: 4,
+  },
+  infoText: {
+    fontSize: 12,
+    lineHeight: 21,
+    color: "#2D5157",
+    marginBottom: 4,
+  },
+  primaryButton: {
+    backgroundColor: "#71D4EB",
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: "#4BBFD6",
+  },
+  primaryButtonText: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#133D44",
+  },
+  buttonSubtext: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: "#1E5A63",
+    marginTop: 4,
+  },
+  secondaryButton: {
+    backgroundColor: "#EAFBFF",
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: "#71D4EB",
+  },
+  secondaryButtonText: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#216169",
+    textAlign: "center",
   },
 });
 

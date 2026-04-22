@@ -12,7 +12,10 @@ import {
 } from "@shopify/react-native-skia";
 import React from "react";
 import { StyleSheet } from "react-native";
-import type { GameResultPresentation, ResultAccentVariant } from "./result.types";
+import type {
+  GameResultPresentation,
+  ResultAccentVariant,
+} from "./result.types";
 import type { GameResultFrame, GameResultLayout } from "./useGameResultLayout";
 
 type Props = {
@@ -70,7 +73,11 @@ export default function GameResultScene({
   moves,
 }: Props) {
   const { S, snap } = useLayoutRenderHelpers();
-  const { title: titleFont, body: bodyFont, button: buttonFont } = useSkiaFonts();
+  const {
+    title: titleFont,
+    body: bodyFont,
+    button: buttonFont,
+  } = useSkiaFonts();
   const accent = ACCENT_PALETTE[presentation.accent.variant];
   const titleText = presentation.title;
   const durationText = `TIME ${formatDuration(durationMs)}`;
@@ -87,7 +94,8 @@ export default function GameResultScene({
         y={0}
         width={layout.screenW}
         height={layout.screenH}
-        color="#D5F7FF"
+        style={"stroke"}
+        color="none"
       />
 
       <RoundedRect
@@ -96,6 +104,7 @@ export default function GameResultScene({
         width={layout.videoFrame.width}
         height={layout.videoFrame.height}
         r={layout.videoRadius}
+        style={"stroke"}
         color="#101315"
       >
         <Shadow dx={0} dy={8} blur={16} color="rgba(0,0,0,0.28)" />
