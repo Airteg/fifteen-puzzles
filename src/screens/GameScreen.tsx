@@ -1,6 +1,17 @@
+import { useSkiaFonts } from "@/context/FontProvider";
+import { useGameState } from "@/context/GameStateProvider";
 import type { GameResultRouteParams } from "@/screens/components/GameResult/result.types";
 import { resolveGameResultReason } from "@/screens/components/GameResult/resultLogic";
 import { RootStackParamList } from "@/types/types";
+import { BoardGestureOverlay } from "@/ui/game/BoardGestureOverlay";
+import { GameSceneCanvas } from "@/ui/game/GameSceneCanvas";
+import { shuffleTiles } from "@/ui/game/gameEngine/shuffleTiles";
+import {
+  MoveCommitEvent,
+  useGameBoardController,
+  WinEvent,
+} from "@/ui/game/useGameBoardController";
+import { useGameSceneMetrics } from "@/ui/game/useGameSceneMetrics";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import React, {
   useCallback,
@@ -10,25 +21,6 @@ import React, {
   useState,
 } from "react";
 import { View } from "react-native";
-
-// Хуки та провайдери
-import { useSkiaFonts } from "@/context/FontProvider";
-import { useGameState } from "@/context/GameStateProvider";
-import {
-  MoveCommitEvent,
-  useGameBoardController,
-  WinEvent,
-} from "@/ui/game/useGameBoardController";
-import { useGameSceneMetrics } from "@/ui/game/useGameSceneMetrics";
-
-// UI Компоненти:
-// Жести
-import { BoardGestureOverlay } from "@/ui/game/BoardGestureOverlay";
-// Сцена
-import { GameSceneCanvas } from "@/ui/game/GameSceneCanvas";
-
-// Функція для генерації початкового положення плиток
-import { shuffleTiles } from "@/ui/game/gameEngine/shuffleTiles";
 import { useSharedValue } from "react-native-reanimated";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Game">;
@@ -45,7 +37,6 @@ function formatCountdownMs(ms: number) {
 }
 
 const GameScreen: React.FC<Props> = ({ route, navigation }) => {
-  // 1. Метрики екрана та сцени
   const hasTimer = route.params?.mode === "limitTime";
   const currentMode = hasTimer ? "LIMIT TIME" : "CLASSIC";
   const gameMode = hasTimer ? "limitTime" : "classic";
@@ -249,7 +240,6 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     stopCountdownFlow,
   ]);
 
-  // 5. Ігровий контролер
   const boardCtrl = useGameBoardController({
     mode: gameMode,
     bootGrid,
@@ -258,7 +248,6 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     sessionIdSV,
   });
 
-  // 6. Стан готовності (анімація навігації)
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
@@ -376,7 +365,6 @@ const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     [countdownMs, hasTimer, settings.limitTimeMs],
   );
 
-  // Захист: чекаємо поки завантажиться шрифт
   if (!tileFont) {
     return <View style={{ flex: 1, backgroundColor: "#000" }} />;
   }
